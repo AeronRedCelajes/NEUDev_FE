@@ -10,8 +10,8 @@
     background-color: #FFF5F1;
     box-shadow: 0 3px 4px rgba(89, 89, 89, 0.244);
 }
-
-.assessment-navbar-top .bi-arrow-left-circle{
+  
+.assessment-navbar-top .bi-arrow-left-circle {
     font-size: 20px;
     font-weight: bolder;
     color: #B84C20;
@@ -20,11 +20,11 @@
     padding-left: 20px;
 }
 
-.assessment-navbar-top .bi-arrow-left-circle:hover{
-    color: #e4bcac;
+.assessment-navbar-top .bi-arrow-left-circle:hover {
+color: #e4bcac;
 }
 
-.assessment-navbar-top p{
+.assessment-navbar-top p {
     margin: auto 0;
     font-size: 17px;
     color: #B84C20;
@@ -38,12 +38,12 @@
     margin-right: 10px;
 }
 
-.assessment-navbar .bi{
+.assessment-navbar .bi {
     color: #B84C20;
     margin-right: 20px;
 }
 
-.assessment-content{
+.assessment-content {
     background-color: #E2E4EB;
     min-height: 100vh;
     max-height: max-content;
@@ -471,39 +471,43 @@
     box-shadow: 0 3px 4px rgba(128, 128, 128, 0.544);
 }
 
-.test-case{
+.test-case {
     margin-top: 10px;
     margin-inline: 10px;
     padding-inline: 10px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start; /* so items line up left-to-right */
     background-color: #C79E8E;
     color: white;
     border-radius: 20px;
-}
-
-.test-case button{
+  }
+  
+  .test-case p {
+    margin-block: 0;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  
+  .test-case button {
     height: 22px;
     border-radius: 50%;
     margin-right: 5px;
     background-color: #D9D9D9;
     border: none;
-}
-
-.test-case p{
-    margin-block: 0;
-    font-weight: 600;
-}
-
-.test-case i{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .test-case i {
     margin-left: auto;
     font-size: x-large;
     cursor: pointer;
     color: #c4faba;
-}
-
-.test-footer{
+  }
+  
+  .test-footer {
     margin-top: auto;
     background-color: #D3CCC9;
     color: #B84C20;
@@ -513,8 +517,8 @@
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
     box-shadow: 0 3px 4px rgba(128, 128, 128, 0.544);
-}
-
-.test-footer p{
+  }
+  
+  .test-footer p {
     margin-bottom: 0;
-}
+  }

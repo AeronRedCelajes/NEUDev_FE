@@ -13,13 +13,13 @@ import { StudentDashboardComponent } from "./components/student/StudentDashboard
 import { StudentProfileComponent } from "./components/student/StudentProfileComponent";
 import { StudentPlaygroundComponent } from "./components/student/StudentPlaygroundComponent.jsx";
 
-import { StudentClassManagementComponent } from "./components/student/StudentClassManagementComponent.jsx";
+import { StudentClassComponent } from "./components/student/StudentClassComponent.jsx";
 import { StudentBulletinComponent } from "./components/student/StudentBulletinComponent.jsx";
 
 import StudentActivityItemsComponent from "./components/student/StudentActivityItemsComponent.jsx";
 import StudentActivityLeaderboardComponent from "./components/student/StudentActivityLeaderboardComponent.jsx";
 
-import { StudentCodingAssessmentComponent } from "./components/student/StudentCodingAssessmentComponent.jsx";
+import StudentCodingAssessmentComponent from "./components/student/StudentCodingAssessmentComponent.jsx";
 
 // Teacher Components
 import { TeacherDashboardComponent } from "./components/teacher/TeacherDashboardComponent";
@@ -58,7 +58,7 @@ function App() {
                     <Route path="/student/profile" element={<StudentProfileComponent />} />
                     <Route path="/student/sandbox" element={<StudentPlaygroundComponent />} />
 
-                    <Route path="/student/class/:classID/activity" element={<StudentClassManagementComponent />} />
+                    <Route path="/student/class/:classID/activity" element={<StudentClassComponent />} />
                     <Route path="/student/class/:classID/student-bulletin" element={<StudentBulletinComponent />} />
 
                     <Route path="/student/class/:classID/activity/:actID/leaderboard" element={<StudentActivityLeaderboardComponent />} />

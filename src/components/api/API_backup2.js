@@ -423,45 +423,6 @@ async function unenrollStudent(classID, studentID) {
     });
 }
 
-
-//////////////////////////////////////////
-// BULETTIN TEACHER FUNCTIONS
-//////////////////////////////////////////
-
-async function getBulletinPosts(classID) {
-    const token = sessionStorage.getItem("access_token");
-    if (!token) return { error: "Unauthorized access" };
-
-    return await safeFetch(`${API_LINK}/teacher/class/${classID}/bulletin`, {
-        method: "GET",
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-}
-
-async function createBulletinPost(classID, title, message) {
-    const token = sessionStorage.getItem("access_token");
-    if (!token) return { error: "Unauthorized access" };
-
-    return await safeFetch(`${API_LINK}/teacher/bulletin`, {
-        method: "POST",
-        headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ classID, title, message })
-    });
-}
-
-async function deleteBulletinPost(postID) {
-    const token = sessionStorage.getItem("access_token");
-    if (!token) return { error: "Unauthorized access" };
-
-    return await safeFetch(`${API_LINK}/teacher/bulletin/${postID}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-}
-
 //////////////////////////////////////////
 // ACTIVITY FUNCTIONS
 //////////////////////////////////////////
@@ -470,7 +431,6 @@ async function getStudentActivities() {
     const token = sessionStorage.getItem("access_token"); 
     if (!token) return { error: "Unauthorized access: No token found" };
 
-    // Note: The response now includes "scorePercentage" along with overallScore, rank, and maxPoints.
     return await safeFetch(`${API_LINK}/student/activities`, {
         method: "GET",
         headers: { "Authorization": `Bearer ${token}` }
@@ -669,7 +629,7 @@ async function getItems(itemTypeID, query = {}) {
       method: "GET",
       headers: { "Authorization": `Bearer ${token}` }
     });
-}
+  }
   
 
 // Fetch all items for a specific item type.
@@ -771,9 +731,6 @@ export {
     getClassInfo,
     getClassStudents,
     unenrollStudent,
-    getBulletinPosts,
-    createBulletinPost,
-    deleteBulletinPost,
     getStudentActivities,
     createActivity,
     editActivity,

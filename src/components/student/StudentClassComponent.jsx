@@ -67,7 +67,7 @@ const Timer = ({ openDate, closeDate }) => {
   );
 };
 
-export const StudentClassManagementComponent = () => {
+export const StudentClassComponent = () => {
   const navigate = useNavigate();
   const { classID } = useParams();
 
@@ -295,7 +295,7 @@ export const StudentClassManagementComponent = () => {
                         <Col className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>{activity.actTitle}</h3>
-                            <p><strong>Professor:</strong> {activity.teacherName}</p>
+                            <p><strong>Teacher:</strong> {activity.teacherName}</p>
                             <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
                             <p>
@@ -358,7 +358,7 @@ export const StudentClassManagementComponent = () => {
                         <Col className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>{activity.actTitle}</h3>
-                            <p><strong>Professor:</strong> {activity.teacherName}</p>
+                            <p><strong>Teacher:</strong> {activity.teacherName}</p>
                             <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
                             <p>
@@ -421,7 +421,7 @@ export const StudentClassManagementComponent = () => {
                         <Col className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>{activity.actTitle}</h3>
-                            <p><strong>Professor:</strong> {activity.teacherName}</p>
+                            <p><strong>Teacher:</strong> {activity.teacherName}</p>
                             {renderLanguages(languages)}
                             <p>
                               <i className='bi bi-calendar-check'></i>{" "}
@@ -515,4 +515,4 @@ export const StudentClassManagementComponent = () => {
   );
 };
 
-export default StudentClassManagementComponent;
+export default StudentClassComponent;

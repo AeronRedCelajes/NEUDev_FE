@@ -42,7 +42,7 @@ const TeacherActivityLeaderboardComponent = () => {
                 <tr>
                   <th className="leaderboard-column-titles">Student Name</th>
                   <th className="leaderboard-column-titles">Program</th>
-                  <th className="leaderboard-column-titles">Average Score</th>
+                  <th className="leaderboard-column-titles">Score</th>
                   <th className="leaderboard-column-titles">Rank</th>
                 </tr>
               </thead>
