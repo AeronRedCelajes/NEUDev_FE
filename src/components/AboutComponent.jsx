@@ -12,10 +12,10 @@ export const AboutComponent = () => {
       </div>
 
       <div className='container-fluid team-container'>
-        <div className='row team-row'>
-          <div className='col-md-2'>
+        <div className='row g-0 team-row'>
+          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
               <div className='card team-card'>
-                  <img src='/src/assets/hana2.png' alt="Hannah Condada"/>
+                  <img className="team-img" src='/src/assets/hana2.png' alt="Hannah Condada"/>
                   <div className="card-name">HANNAH CONDADA</div>
                   <div className='card-body'>
                       <p className='role'>Lead UI/UX Design</p>
@@ -29,9 +29,9 @@ export const AboutComponent = () => {
               </div>
           </div>
 
-          <div className='col-md-2'>
+          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
               <div className='card team-card'>
-                  <img src='/src/assets/angelica2.png' alt="Angelica Mae Manliguez"/>
+                  <img className="team-img" src='/src/assets/angelica2.png' alt="Angelica Mae Manliguez"/>
                   <div className="card-name">ANGELICA MAE MANLIGUEZ</div>
                   <div className='card-body'>
                       <p className='role'>Lead Front-End Developer</p>
@@ -45,12 +45,12 @@ export const AboutComponent = () => {
               </div>
           </div>
 
-          <div className='col-md-2'>
+          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
             <div className='card team-card'>
-              <img src='/src/assets/erikka2.png' alt="Erikka"/>
+              <img className="team-img" src='/src/assets/erikka2.png' alt="Erikka"/>
               <div className="card-name">ERIKKA MARIELLE ENAJE</div>
               <div className='card-body'>
-                <p className="role">Lead QA & Asst. UI/UX Design</p>
+                <p className="role">Asst. UI/UX Design</p>
                 <p className="card-text">
                   Erikka Marielle Enaje is a 22-years-old  Computer Science student at New Era University.  You can connect to her on Linkedln and view her project on GitHub.                
                 </p>
@@ -61,9 +61,9 @@ export const AboutComponent = () => {
             </div>
           </div>
 
-          <div className='col-md-2'>
+          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
               <div className='card team-card'>
-                  <img src='/src/assets/noy2.png' alt="Noriel Achero"/>
+                  <img className="team-img" src='/src/assets/noy2.png' alt="Noriel Achero"/>
                   <div className="card-name">NORIEL ARCHERO</div>
                   <div className='card-body'>
                       <p className='role'>Project Manager</p>
@@ -77,9 +77,9 @@ export const AboutComponent = () => {
               </div>
           </div>
           
-          <div className='col-md-2'>
+          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
               <div className='card team-card'>
-                  <img src='/src/assets/aeron2.png' alt="Noriel Achero"/>
+                  <img className="team-img" src='/src/assets/aeron.png' alt="Noriel Achero"/>
                   <div className="card-name">AERON RED CELAJES</div>
                   <div className='card-body'>
                       <p className='role'>Lead Back-End Developer</p>

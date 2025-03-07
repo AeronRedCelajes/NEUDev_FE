@@ -8,7 +8,7 @@
 .description{
     padding-inline: 200px;
     color: #9D9D9D;
-    font-size: small;
+    font-size: 0.8rem;
     text-align: center;
 }
 
@@ -16,32 +16,35 @@
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 30px;
+    gap: 25px;
+    padding-right: 20px;
+    align-items: stretch;
 }
 
 .team-container {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 50px;
-    padding-bottom: 30px;
-    overflow: hidden;
+    padding-block: 20px;
+    max-width: 100%;
+    margin: 0;
 }
 
 .team-card {
     background-color: #333333 !important;
     border: none;
     border-radius: 20px !important;
-    position: relative;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    width: 260px;
+    width: 100%;
     height: auto;
+    min-height: 100%;
 }
 
-.team-card img {
-    height: 210px;
+.team-card .team-img {
+    height: auto;
     width: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    display: block;
+    margin: 0 auto;
 }
 
 .team-card .card-name {
@@ -49,9 +52,9 @@
     text-align: center;
     color: #F6F6E9;
     font-weight: bold;
-    font-size: medium;
+    font-size: 0.9rem;
     padding: 2px;
-    margin-top: -6px;
+    margin-top: -10px;
     border-radius: 5px;
     width: 104%;
     align-self: center;
@@ -61,27 +64,32 @@
 .team-card .role{
     color: #CBCBCB;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 0.8rem;
 }
 
 .team-card .card-text{
     color: #9D9D9D;
-    font-size: small;
+    font-size: 0.7rem;
     text-align: justify;
     margin-top: -8px;
+    flex-grow: 1;
+}
+
+.team-card .card-body{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .team-card .social-links {
     display: flex;
     justify-content: center; 
-    gap: 10px;
-    margin-top: -10px; 
+    gap: 15px;
 }
 
 .team-card .social-links a {
     color: #ff5722;
     text-decoration: none;
-    margin: 0 5px;
     font-size: 16px;
     transition: ease-in-out 0.3s;
 }
@@ -92,4 +100,143 @@
 
 .team-card .social-links img {
     height: 25px;
+}
+
+@media (max-width: 1024px) {
+    .header{
+        font-size: 1.8rem;
+        margin-top: 20px;
+    }
+
+    .description{
+        padding-inline: 100px;
+        font-size: 0.75rem;
+    }
+
+    .team-row {
+        gap: 36px;
+    }
+    
+    .team-card {
+        width: 112%;
+    }
+    
+    .team-card .card-name {
+        font-size: 0.7rem;
+    }
+    
+    .team-card .role{
+        font-size: 0.7rem;
+    }
+    
+    .team-card .card-text{
+        font-size: 0.6rem;
+    }
+    
+    .team-card .social-links img {
+        height: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header{
+        font-size: 1.7rem;
+    }
+
+    .description{
+        padding-inline: 100px;
+        font-size: 0.7rem;
+    }
+    
+    .team-card {
+        width: 112%;
+    }
+
+    .team-card .team-img {
+        width: 80%;
+        height: 130px;
+    }
+}
+
+@media (max-width: 576px) {
+    .header{
+        font-size: 1.3rem;
+        margin-top: 40px;
+    }
+
+    .description{
+        padding-inline: 30px;
+        font-size: 0.65rem;
+    }
+    
+    .team-card .team-img {
+        height: 115px;
+    }
+}
+
+@media (max-width: 425px) {
+    .team-card {
+        border-radius: 15px !important;
+        width: 120%;
+    }
+    
+    .team-card .team-img {
+        height: 100px;
+    }
+
+    .team-card .card-name {
+        font-size: 0.6rem;
+    }
+    
+    .team-card .card-body{
+        padding: 15px;
+    }
+
+    .team-card .role{
+        font-size: 0.6rem;
+        margin-top: -5px;
+    }
+    
+    .team-card .card-text{
+        font-size: 0.55rem;
+        margin-top: -10px;
+    }
+
+    .team-card .social-links {
+        margin-top: -10px;
+    }
+
+    .team-card .social-links img {
+        height: 17px;
+    }
+}
+
+@media (max-width: 320px) {
+    .team-card {
+        border-radius: 10px !important;
+        width: 125%;
+    }
+    
+    .team-card .team-img {
+        height: 100px;
+    }
+
+    .team-card .card-name {
+        font-size: 0.55rem;
+        font-weight: 600;
+    }
+    
+    .team-card .card-body{
+        padding: 10px;
+    }
+
+    .team-card .role{
+        font-size: 0.55rem;
+        margin-top: 0;
+    }
+    
+    .team-card .card-text{
+        font-size: 0.5rem;
+        margin-top: -10px;
+    }
 }

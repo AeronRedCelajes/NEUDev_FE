@@ -78,7 +78,7 @@ export const SignUpStudent = () => {
   };
 
   return (
-    <div className="container-fluid vh-100 d-flex p-0">
+    <div className="container-fluid d-flex p-0 st-signup-form">
       <div className="col-md-7 d-none d-md-block p-0">
         <img
           src="/src/assets/univ.png"
@@ -88,7 +88,7 @@ export const SignUpStudent = () => {
         />
       </div>
 
-      <div className="col-md-5 d-flex align-items-center justify-content-center">
+      <div className="col-12 col-md-5 d-flex align-items-center justify-content-center signup-form-container">
         <div className="form-container">
           <div className="d-flex justify-content-center">
             <img
@@ -220,7 +220,7 @@ export const SignUpStudent = () => {
               </div>
             </div>
 
-            <button type="submit" className="w-100 custom-button">
+            <button type="submit" className="custom-button w-100">
               Sign Up
             </button>
 

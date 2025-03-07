@@ -11,32 +11,28 @@ import {
   Tab,
   Modal,
   Spinner,
-  Form,
-  Accordion
+  Form
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCirclePlay,
   faCheck,
   faTimes,
-  faPlay,
   faPlusSquare,
-  faQuestion
+  faQuestion,
+  faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import '/src/style/student/assessment.css';
-
-import { getActivityItemsByStudent } from '../api/API';
+import { getActivityItemsByStudent, finalizeSubmission } from '../api/API';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-// Map known language names to icons
 const languageIconMap = {
   'C#': '/src/assets/c.png',
   Java: '/src/assets/java2.png',
   Python: '/src/assets/py.png'
 };
 
-// Helper: guess file extension from language
 function getExtensionFromLanguage(langName) {
   switch (langName) {
     case 'Java':
@@ -50,36 +46,30 @@ function getExtensionFromLanguage(langName) {
   }
 }
 
-export default function StudentCodingAssessmentComponent() {
-  // -----------------------------
-  // 1) Basic Hooks & Variables
-  // -----------------------------
+export const StudentCodingAssessmentComponent = () => {
   const { classID, actID } = useParams();
   const navigate = useNavigate();
+  const stateKey = `activityState_${actID}`;
 
-  // Activity Info
   const [activityName, setActivityName] = useState('');
   const [actDesc, setActDesc] = useState('');
   const [maxPoints, setMaxPoints] = useState(0);
-  const [actDuration, setActDuration] = useState('00:00:00');
+  const [actDuration, setActDuration] = useState('');
 
-  // Items
   const [items, setItems] = useState([]);
   const [expandedItem, setExpandedItem] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Programming Languages – will be set from the allowedLanguages key
   const [programmingLanguages, setProgrammingLanguages] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState({
     name: 'Java',
     imgSrc: '/src/assets/java2.png'
   });
 
-  // Files for code editor
+  // Default: one file with empty content
   const [files, setFiles] = useState([{ id: 0, fileName: 'main', extension: 'py', content: '' }]);
   const [activeFileId, setActiveFileId] = useState(0);
 
-  // Terminal / WebSocket
   const [lines, setLines] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [typedInput, setTypedInput] = useState('');
@@ -88,48 +78,40 @@ export default function StudentCodingAssessmentComponent() {
   const wsRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Timer & freeze time (for speed)
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef(null);
-  const [freezeTime, setFreezeTime] = useState(null);
+  const [timeExpired, setTimeExpired] = useState(false);
 
-  // Test-case results: testCaseResults[itemID][testCaseID]
   const [testCaseResults, setTestCaseResults] = useState({});
 
-  // Modals
   const [showFinishAttempt, setShowFinishAttempt] = useState(false);
   const [showSubmit, setShowSubmit] = useState(false);
 
-  // Add File Modal
   const [showAddFileModal, setShowAddFileModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFileExtension, setNewFileExtension] = useState('txt');
-
-  // ---- NEW: Edit File Modal States ----
   const [showEditFileModal, setShowEditFileModal] = useState(false);
   const [editFileName, setEditFileName] = useState('');
   const [editFileExtension, setEditFileExtension] = useState('');
 
-  // Final Results data
   const [finalTitle, setFinalTitle] = useState('Result');
   const [finalTestCases, setFinalTestCases] = useState('0/0');
   const [finalScore, setFinalScore] = useState('0/0');
-  const [finalRank, setFinalRank] = useState('42nd');
+  const [finalRank, setFinalRank] = useState('-');
   const [finalSpeed, setFinalSpeed] = useState('0m');
   const [finalActivityName, setFinalActivityName] = useState('');
 
-  // Track start time (for speed)
+  // For calculating timeSpent
   const [startTime] = useState(Date.now());
 
-  // Expanded test cases (for right column dropdown)
   const [expandedTestCases, setExpandedTestCases] = useState({});
-
-  // Expanded summary items (in Activity Summary Modal)
   const [expandedSummaryItems, setExpandedSummaryItems] = useState([]);
 
-  // -----------------------------
-  // 2) Fetch Activity Data & Allowed Languages
-  // -----------------------------
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // NEW FLAG: wait until we've loaded the saved state before we sync
+  const [hasLoadedSavedState, setHasLoadedSavedState] = useState(false);
+
   useEffect(() => {
     async function fetchActivityData() {
       try {
@@ -138,13 +120,13 @@ export default function StudentCodingAssessmentComponent() {
           setActivityName(resp.activityName);
           setActDesc(resp.actDesc);
           setMaxPoints(resp.maxPoints);
-          setActDuration(resp.actDuration || '00:00:00');
+          setActDuration(resp.actDuration);
+
           setItems(resp.items || []);
           if (resp.items && resp.items.length > 0) {
             setExpandedItem(resp.items[0].itemID);
             setSelectedItem(resp.items[0].itemID);
           }
-          // Use allowed languages from the backend if available
           if (resp.allowedLanguages && resp.allowedLanguages.length > 0) {
             setProgrammingLanguages(resp.allowedLanguages);
             const first = resp.allowedLanguages[0];
@@ -152,12 +134,16 @@ export default function StudentCodingAssessmentComponent() {
               name: first.progLangName,
               imgSrc: languageIconMap[first.progLangName] || '/src/assets/py.png'
             });
+            // If we want the default file to match the first language's extension:
             setFiles((prev) =>
               prev.map((f) => ({
                 ...f,
                 extension: first.progLangExtension || getExtensionFromLanguage(first.progLangName)
               }))
             );
+          }
+          if (resp.rank) {
+            setFinalRank(resp.rank);
           }
         }
       } catch (err) {
@@ -167,29 +153,123 @@ export default function StudentCodingAssessmentComponent() {
     fetchActivityData();
   }, [actID]);
 
-  // -----------------------------
-  // 3) Timer & Freeze Time for Speed
-  // -----------------------------
+  // 1) Initialization effect: load or create localStorage
   useEffect(() => {
     if (!actDuration) return;
-    const [hh, mm, ss] = actDuration.split(':').map(Number);
-    let totalSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
-    setTimeLeft(totalSeconds);
 
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1 && prev > 0) {
-          clearInterval(timerRef.current);
-          setFreezeTime(Date.now());
-          // When time runs out, open summary modal
-          setShowFinishAttempt(true);
-          return 0;
+    let initialTimeLeft;
+    let endTime;
+    const savedState = localStorage.getItem(stateKey);
+
+    if (savedState) {
+      console.log("From assessment page: Found savedState for", stateKey, savedState);
+      const parsed = JSON.parse(savedState);
+      // Check if timer is still valid
+      if (parsed.endTime && parsed.endTime > Date.now()) {
+        endTime = parsed.endTime;
+        initialTimeLeft = Math.floor((endTime - Date.now()) / 1000);
+
+        // Restore saved data
+        console.log("From assessment page: Resuming with saved files:", parsed.files);
+        if (parsed.files) setFiles(parsed.files);
+        if (parsed.activeFileId !== undefined) setActiveFileId(parsed.activeFileId);
+        if (parsed.testCaseResults) setTestCaseResults(parsed.testCaseResults);
+
+        // Also restore the selectedItem if it was stored
+        if (parsed.selectedItem) {
+          setSelectedItem(parsed.selectedItem);
         }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [actDuration]);
+      } else {
+        // The saved state is expired, so auto-submit
+        console.log("From assessment page: Saved state expired. Auto-submitting.");
+        setTimeLeft(0);
+        setTimeExpired(true);
+        setShowFinishAttempt(true);
+        handleSubmitAllAndFinish();
+        return;
+      }
+    } else {
+      // No saved state found => create a new attempt
+      console.log("From assessment page: No savedState found. Creating new attempt.");
+      const [hh, mm, ss] = actDuration.split(':').map(Number);
+      const totalSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
+      initialTimeLeft = totalSeconds;
+      endTime = Date.now() + totalSeconds * 1000;
+
+      const newState = {
+        endTime,
+        files,
+        activeFileId,
+        actDuration,
+        testCaseResults,
+        // We can also store selectedItem right away
+        selectedItem
+      };
+      localStorage.setItem(stateKey, JSON.stringify(newState));
+      console.log("From assessment page: New state created in localStorage:", newState);
+    }
+
+    // Start the timer
+    if (initialTimeLeft <= 0) {
+      setTimeLeft(0);
+      setTimeExpired(true);
+      setShowFinishAttempt(true);
+      handleSubmitAllAndFinish();
+    } else {
+      setTimeLeft(initialTimeLeft);
+      timerRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            setTimeLeft(0);
+            setTimeExpired(true);
+            setShowFinishAttempt(true);
+            handleSubmitAllAndFinish();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    // Mark that we've loaded the saved state (or created a new one)
+    setHasLoadedSavedState(true);
+
+    return () => {
+      clearInterval(timerRef.current);
+    };
+  }, [actDuration, stateKey]);
+
+  // 2) Sync effect: only runs after we've loaded or created the saved state
+  useEffect(() => {
+    if (!hasLoadedSavedState) return;
+
+    const saved = localStorage.getItem(stateKey);
+    if (!saved) return;
+
+    const parsed = JSON.parse(saved);
+    // Update the stored data with our current states
+    parsed.files = files;
+    parsed.activeFileId = activeFileId;
+    parsed.testCaseResults = testCaseResults;
+    parsed.selectedItem = selectedItem;
+
+    localStorage.setItem(stateKey, JSON.stringify(parsed));
+    console.log("From assessment page: Syncing localStorage:", parsed);
+  }, [files, activeFileId, testCaseResults, selectedItem, stateKey, hasLoadedSavedState]);
+
+  // If user closes browser tab
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!timeExpired && !isSubmitted) {
+        finalizeSubmissionHandler();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [timeExpired, isSubmitted]);
 
   const formatTimeLeft = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -198,9 +278,7 @@ export default function StudentCodingAssessmentComponent() {
     return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
   };
 
-  // -----------------------------
-  // 4) WebSocket Setup
-  // -----------------------------
+  // WebSocket setup
   useEffect(() => {
     const ws = new WebSocket('wss://neudevcompiler-production.up.railway.app');
     wsRef.current = ws;
@@ -239,25 +317,21 @@ export default function StudentCodingAssessmentComponent() {
     setLines((prev) => [...prev, text]);
   };
 
-  // -----------------------------
-  // 5) Navigation Functions
-  // -----------------------------
+  // Navigate back
   const handleClassClick = () => {
     navigate(`/student/class/${classID}/activity`);
   };
 
+  // Expand/collapse item
   const toggleItem = (itemID) => {
     setExpandedItem((prev) => (prev === itemID ? null : itemID));
     setSelectedItem(itemID);
   };
 
-  // -----------------------------
-  // 6) Language Selection
-  // -----------------------------
+  // Language selection
   const handleSelectLanguage = (langName) => {
     const icon = languageIconMap[langName] || '/src/assets/py.png';
     setSelectedLanguage({ name: langName, imgSrc: icon });
-    // Update the active file's extension to match the new language
     setFiles((prevFiles) =>
       prevFiles.map((file) =>
         file.id === activeFileId
@@ -267,19 +341,19 @@ export default function StudentCodingAssessmentComponent() {
     );
   };
 
-  // -----------------------------
-  // 7) Editor & File Logic
-  // -----------------------------
+  // Switch file tabs
   const handleTabSelect = (fileId) => {
     setActiveFileId(fileId);
   };
 
+  // As user types code
   const handleFileChange = (newContent) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === activeFileId ? { ...f, content: newContent } : f))
     );
   };
 
+  // Creating / deleting / editing files
   const openAddFileModal = () => {
     setNewFileExtension(getExtensionFromLanguage(selectedLanguage?.name || 'txt'));
     setNewFileName('');
@@ -287,7 +361,7 @@ export default function StudentCodingAssessmentComponent() {
   };
 
   const handleCreateNewFile = () => {
-    const newId = files.length > 0 ? Math.max(...files.map((f) => f.id)) + 1 : 0;
+    const newId = files.length ? Math.max(...files.map((f) => f.id)) + 1 : 0;
     const newFile = {
       id: newId,
       fileName: newFileName || `file${newId}`,
@@ -297,20 +371,21 @@ export default function StudentCodingAssessmentComponent() {
     setFiles((prev) => [...prev, newFile]);
     setActiveFileId(newId);
     setShowAddFileModal(false);
+    console.log("From assessment page: New file created", newFile);
   };
 
   const handleDeleteFile = (fileId) => {
-    if (files.length === 1) return;
+    if (files.length === 1) return; // Don't allow deleting the last file
     if (window.confirm('Delete this file?')) {
       setFiles((prev) => prev.filter((f) => f.id !== fileId));
       if (activeFileId === fileId) {
         const remaining = files.filter((f) => f.id !== fileId);
         if (remaining[0]) setActiveFileId(remaining[0].id);
       }
+      console.log("From assessment page: File deleted, new files array:", files);
     }
   };
 
-  // ---- NEW: Edit File Modal Functions ----
   const openEditFileModal = () => {
     const file = files.find((f) => f.id === activeFileId);
     if (file) {
@@ -323,24 +398,26 @@ export default function StudentCodingAssessmentComponent() {
   const handleEditFile = () => {
     setFiles((prev) =>
       prev.map((f) =>
-        f.id === activeFileId ? { ...f, fileName: editFileName, extension: editFileExtension } : f
+        f.id === activeFileId
+          ? { ...f, fileName: editFileName, extension: editFileExtension }
+          : f
       )
     );
     setShowEditFileModal(false);
+    console.log("From assessment page: Edited file saved");
   };
 
-  // -----------------------------
-  // 8) Code Execution
-  // -----------------------------
   const activeFile = files.find((f) => f.id === activeFileId);
 
+  // Running code
   const handleRunCode = () => {
-    if (!activeFile) return;
+    if (!activeFile || isSubmitted || timeExpired) return;
     setLines([]);
     setPrompt('');
     setTypedInput('');
     setShowTerminal(true);
     setLoading(true);
+
     const ws = wsRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(
@@ -357,6 +434,7 @@ export default function StudentCodingAssessmentComponent() {
     }
   };
 
+  // Running a single test case
   const runSingleTestCase = (testCase, scoreUpdate = false) => {
     return new Promise((resolve) => {
       if (!selectedItem) {
@@ -368,6 +446,7 @@ export default function StudentCodingAssessmentComponent() {
       setPrompt('');
       setTypedInput('');
       setShowTerminal(true);
+
       const ws = wsRef.current;
       if (ws && ws.readyState === WebSocket.OPEN) {
         let outputBuffer = [];
@@ -428,9 +507,9 @@ export default function StudentCodingAssessmentComponent() {
     });
   };
 
+  // "Check Code" = run all test cases for the selected item
   const handleCheckCode = async () => {
-    if (!selectedItem) return;
-    // Reset locked results for this item
+    if (!selectedItem || isSubmitted || timeExpired) return;
     setTestCaseResults((prev) => {
       const copy = { ...prev };
       delete copy[selectedItem];
@@ -438,15 +517,14 @@ export default function StudentCodingAssessmentComponent() {
     });
     const itemData = items.find((it) => it.itemID === selectedItem);
     if (!itemData || !itemData.testCases) return;
+
     for (let i = 0; i < itemData.testCases.length; i++) {
       await runSingleTestCase(itemData.testCases[i], true);
     }
     setLoading(false);
   };
 
-  // -----------------------------
-  // 9) Terminal Input
-  // -----------------------------
+  // Terminal input
   const handleInputKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -477,13 +555,11 @@ export default function StudentCodingAssessmentComponent() {
     setTypedInput('');
   };
 
-  // -----------------------------
-  // 10) Score Calculations
-  // -----------------------------
+  // Score computations
   const computeItemScore = (itemID) => {
     const item = items.find((it) => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
-    const itemResults = testCaseResults[itemID] || {};
+    const itemResults = testCaseResults[item.itemID] || {};
     let sum = 0;
     for (let tc of item.testCases) {
       const r = itemResults[tc.testCaseID];
@@ -502,13 +578,12 @@ export default function StudentCodingAssessmentComponent() {
     return total;
   };
 
-  // -----------------------------
-  // 11) Finish Attempt => Activity Summary
-  // -----------------------------
+  // Expand/collapse summary
   const toggleSummaryItem = (itemID) => {
-    setExpandedSummaryItems((prev) =>
-      prev.includes(itemID) ? prev.filter((id) => id !== itemID) : [...prev, itemID]
-    );
+    setExpandedSummaryItems((prev) => {
+      const arr = Array.isArray(prev) ? prev : [];
+      return arr.includes(itemID) ? arr.filter((id) => id !== itemID) : [...arr, itemID];
+    });
   };
 
   const toggleSummaryTestCase = (tcIndex, itemID) => {
@@ -518,14 +593,46 @@ export default function StudentCodingAssessmentComponent() {
     });
   };
 
+  // "Finish Attempt" => show summary modal
   const handleFinishAttempt = () => {
     setShowFinishAttempt(true);
   };
 
-  const canCloseSummary = timeLeft > 0;
+  // Final submission
+  const finalizeSubmissionHandler = async () => {
+    if (isSubmitted) return;
+    let itemID = selectedItem;
+    if (!itemID && items.length > 0) {
+      itemID = items[0].itemID;
+    }
+    if (!itemID) {
+      console.error("❌ No item available for submission");
+      return;
+    }
+    const submissionData = {
+      itemID,
+      codeSubmission: activeFile ? activeFile.content : '',
+      score: computeTotalScore(),
+      timeSpent: Math.floor((Date.now() - startTime) / 60000)
+    };
+    console.log("From assessment page: Submitting final:", submissionData);
 
-  const handleSubmitAllAndFinish = () => {
-    // Calculate total and correct test cases
+    const result = await finalizeSubmission(actID, submissionData);
+    if (result.error) {
+      console.error("From assessment page: Submission failed:", result.error, result.details);
+    } else {
+      setIsSubmitted(true);
+      if (result.rank) setFinalRank(result.rank);
+      localStorage.removeItem(stateKey);
+      console.log("From assessment page: Submission successful, removed localStorage key", stateKey);
+    }
+  };
+
+  // "Submit All and Finish"
+  const handleSubmitAllAndFinish = async () => {
+    if (isSubmitted) return;
+
+    // Summarize test cases
     let totalTC = 0;
     let correctTC = 0;
     items.forEach((it) => {
@@ -540,7 +647,6 @@ export default function StudentCodingAssessmentComponent() {
     });
     setFinalTestCases(`${correctTC}/${totalTC}`);
 
-    // Final score
     const totalScore = computeTotalScore();
     const mp = maxPoints || 1;
     const percent = (totalScore / mp) * 100;
@@ -548,8 +654,8 @@ export default function StudentCodingAssessmentComponent() {
     setFinalActivityName(activityName);
     setFinalScore(`${totalScore}/${mp}`);
 
-    // Final speed calculation
-    if (freezeTime) {
+    // Speed
+    if (timeExpired) {
       const [hh, mm, ss] = actDuration.split(':').map(Number);
       setFinalSpeed(`${mm}m ${ss}s`);
     } else {
@@ -560,13 +666,12 @@ export default function StudentCodingAssessmentComponent() {
       setFinalSpeed(`${mm}m ${ss}s`);
     }
 
+    await finalizeSubmissionHandler();
     setShowFinishAttempt(false);
     setShowSubmit(true);
   };
 
-  // -----------------------------
-  // 12) Download Files
-  // -----------------------------
+  // Download files
   const handleDownloadFiles = async () => {
     if (files.length === 1) {
       const single = files[0];
@@ -582,19 +687,15 @@ export default function StudentCodingAssessmentComponent() {
     }
   };
 
-  // -----------------------------
-  // 13) Render
-  // -----------------------------
   return (
     <>
-      {/* NAVBAR */}
       <Navbar expand='lg' className='assessment-navbar-top'>
-        <a href='#'>
-          <i className='bi bi-arrow-left-circle' onClick={handleClassClick}></i>
+        <a href='#' onClick={handleClassClick}>
+          <i className='bi bi-arrow-left-circle'></i>
         </a>
         <p>Back to previous page</p>
         <div className='assessment-navbar'>
-          <span className='ping'> {formatTimeLeft(timeLeft)} </span>
+          <span className='ping'>{formatTimeLeft(timeLeft)}</span>
           <a href='#'>
             <i className='bi bi-moon'></i>
           </a>
@@ -603,7 +704,6 @@ export default function StudentCodingAssessmentComponent() {
 
       <div className='container-fluid assessment-content'>
         <Row className='g-3'>
-          {/* LEFT COLUMN: Item Descriptions & Time Left */}
           <Col>
             <div style={{ marginBottom: '1rem', fontWeight: 'bold' }}>
               Time Left: {formatTimeLeft(timeLeft)}
@@ -630,28 +730,34 @@ export default function StudentCodingAssessmentComponent() {
             </div>
           </Col>
 
-          {/* MIDDLE COLUMN: Compiler */}
           <Col xs={7} className='col-compiler'>
             <div className='compiler-container'>
               <div className='compiler-header'>
                 <Row>
                   <Col sm={10} className='compiler-left-corner'>
-                    <Tabs activeKey={activeFileId} id="dynamic-file-tabs" onSelect={(k) => handleTabSelect(Number(k))}>
-                      {files.map(file => (
+                    <Tabs
+                      activeKey={activeFileId}
+                      id='dynamic-file-tabs'
+                      onSelect={(k) => setActiveFileId(Number(k))}
+                    >
+                      {files.map((file) => (
                         <Tab
                           key={file.id}
                           eventKey={file.id}
                           title={
-                            <div className="d-flex align-items-center">
+                            <div className='d-flex align-items-center'>
                               <span>{`${file.fileName}.${file.extension}`}</span>
                               {files.length > 1 && (
                                 <Button
-                                  variant="link"
-                                  size="sm"
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteFile(file.id); }}
-                                  title="Delete file"
+                                  variant='link'
+                                  size='sm'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteFile(file.id);
+                                  }}
+                                  title='Delete file'
                                 >
-                                  <FontAwesomeIcon icon={faTimes} color="red" />
+                                  <FontAwesomeIcon icon={faTimes} color='red' />
                                 </Button>
                               )}
                             </div>
@@ -659,12 +765,21 @@ export default function StudentCodingAssessmentComponent() {
                         />
                       ))}
                     </Tabs>
-                    <Button variant="link" style={{ textDecoration: 'none' }} onClick={openAddFileModal} title="Add File">
+                    <Button
+                      variant='link'
+                      style={{ textDecoration: 'none' }}
+                      onClick={openAddFileModal}
+                      title='Add File'
+                    >
                       <FontAwesomeIcon icon={faPlusSquare} />
                     </Button>
-                    {/* NEW: Edit File Button */}
-                    <Button variant="link" style={{ textDecoration: 'none' }} onClick={openEditFileModal} title="Edit File">
-                      <i className="bi bi-pencil"></i>
+                    <Button
+                      variant='link'
+                      style={{ textDecoration: 'none' }}
+                      onClick={openEditFileModal}
+                      title='Edit File'
+                    >
+                      <i className='bi bi-pencil'></i>
                     </Button>
                   </Col>
                   <Col sm={1} className='compiler-right-corner'>
@@ -677,7 +792,7 @@ export default function StudentCodingAssessmentComponent() {
                           <img
                             src={selectedLanguage.imgSrc}
                             style={{ width: '17px', marginRight: '8px' }}
-                            alt="lang-icon"
+                            alt='lang-icon'
                           />
                           {selectedLanguage.name}
                         </>
@@ -701,17 +816,26 @@ export default function StudentCodingAssessmentComponent() {
                 </Row>
                 <div className='compiler-header-border'></div>
               </div>
+
               <div style={{ padding: '1rem', minHeight: '300px' }}>
                 <textarea
-                  className="code-editor w-100"
+                  className='code-editor w-100'
                   style={{ height: '400px' }}
-                  value={files.find(f => f.id === activeFileId)?.content || ''}
-                  onChange={(e) => handleFileChange(e.target.value)}
-                  placeholder="Write your code here..."
+                  value={activeFile?.content || ''}
+                  onChange={(e) =>
+                    !isSubmitted && !timeExpired && handleFileChange(e.target.value)
+                  }
+                  placeholder='Write your code here...'
+                  disabled={isSubmitted || timeExpired}
                 />
               </div>
+
               <div className='compiler-bottom'>
-                <Button className='run' onClick={handleRunCode} disabled={loading}>
+                <Button
+                  className='run'
+                  onClick={handleRunCode}
+                  disabled={loading || isSubmitted || timeExpired}
+                >
                   {loading ? (
                     <Spinner animation='border' size='sm' />
                   ) : (
@@ -721,7 +845,11 @@ export default function StudentCodingAssessmentComponent() {
                     </>
                   )}
                 </Button>
-                <Button className='check' onClick={handleCheckCode} disabled={loading}>
+                <Button
+                  className='check'
+                  onClick={handleCheckCode}
+                  disabled={loading || isSubmitted || timeExpired}
+                >
                   {loading ? (
                     <Spinner animation='border' size='sm' />
                   ) : (
@@ -741,7 +869,6 @@ export default function StudentCodingAssessmentComponent() {
             </div>
           </Col>
 
-          {/* RIGHT COLUMN: Item Navigation & Test Cases */}
           <Col>
             <div className='item-navigation'>
               <div>
@@ -762,30 +889,46 @@ export default function StudentCodingAssessmentComponent() {
                 ))}
               </div>
               <div>
-                <Button className='finish' onClick={handleFinishAttempt}>
+                <Button className='finish' onClick={handleFinishAttempt} disabled={isSubmitted}>
                   Finish attempt...
                 </Button>
 
-                {/* Activity Summary Modal */}
+                {/* ACTIVITY SUMMARY MODAL */}
                 <Modal
                   show={showFinishAttempt}
-                  onHide={canCloseSummary ? () => setShowFinishAttempt(false) : undefined}
+                  onHide={timeLeft > 0 ? () => setShowFinishAttempt(false) : undefined}
                   backdrop='static'
                   keyboard={false}
                   size='md'
                   className='activity-summary'
                 >
-                  <Modal.Header closeButton={canCloseSummary}>
-                    <Modal.Title>Activity Summary</Modal.Title>
+                  <Modal.Header closeButton={timeLeft > 0}>
+                    <Modal.Title>
+                      {timeExpired ? (
+                        <span style={{ color: 'red' }}>
+                          <FontAwesomeIcon icon={faExclamationTriangle} /> Time Expired
+                        </span>
+                      ) : (
+                        'Activity Summary'
+                      )}
+                    </Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
                     <h3>{activityName}</h3>
-                    <p>Total Activity Score: {computeTotalScore()}/{maxPoints}</p>
+                    <p>
+                      Total Activity Score: {computeTotalScore()}/{maxPoints}
+                    </p>
                     {items.map((item, idx) => (
                       <div key={item.itemID}>
-                        <div className='item-summary' onClick={() => toggleSummaryItem(item.itemID)}>
+                        <div
+                          className='item-summary'
+                          onClick={() => toggleSummaryItem(item.itemID)}
+                          style={{ cursor: 'pointer' }}
+                        >
                           <p>{`Item ${idx + 1}: ${item.itemName} (${item.itemType})`}</p>
-                          <p>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</p>
+                          <p>
+                            Score: {computeItemScore(item.itemID)}/{item.actItemPoints}
+                          </p>
                           <i className='bi bi-arrow-right-circle'></i>
                         </div>
                         {expandedSummaryItems.includes(item.itemID) && (
@@ -795,16 +938,29 @@ export default function StudentCodingAssessmentComponent() {
                                 key={tc.testCaseID}
                                 className='test-case-summary'
                                 onClick={() => toggleSummaryTestCase(index, item.itemID)}
-                                style={{ cursor: 'pointer', paddingLeft: '1rem', borderBottom: '1px solid #ddd', marginBottom: '0.5rem' }}
+                                style={{
+                                  cursor: 'pointer',
+                                  paddingLeft: '1rem',
+                                  borderBottom: '1px solid #ddd',
+                                  marginBottom: '0.5rem'
+                                }}
                               >
                                 <p>
                                   <strong>Test Case {index + 1}</strong>
                                 </p>
                                 {expandedTestCases[`${item.itemID}-${index}`] && (
                                   <>
-                                    <p>Your Output: {(testCaseResults[item.itemID] && testCaseResults[item.itemID][tc.testCaseID]?.lockedOutput) || '(none)'}</p>
+                                    <p>
+                                      Your Output:{' '}
+                                      {testCaseResults[item.itemID]?.[tc.testCaseID]?.lockedOutput ||
+                                        '(none)'}
+                                    </p>
                                     <p>Expected Output: {tc.expectedOutput}</p>
-                                    <p>Points: {(testCaseResults[item.itemID] && testCaseResults[item.itemID][tc.testCaseID]?.lockedPoints) || 0}/{tc.testCasePoints}</p>
+                                    <p>
+                                      Points:{' '}
+                                      {testCaseResults[item.itemID]?.[tc.testCaseID]?.lockedPoints || 0}
+                                      /{tc.testCasePoints}
+                                    </p>
                                   </>
                                 )}
                               </div>
@@ -814,14 +970,12 @@ export default function StudentCodingAssessmentComponent() {
                       </div>
                     ))}
                     <div className='submit-finish'>
-                      <Button onClick={handleSubmitAllAndFinish}>
-                        Submit all and Finish
-                      </Button>
+                      <Button onClick={handleSubmitAllAndFinish}>Submit all and Finish</Button>
                     </div>
                   </Modal.Body>
                 </Modal>
 
-                {/* Final Results Modal */}
+                {/* FINAL SCORE MODAL */}
                 <Modal
                   show={showSubmit}
                   onHide={() => setShowSubmit(false)}
@@ -870,7 +1024,7 @@ export default function StudentCodingAssessmentComponent() {
               </div>
             </div>
 
-            {/* Test Container (Right Column) */}
+            {/* TEST CONTAINER */}
             <div className='test-container'>
               <div className='test-header'>
                 Tests <i className='bi bi-info-circle'></i>
@@ -881,15 +1035,18 @@ export default function StudentCodingAssessmentComponent() {
                   .map((it) =>
                     it.testCases?.map((tc, idx) => {
                       const itemResults = testCaseResults[it.itemID] || {};
-                      const r = itemResults[tc.testCaseID] || {
-                        lockedPass: null,
-                        lockedPoints: 0,
-                        latestPass: null,
-                        latestOutput: ''
-                      };
+                      const r =
+                        itemResults[tc.testCaseID] || {
+                          lockedPass: null,
+                          lockedPoints: 0,
+                          lockedOutput: '',
+                          latestPass: null,
+                          latestOutput: ''
+                        };
                       let passFail = 'untested';
                       if (r.latestPass === true) passFail = 'pass';
                       else if (r.latestPass === false) passFail = 'fail';
+
                       return (
                         <div key={tc.testCaseID} className='test-case'>
                           <div
@@ -943,7 +1100,9 @@ export default function StudentCodingAssessmentComponent() {
                             <div className='test-case-details' style={{ paddingLeft: '35px' }}>
                               <p>Your Output: {r.latestOutput || '(none)'}</p>
                               <p>Expected Output: {tc.expectedOutput}</p>
-                              <p>Points: {r.lockedPoints}/{tc.testCasePoints}</p>
+                              <p>
+                                Points: {r.lockedPoints}/{tc.testCasePoints}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -1050,7 +1209,7 @@ export default function StudentCodingAssessmentComponent() {
         </Modal.Footer>
       </Modal>
 
-      {/* ---- NEW: Edit File Modal ---- */}
+      {/* Edit File Modal */}
       <Modal show={showEditFileModal} onHide={() => setShowEditFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit File</Modal.Title>
@@ -1086,4 +1245,6 @@ export default function StudentCodingAssessmentComponent() {
       </Modal>
     </>
   );
-}
+};
+
+export default StudentCodingAssessmentComponent;

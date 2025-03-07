@@ -1,89 +1,245 @@
 .feature {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 100px;
-    padding: 50px 20px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 50px;
+  padding: 50px 20px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .main-feature-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    text-align: center;
-    padding-bottom: 50px;
-  }
-  
-  .main-feature-title h2 {
-    padding-bottom: 30px;
-    font-weight: bold;
-    color: #2C292A;
-    text-align: center;
-  }
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  text-align: center;
+  padding-bottom: 50px;
+  max-width: 100%;
+}
 
-  .main-feature h3 {
-    font-size: 15px;
-    font-weight: 800;
-  }
+.main-feature-title h2 {
+  padding-bottom: 30px;
+  font-weight: bold;
+  color: #2C292A;
+  text-align: center;
+}
 
-  .main-feature p {
-    font-size: 12px;
-    color: #707070;
-    width: 350px;
-    margin: 0 auto;
-  }
-  
-  .main-feature-img img {
-    height: 40px;
-    margin-bottom: 10px;
-  }
+.main-feature h3 {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.main-feature p {
+  font-size: 12px;
+  color: #707070;
+  width: 350px;
+  margin: 0 auto;
+}
+
+.main-feature-img img {
+  height: auto;
+  width: 10%;
+  margin-bottom: 10px;
+}
 
 .feature-1 img{
-    height: auto;
-    width: 90%;
-    display: block;
-    margin: 0 auto;
+  height: auto;
+  width: 90%;
+  display: block;
+  margin: 0 auto;
 }
 
 .feature-desc{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-left: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 150px;
 }
 
 .feature-desc h3{
-    color: #2C292A;
-    font-weight: bold;
-    text-align: right;
+  color: #2C292A;
+  font-weight: bold;
+  text-align: right;
 }
 
 .feature-desc .feature-header-right{
-    text-align: left;
+  text-align: left;
 }
 
 .feature-desc .feature-text-left{
-    color:#707070;
-    font-size: smaller;
-    text-align: right;
+  color:#707070;
+  font-size: smaller;
+  text-align: right;
 }
 
 .feature-desc .feature-text-right{
-    color:#707070;
-    font-size: smaller;
-    text-align: left;
+  color:#707070;
+  font-size: smaller;
+  text-align: left;
 }
 
 .feature-2 img{
-    height: auto;
-    width: 45%;
-    display: block;
-    margin: 0 auto;
-    margin-right: 0;
+  height: auto;
+  width: 35%;
+  display: block;
+  margin: 0 auto;
+  margin-right: 0;
 }
 
 .feature-3 img{
-    height: auto;
-    width: 60%;
-    display: block;
-    margin: 0 auto;
+  height: auto;
+  width: 60%;
+  display: block;
+  margin: 0 auto;
+}
+
+@media (max-width: 1440px) {
+.main-feature-container{
+  gap: 30px;
+}
+}
+@media (max-width: 1024px) {
+.main-feature-title h2 {
+  font-size: 1.5rem;
+}
+
+.main-feature h3 {
+  font-size: 0.7rem;
+}
+
+.main-feature p {
+  font-size: 0.6rem;
+  width: 250px;
+}
+
+.feature-desc{
+  padding-left: 100px;
+}
+
+.feature-desc h3{
+  font-size: 1.4rem;
+}
+
+.feature-desc .feature-text-left{
+  font-size: 0.7rem;
+}
+
+.feature-desc .feature-text-right{
+  font-size: 0.7rem;
+}
+}
+
+@media (max-width: 768px) {
+.main-feature-title h2 {
+  font-size: 1.2rem;
+  padding-bottom: 10px;
+}
+
+.main-feature h3 {
+  font-size: 0.6rem;
+}
+
+.main-feature p {
+  font-size: 0.5rem;
+  width: 210px;
+}
+
+.feature-desc{
+  padding-left: 75px;
+}
+
+.feature-desc h3{
+  font-size: 1.2rem;
+}
+
+.feature-desc .feature-text-left{
+  font-size: 0.6rem;
+}
+
+.feature-desc .feature-text-right{
+  font-size: 0.6rem;
+}
+}
+
+@media (max-width: 728px) {
+.main-feature-container{
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+  gap: 10px;
+}
+
+}
+
+@media (max-width: 576px) {
+.main-feature-title h2 {
+  font-size: 1.2rem;
+}
+
+.main-feature h3 {
+  font-size: 0.7rem;
+}
+
+.main-feature p {
+  font-size: 0.6rem;
+  width: 300px;
+  margin-bottom: 20px;
+}
+
+.feature-desc{
+  padding-left: 0;
+}
+
+.feature-desc h3{
+  font-size: 1rem;
+}
+
+.feature-desc .feature-text-left{
+  font-size: 0.7rem;
+}
+
+.feature-desc .feature-text-right{
+  font-size: 0.7rem;
+}
+
+.feature {
+  gap: 40px;
+}
+
+.feature-1 img{
+  display: none;
+}
+
+.feature-2 img{
+  display: none;
+}
+
+.feature-3 img{
+  display: none;
+}
+}
+
+@media (max-width: 425px) {
+.main-feature-title h2 {
+  font-size: 1.1rem;
+}
+
+.main-feature h3 {
+  font-size: 0.6rem;
+}
+
+.main-feature p {
+  font-size: 0.5rem;
+  width: 200px;
+  margin-bottom: 15px;
+}
+
+.feature-desc h3{
+  font-size: 0.9rem;
+}
+
+.feature-desc .feature-text-left{
+  font-size: 0.6rem;
+}
+
+.feature-desc .feature-text-right{
+  font-size: 0.6rem;
+}
 }

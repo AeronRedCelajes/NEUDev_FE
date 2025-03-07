@@ -6,7 +6,7 @@ export const SignUpComponent = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="container-fluid vh-100 d-flex p-0">
+        <div className="container-fluid vh-100 d-flex p-0 signup-container">
             {/* Left Side - University Image */}
             <div className="col-md-7 d-none d-md-block p-0">
                 <img
@@ -18,7 +18,7 @@ export const SignUpComponent = () => {
             </div>
 
             {/* Right Side - Signup Options */}
-            <div className="col-md-5 d-flex align-items-center justify-content-center">
+            <div className="col-12 col-md-5 d-flex align-items-center justify-content-center signup-form-container">
                 <div className="form-container">
                     {/* Logo */}
                     <div className="d-flex justify-content-center">

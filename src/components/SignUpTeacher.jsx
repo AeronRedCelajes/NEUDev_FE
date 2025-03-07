@@ -51,12 +51,12 @@ export const SignUpTeacher = () => {
   };
 
   return (
-    <div className="container-fluid vh-100 d-flex p-0">
+    <div className="container-fluid vh-100 d-flex p-0 st-signup-form">
       <div className="col-md-7 d-none d-md-block p-0">
         <img src="/src/assets/univ.png" alt="University" className="w-100 h-100" style={{ objectFit: "cover" }} />
       </div>
 
-      <div className="col-md-5 d-flex align-items-center justify-content-center">
+      <div className="col-12 col-md-5 d-flex align-items-center justify-content-center signup-form-container">
         <div className="form-container">
           <div className="d-flex justify-content-center">
             <img src="/src/assets/HANR_LOGO-4.png" alt="University" className="w-50 h-50" />
@@ -146,7 +146,7 @@ export const SignUpTeacher = () => {
               </div>
             </div>
 
-            <button type="submit" className="w-100 custom-button">
+            <button type="submit" className="custom-button w-100">
               Sign Up
             </button>
 

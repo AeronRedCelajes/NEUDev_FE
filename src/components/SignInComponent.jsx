@@ -41,7 +41,7 @@ export const SignInComponent = () => {
   };
 
   return (
-    <div className="container-fluid vh-100 d-flex p-0">
+    <div className="container-fluid vh-100 d-flex p-0 signin-container">
       <div className="col-md-7 d-none d-md-block p-0">
         <img
           src="/src/assets/univ.png"
@@ -51,7 +51,7 @@ export const SignInComponent = () => {
         />
       </div>
 
-      <div className="col-md-5 d-flex align-items-center justify-content-center">
+      <div className="col-12 col-md-5 d-flex align-items-center justify-content-center signin-form-container">
         <div className="form-container">
           <div className="d-flex justify-content-center">
             <img src="/src/assets/HANR_LOGO-4.png" alt="University" className="w-50 h-50" />

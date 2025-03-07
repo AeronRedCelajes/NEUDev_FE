@@ -8,7 +8,7 @@ import {
   getClassInfo, 
   editActivity, 
   deleteActivity, 
-  getItems,         // <-- Replaces getQuestions
+  getItems,
   getItemTypes, 
   getProgrammingLanguages,
   verifyPassword
@@ -17,7 +17,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faEllipsisV, faEye, faEyeSlash, faClock } from '@fortawesome/free-solid-svg-icons';
 
 // Mapping of known programming language IDs to names and images
-// (Adjust the keys/names to match exactly what your backend returns)
 const programmingLanguageMap = {
   1: { name: "Java",   image: "/src/assets/java2.png" },
   2: { name: "C#",     image: "/src/assets/c.png"      },
@@ -96,6 +95,8 @@ export const TeacherClassManagementComponent = () => {
     openDate: '',
     closeDate: '',
     maxPoints: '',
+    actDuration: '', // in minutes (string)
+    actAttempts: '', // NEW: store attempts as string
     // renamed "questions" -> "items"
     items: ['', '', ''],
   });
@@ -103,7 +104,6 @@ export const TeacherClassManagementComponent = () => {
   const [editSelectedProgLangs, setEditSelectedProgLangs] = useState([]);
 
   // -------------------- Item Selection Modal State --------------------
-  // (formerly "Question" modal)
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -375,10 +375,8 @@ export const TeacherClassManagementComponent = () => {
   const openEditModal = (activity) => {
     if (!activity) return;
 
-    // We'll rename "activity.questions" -> "activity.items"
     let existingItems = [];
     if (Array.isArray(activity.items) && activity.items.length > 0) {
-      // each "item" in the array might look like: { item, itemTypeID, etc. }
       existingItems = activity.items.map((rec) => ({
         itemID: rec?.item?.itemID || null,
         itemName: rec?.item?.itemName || "",
@@ -391,7 +389,6 @@ export const TeacherClassManagementComponent = () => {
           []
       }));
     }
-    // Ensure 3 slots
     while (existingItems.length < 3) {
       existingItems.push({
         itemID: null,
@@ -403,7 +400,6 @@ export const TeacherClassManagementComponent = () => {
       });
     }
 
-    // Convert actDuration "HH:MM:SS" to total minutes
     let totalMinutes = "";
     if (activity.actDuration) {
       const parts = activity.actDuration.split(":");
@@ -412,14 +408,16 @@ export const TeacherClassManagementComponent = () => {
       }
     }
 
+    // NEW: Include actAttempts (convert to string for form control)
     setEditFormData({
-      actTitle:       activity.actTitle       || '',
-      actDesc:        activity.actDesc        || '',
-      actDifficulty:  activity.actDifficulty  || '',
-      openDate:       activity.openDate       ? activity.openDate.slice(0, 16)  : '',
-      closeDate:      activity.closeDate      ? activity.closeDate.slice(0, 16) : '',
-      maxPoints:      activity.maxPoints      ? activity.maxPoints.toString()   : '',
+      actTitle:       activity.actTitle || '',
+      actDesc:        activity.actDesc || '',
+      actDifficulty:  activity.actDifficulty || '',
+      openDate:       activity.openDate ? activity.openDate.slice(0, 16) : '',
+      closeDate:      activity.closeDate ? activity.closeDate.slice(0, 16) : '',
+      maxPoints:      activity.maxPoints ? activity.maxPoints.toString() : '',
       actDuration:    totalMinutes,
+      actAttempts:    activity.actAttempts !== undefined ? activity.actAttempts.toString() : "0",
       items:          existingItems
     });
 
@@ -432,12 +430,10 @@ export const TeacherClassManagementComponent = () => {
     e.preventDefault();
     if (!selectedActivity) return;
 
-    // Recompute total points from selected items
     const computedPoints = editFormData.items
       .filter((it) => it && it.itemPoints)
       .reduce((sum, it) => sum + it.itemPoints, 0);
 
-    // Convert total minutes to HH:MM:SS
     const total = parseInt(editFormData.actDuration || "0", 10);
     const hh = String(Math.floor(total / 60)).padStart(2, "0");
     const mm = String(total % 60).padStart(2, "0");
@@ -452,8 +448,8 @@ export const TeacherClassManagementComponent = () => {
       closeDate:     editFormData.closeDate,
       actDuration:   finalDuration,
       maxPoints:     computedPoints,
+      actAttempts:   parseInt(editFormData.actAttempts || "0", 10),
       progLangIDs:   editSelectedProgLangs,
-      // rename "questions" -> "items" in the payload
       items: editFormData.items
         .filter(it => it.itemName.trim() !== '')
         .map(it => ({
@@ -726,6 +722,11 @@ export const TeacherClassManagementComponent = () => {
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
                             </div>
+                            {/* Display Attempts */}
+                            <div>
+                              <strong>Attempts: </strong>
+                              {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                            </div>
                             <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                               Duration: {activity.actDuration ? activity.actDuration : "-"}
@@ -734,7 +735,7 @@ export const TeacherClassManagementComponent = () => {
                         </Col>
                         <Col className="activity-stats">
                           <div className="score-chart">
-                            <h4>{activity.classAvgScore ?? "-"}%</h4>
+                            <h4>{activity.classAvgScore ?? "-"}</h4>
                             <p>Class Avg. Score</p>
                           </div>
                           <div className="score-chart">
@@ -846,6 +847,11 @@ export const TeacherClassManagementComponent = () => {
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
                             </div>
+                            {/* Display Attempts */}
+                            <div>
+                              <strong>Attempts: </strong>
+                              {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                            </div>
                             <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                               Duration: {activity.actDuration ? activity.actDuration : "-"}
@@ -854,7 +860,7 @@ export const TeacherClassManagementComponent = () => {
                         </Col>
                         <Col className="activity-stats">
                           <div className="score-chart">
-                            <h4>{activity.classAvgScore ?? "-"}%</h4>
+                            <h4>{activity.classAvgScore ?? "-"}</h4>
                             <p>Class Avg. Score</p>
                           </div>
                           <div className="score-chart">
@@ -966,6 +972,11 @@ export const TeacherClassManagementComponent = () => {
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
                             </div>
+                            {/* Display Attempts */}
+                            <div>
+                              <strong>Attempts: </strong>
+                              {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                            </div>
                             <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                               Duration: {activity.actDuration ? activity.actDuration : "-"}
@@ -1068,16 +1079,27 @@ export const TeacherClassManagementComponent = () => {
                 required
               />
             </Form.Group>
+            {/* NEW: Activity Attempts Input in Edit Modal */}
+            <Form.Group controlId="formAttempts" className="mt-3">
+              <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
+              <Form.Control
+                type="number"
+                min="0"
+                value={editFormData.actAttempts || ""}
+                onChange={(e) => setEditFormData({ ...editFormData, actAttempts: e.target.value })}
+                required
+              />
+              <Form.Text className="text-muted">
+                Enter 0 for unlimited attempts; otherwise, enter a positive number.
+              </Form.Text>
+            </Form.Group>
             <Form.Group controlId="formSelectProgLang" className="mt-3">
               <Form.Label>Select Programming Languages</Form.Label>
               <div style={{ marginBottom: "0.5rem" }}>
                 <Form.Check
                   type="checkbox"
                   label="Applicable to all"
-                  checked={
-                    editSelectedProgLangs.length > 0 &&
-                    editSelectedProgLangs.length === allProgrammingLanguages.length
-                  }
+                  checked={editSelectedProgLangs.length > 0 && editSelectedProgLangs.length === allProgrammingLanguages.length}
                   onChange={(e) => handleSelectAllLangsEdit(e.target.checked)}
                 />
               </div>
@@ -1103,7 +1125,6 @@ export const TeacherClassManagementComponent = () => {
                 readOnly
               />
             </Form.Group>
-
             <Form.Group className="mt-3">
               <Form.Label>Items (up to 3)</Form.Label>
               {editFormData.items.map((it, index) => (
@@ -1149,7 +1170,6 @@ export const TeacherClassManagementComponent = () => {
                 </div>
               ))}
             </Form.Group>
-
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowEditModal(false)}>
@@ -1244,15 +1264,13 @@ export const TeacherClassManagementComponent = () => {
                   onClick={() => handleSelectItem(item)}
                   style={{ textAlign: "left", marginBottom: "8px" }}
                 >
-                  {/* Basic Item Info */}
                   <div>
                     <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
                   </div>
-                  {/* Programming Language Icons */}
                   <div style={{ marginTop: "5px" }}>
                     {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
-                      const plID = langObj.progLangID; 
-                      const mapping = programmingLanguageMap[plID] || { name: langObj.progLangName, image: null };
+                      const plName = langObj.progLangName;
+                      const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
                       return mapping.image ? (
                         <img
                           key={i}

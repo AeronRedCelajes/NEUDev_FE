@@ -463,102 +463,6 @@ async function deleteBulletinPost(postID) {
 }
 
 //////////////////////////////////////////
-// BULETTIN CONCERNS FUNCTIONS
-//////////////////////////////////////////
-
-// Get all concerns for a specific class
-export const getConcerns = async (classID) => {
-    try {
-      const token = sessionStorage.getItem("access_token");
-      const response = await fetch(`${API_LINK}/concerns/${classID}`, {
-        method: 'GET',
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      return await response.json();
-    } catch (error) {
-      return { error: error.message };
-    }
-  };
-  
-  // Get detail of a single concern by its ID
-  export const getConcernDetail = async (concernID) => {
-    try {
-      const token = sessionStorage.getItem("access_token");
-      const response = await fetch(`${API_LINK}/concerns/detail/${concernID}`, {
-        method: 'GET',
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      return await response.json();
-    } catch (error) {
-      return { error: error.message };
-    }
-  };
-  
-  // Create a new concern (for students)
-  // The backend now derives the teacherID based on the classID provided.
-  export const createConcern = async (concernData) => {
-    try {
-      const token = sessionStorage.getItem("access_token");
-      const response = await fetch(`${API_LINK}/concerns`, {
-        method: 'POST',
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(concernData)
-      });
-      return await response.json();
-    } catch (error) {
-      return { error: error.message };
-    }
-  };
-  
-  // Update an existing concern.
-  export const updateConcern = async (concernID, updateData) => {
-    try {
-      const token = sessionStorage.getItem("access_token");
-      const response = await fetch(`${API_LINK}/concerns/${concernID}`, {
-        method: 'PUT',
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(updateData)
-      });
-      return await response.json();
-    } catch (error) {
-      return { error: error.message };
-    }
-  };
-  
-  // Delete a concern.
-  export const deleteConcern = async (concernID) => {
-    try {
-      const token = sessionStorage.getItem("access_token");
-      const response = await fetch(`${API_LINK}/concerns/${concernID}`, {
-        method: 'DELETE',
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      console.log("Delete response:", data);
-      return data;
-    } catch (error) {
-      console.error("Error in deleteConcern:", error);
-      return { error: error.message };
-    }
-  };
-  
-
-//////////////////////////////////////////
 // ACTIVITY FUNCTIONS
 //////////////////////////////////////////
 
@@ -872,44 +776,6 @@ async function finalizeSubmission(actID, submissionData) {
         return { error: "Something went wrong while finalizing submission." };
     }
 }
-
-// Helper function to determine the correct progress endpoint based on user role.
-function getProgressEndpoint(actID) {
-    const role = sessionStorage.getItem("user_type");
-    if (role === "teacher") {
-        return `${API_LINK}/teacher/activities/${actID}/progress`;
-    }
-    return `${API_LINK}/student/activities/${actID}/progress`;
-}
-
-// Function to get progress for an activity (for both teachers and students)
-async function getActivityProgress(actID) {
-    const token = sessionStorage.getItem("access_token");
-    if (!token) return { error: "Unauthorized access: No token found" };
-
-    const endpoint = getProgressEndpoint(actID);
-    return await safeFetch(endpoint, {
-        method: "GET",
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-}
-
-// Function to save progress for an activity (for both teachers and students)
-async function saveActivityProgress(actID, progressData) {
-    const token = sessionStorage.getItem("access_token");
-    if (!token) return { error: "Unauthorized access: No token found" };
-
-    const endpoint = getProgressEndpoint(actID);
-    return await safeFetch(endpoint, {
-        method: "POST",
-        headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        body: JSON.stringify(progressData)
-    });
-}
   
 
 
@@ -961,7 +827,5 @@ export {
     updateItem,
     deleteItem,
     getProgrammingLanguages,
-    finalizeSubmission,
-    getActivityProgress,
-    saveActivityProgress
+    finalizeSubmission
 };

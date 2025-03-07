@@ -1,6 +1,15 @@
 .container-fluid{
     font-family: 'Poppins', sans-serif;
 }
+
+.signin-form p{
+    color: #828282;
+}
+
+.signin-form a{
+    color: #ED5931;
+}
+
 .custom-button {
     background-color: #ed5b2d;
     color: white;
@@ -16,4 +25,94 @@
 .custom-button:hover {
     background-color: #ed5a2dd6;
     color: #ffdacb;
+}
+
+@media (max-width: 1024px) {
+    .signin-form label{
+        font-size: 0.9rem;
+    }
+
+    .signin-form input,
+    .signin-form .custom-button{
+        font-size: 0.80rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .signin-form label{
+        font-size: 0.85rem;
+    }
+
+    .signin-form input,
+    .signin-form .custom-button{
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .signin-container{
+        background: url('/src/assets/univ.png') no-repeat center center;
+        background-size: cover;
+        width: 100vw;
+        height: 100vh;
+        backdrop-filter: blur(10px);
+    }
+
+    .signin-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: inherit;
+        filter: blur(2px);
+        z-index: -1;
+    }
+
+    .signin-form-container{
+        background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .signin-form label{
+        font-size: 1rem;
+    }
+
+    .signin-form input,
+    .signin-form .custom-button{
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .signin-form label{
+        font-size: 0.9rem;
+    }
+
+    .signin-form input,
+    .signin-form .custom-button{
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 425px) {
+    .signin-form label{
+        font-size: 0.85rem;
+    }
+
+    .signin-form input,
+    .signin-form .custom-button{
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 320px) {
+    .signin-form label{
+        font-size: 0.8rem;
+    }
+
+    .signin-form input,
+    .signin-form .custom-button{
+        font-size: 0.7rem;
+    }
 }

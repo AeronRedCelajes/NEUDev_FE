@@ -37,13 +37,13 @@ export const FeaturesComponent = () => {
 
         <div className='feature'>
             <div className='row g-2'>
-                <div className='col-md-6 d-flex justify-content-center'>
+                <div className='col-12 col-sm-6 col-md-6 col-lg-6 d-flex justify-content-center'>
                     <div className='feature-desc'>
                         <h3>Automated Code Checker</h3>
                         <p className='feature-text-left'>Automatically evaluates submitted code for accuracy and efficiency, providing instant feedback to help students learn from their mistakes and improve.</p>
                     </div>
                 </div>
-                <div className='col-md-5'>
+                <div className='col-sm-4 col-md-4 col-lg-4'>
                     <div className='feature-1'>
                         <img src='/src/assets/check.png' alt='AI Integration'/>
                     </div>
@@ -51,12 +51,12 @@ export const FeaturesComponent = () => {
             </div>
 
             <div className='row g-2'>
-                <div className='col-md-5'>
+                <div className='col-sm-5 col-md-5 col-lg-5'>
                     <div className='feature-2'>
                         <img src='/src/assets/ai.png' alt='AI Integration'/>
                     </div>
                 </div>
-                <div className='col-md-6 d-flex justify-content-center'>
+                <div className='col-12 col-sm-6 col-md-6 col-lg-6 d-flex justify-content-center'>
                     <div className='feature-desc'>
                         <h3 className='feature-header-right'>AI Integration</h3>
                         <p className='feature-text-right'>Uses AI to assist instructors in understanding student performance patterns, identifying common errors, and offering targeted recommendations for improvement.</p>
@@ -65,13 +65,13 @@ export const FeaturesComponent = () => {
             </div>
 
             <div className='row g-2'>
-                <div className='col-md-6 d-flex justify-content-center'>
+                <div className='col-12 col-sm-6 col-md-6 col-lg-6 d-flex justify-content-center'>
                     <div className='feature-desc'>
                         <h3>Data-Driven Insights</h3>
                         <p className='feature-text-left'>Generates detailed reports on student progress, activity, and success rates, helping educators make informed decisions and provide support aligned with individual needs.</p>
                     </div>
                 </div>
-                <div className='col-md-5'>
+                <div className='col-sm-4 col-md-4 col-lg-4'>
                     <div className='feature-3'>
                         <img src='/src/assets/data.png' alt='AI Integration'/>
                     </div>

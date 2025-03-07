@@ -1,5 +1,5 @@
 .caption{
-    padding-top: 30px;
+    padding-block: 10px;
     font-size: small;
     font-weight: bold;
 }
@@ -9,4 +9,17 @@
     align-self: center;
     justify-self: center;
     width: 80%;
+}
+
+@media (max-width: 1024px) {
+    .caption{
+        padding-top: 0px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .caption{
+        font-size: 0.6rem;
+    }
 }

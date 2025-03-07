@@ -7,7 +7,7 @@ import {
   faAlignLeft, faAlignCenter, faAlignRight, faEllipsisH 
 } from '@fortawesome/free-solid-svg-icons';
 import TeacherCMNavigationBarComponent from './TeacherCMNavigationBarComponent';
-import { createBulletinPost, getBulletinPosts, deleteBulletinPost } from '../api/API.js';
+import { createBulletinPost, getBulletinPosts, deleteBulletinPost, getConcerns, updateConcern } from '../api/API.js';
 import { useParams } from 'react-router-dom';
 
 export const TeacherClassManagementBulletinComponent = () => {
@@ -17,11 +17,11 @@ export const TeacherClassManagementBulletinComponent = () => {
   // State to hold bulletin posts.
   const [posts, setPosts] = useState([]);
 
-  const [concerns] = useState([
-      { id: 1, name: 'Angelica Mae Manliguez', dateCreated: '12 August 2025', timeCreated: '7:30pm', message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
-      { id: 2, name: 'Hannah Condada', dateCreated: '14 February 2025', timeCreated: '7:30am', message: 'sir bat ganto' },
-      { id: 3, name: 'Erikka Enaje', dateCreated: '19 December 2025', timeCreated: '9:30am', message: 'ma anong ulam' }
-  ]);
+  // UPDATED: Replace static concerns with dynamic concerns state.
+  const [concerns, setConcerns] = useState([]);
+  // Additional states for concern reply logic.
+  const [selectedConcernId, setSelectedConcernId] = useState(null);
+  const [replyMessage, setReplyMessage] = useState('');
 
   const [showResponse, setShowResponse] = useState(false);
   const [showPostAnnouncement, setShowPostAnnouncement] = useState(false);
@@ -45,19 +45,40 @@ export const TeacherClassManagementBulletinComponent = () => {
       if (response.error) {
         console.error("Error fetching posts:", response.error);
       } else {
-        // Map the API response to match our post object structure.
+        // Map the API response to match our post object structure,
+        // including the teacher's name.
         const fetchedPosts = response.map(post => ({
           id: post.id,
           title: post.title,
           message: post.message,
           dateCreated: new Date(post.created_at).toLocaleDateString(),
-          timeCreated: new Date(post.created_at).toLocaleTimeString()
+          timeCreated: new Date(post.created_at).toLocaleTimeString(),
+          teacherName: post.teacher ? `${post.teacher.firstname} ${post.teacher.lastname}` : 'Unknown'
         }));
         setPosts(fetchedPosts);
       }
     };
 
     fetchPosts();
+  }, [classID]);
+
+  // UPDATED: Fetch concerns from the API instead of using static data.
+  useEffect(() => {
+    const fetchConcerns = async () => {
+      if (!classID) return;
+      const response = await getConcerns(classID);
+      if (!response.error) {
+        setConcerns(response.map(concern => ({
+          id: concern.id,
+          name: concern.student ? `${concern.student.firstname} ${concern.student.lastname}` : "Unknown",
+          dateCreated: new Date(concern.created_at).toLocaleDateString(),
+          timeCreated: new Date(concern.created_at).toLocaleTimeString(),
+          message: concern.concern,
+          reply: concern.reply
+        })));
+      }
+    };
+    fetchConcerns();
   }, [classID]);
 
   // Function to delete a post (calls the API and updates UI if successful).
@@ -101,7 +122,8 @@ export const TeacherClassManagementBulletinComponent = () => {
       title: response.title,
       message: response.message,
       dateCreated: new Date(response.created_at).toLocaleDateString(),
-      timeCreated: new Date(response.created_at).toLocaleTimeString()
+      timeCreated: new Date(response.created_at).toLocaleTimeString(),
+      teacherName: response.teacher ? `${response.teacher.firstname} ${response.teacher.lastname}` : 'Unknown'
     };
 
     // Update posts state with the new post added at the beginning.
@@ -112,6 +134,20 @@ export const TeacherClassManagementBulletinComponent = () => {
     setNewPostMessage('');
     setShowPostAnnouncement(false);
     alert("✅ Post created successfully!");
+  };
+
+  // UPDATED: Handler to reply to a concern.
+  const handleReplyToConcern = async () => {
+    if (!replyMessage.trim() || !selectedConcernId) return;
+    const response = await updateConcern(selectedConcernId, { reply: replyMessage });
+    if (!response.error) {
+      setConcerns(concerns.map(concern => 
+        concern.id === selectedConcernId ? { ...concern, reply: replyMessage } : concern
+      ));
+      setShowResponse(false);
+      setReplyMessage('');
+      alert("✅ Reply sent successfully!");
+    }
   };
 
   return (
@@ -167,65 +203,85 @@ export const TeacherClassManagementBulletinComponent = () => {
           <Col xs={7}>
             <div className='announcement'>
               <div className='announcement-header'>
-                <h5>Professor's Announcements</h5>
+                <h5>Teacher's Announcements</h5>
               </div>
-              {posts.map((post) =>
-                <Card className='post-card' style={{ borderRadius: "20px" }} key={post.id}>
-                  <Card.Header className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h2>{post.title}</h2>
-                      <p>Posted on {post.dateCreated} {post.timeCreated}</p>
-                    </div>
-                    <Dropdown>
-                      <Dropdown.Toggle variant="link" id="dropdown-basic">
-                        <FontAwesomeIcon icon={faEllipsisH} />
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => confirmDelete(post.id)}>Delete</Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Card.Header>
-                  <Card.Body>
-                    <p>{post.message}</p>
-                  </Card.Body>
-                </Card>
+              {posts.length > 0 ? (
+                posts.map((post) =>
+                  <Card className='post-card' style={{ borderRadius: "20px" }} key={post.id}>
+                    <Card.Header className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h2>{post.title}</h2>
+                        <p>{post.teacherName}</p>
+                        <p>{post.dateCreated} {post.timeCreated}</p>
+                      </div>
+                      <Dropdown>
+                        <Dropdown.Toggle variant="link" id="dropdown-basic">
+                          <FontAwesomeIcon icon={faEllipsisH} />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => confirmDelete(post.id)}>Delete</Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </Card.Header>
+                    <Card.Body>
+                      <p>{post.message}</p>
+                    </Card.Body>
+                  </Card>
+                )
+              ) : (
+                <p>No Announcement</p>
               )}
             </div>
           </Col>
           <Col xs={3}>
-            <div className='concern'>
-              <div className='concern-header'>
-                <h5>Student Concerns</h5>
-              </div>
-              <div className='concern-body'>
-                {concerns.map((concern) =>
-                  <div className='concern-details' key={concern.id}>
-                    <h6>{concern.name}</h6>
-                    <p>Created on {concern.dateCreated} {concern.timeCreated}</p>
-                    <p className='concern-message'>{concern.message}</p>
-                    <div className='concern-actions'>
-                      <p>Pending</p>
-                      <p>Reply<i className='bi bi-reply-fill' onClick={() => setShowResponse(true)}/></p>
-                    </div>
-                  </div>
-                )}
-                <Modal className='post-concern' show={showResponse} onHide={() => setShowResponse(false)} backdrop='static' keyboard={false} size='md'>
-                  <Modal.Header closeButton>
-                    <div className='modal-activity-header'>
-                      <h3>Send Your Response</h3>
-                      <p>To student, Hanna Condada</p>
-                    </div>
-                  </Modal.Header>
-                  <Modal.Body>
-                    <textarea className='post-concern-textarea'></textarea>
-                  </Modal.Body>
-                  <Modal.Footer>
-                    <Button onClick={() => setShowResponse(false)}>Send Response</Button>
-                  </Modal.Footer>
-                </Modal>
-              </div>
-            </div>
-          </Col>
+  <div className='concern'>
+    <div className='concern-header'>
+      <h5>Student Concerns</h5>
+    </div>
+    <div className='concern-body'>
+      {concerns.length > 0 ? concerns.map((concern) =>
+        <div className='concern-details' key={concern.id}>
+          <h6>{concern.name}</h6>
+          <p>Created on {concern.dateCreated} {concern.timeCreated}</p>
+          <p className='concern-message'>{concern.message}</p>
+          <div className='concern-actions'>
+            <p>
+
+              <h6>Your reply</h6>
+              {concern.reply ? (
+                <span className="concern-title">{concern.reply}</span>
+              ) : "You have no reply yet"}
+            </p>
+            <p>
+              Reply
+              <i className='bi bi-reply-fill'
+                onClick={() => { setSelectedConcernId(concern.id); setShowResponse(true); }}/>
+            </p>
+          </div>
+        </div>
+      ) : <p>No concerns posted yet.</p>}
+      <Modal className='post-concern' show={showResponse} onHide={() => setShowResponse(false)} backdrop='static' keyboard={false} size='md'>
+        <Modal.Header closeButton>
+          <div className='modal-activity-header'>
+            <h3>Send Your Response</h3>
+            <p>To student, {concerns.find(c => c.id === selectedConcernId)?.name || 'Student'}</p>
+          </div>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Control 
+            as='textarea' 
+            className='post-concern-textarea'
+            value={replyMessage}
+            onChange={(e) => setReplyMessage(e.target.value)}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={handleReplyToConcern}>Send Response</Button>
+        </Modal.Footer>
+      </Modal>
+    </div>
+  </div>
+</Col>
         </Row>
       </div>
 
