@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Row, Tabs, Col, Tab, Modal, Button } from 'react-bootstrap';
 import StudentCMNavigationBarComponent from './StudentCMNavigationBarComponent';
 import "../../style/teacher/cmActivities.css";
-import { getStudentActivities, finalizeSubmission } from "../api/API";
+import { getStudentActivities, finalizeSubmission, getActivityProgress } from "../api/API";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCaretDown, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
@@ -50,12 +50,7 @@ const Timer = ({ openDate, closeDate }) => {
   }, [openDate, closeDate]);
 
   return (
-    <span 
-      style={{ 
-        color: isTimeLow ? "red" : "inherit", 
-        fontWeight: isTimeLow ? "bold" : "normal" 
-      }}
-    >
+    <span style={{ color: isTimeLow ? "red" : "inherit", fontWeight: isTimeLow ? "bold" : "normal" }}>
       {timeLeft}
     </span>
   );
@@ -80,11 +75,72 @@ export const StudentClassComponent = () => {
   const [sortField, setSortField] = useState("openDate");
   const [sortOrder, setSortOrder] = useState("asc");
 
+  // Fetch the latest activities every 5 seconds
   useEffect(() => {
     fetchActivities();
     const interval = setInterval(fetchActivities, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // For each ongoing activity, update progress from the DB to show "In Progress" immediately
+  useEffect(() => {
+    ongoingActivities.forEach(activity => {
+      syncProgressFromServer(activity.actID);
+    });
+  }, [ongoingActivities]);
+
+  // Function to fetch activities for the student
+  const fetchActivities = async () => {
+    try {
+      const response = await getStudentActivities();
+      if (!response || response.error) {
+        console.error("Failed to fetch activities:", response?.error);
+        return;
+      }
+      const filteredUpcoming = (response.upcoming || []).filter(
+        act => String(act.classID) === String(classID)
+      );
+      const filteredOngoing = (response.ongoing || []).filter(
+        act => String(act.classID) === String(classID)
+      );
+      const filteredCompleted = (response.completed || []).filter(
+        act => String(act.classID) === String(classID)
+      );
+
+      setUpcomingActivities(filteredUpcoming);
+      setOngoingActivities(filteredOngoing);
+      setCompletedActivities(filteredCompleted);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    }
+  };
+
+  // Merge server progress (from DB) into local storage
+  const syncProgressFromServer = async (actID) => {
+    try {
+      const progressResponse = await getActivityProgress(actID);
+      if (progressResponse && progressResponse.progress && progressResponse.progress.length > 0) {
+        const serverProgress = progressResponse.progress[0];
+        const key = `activityState_${actID}`;
+        const local = localStorage.getItem(key);
+        if (local) {
+          const parsedLocal = JSON.parse(local);
+          const mergedProgress = {
+            ...parsedLocal,
+            ...serverProgress,
+            endTime: parsedLocal.endTime // Preserve our locally computed timer endTime
+          };
+          localStorage.setItem(key, JSON.stringify(mergedProgress));
+          console.log("[syncProgressFromServer] Merged progress:", mergedProgress);
+        } else {
+          localStorage.setItem(key, JSON.stringify(serverProgress));
+          console.log("[syncProgressFromServer] Set local storage from server progress:", serverProgress);
+        }
+      }
+    } catch (error) {
+      console.error("[syncProgressFromServer] Error fetching progress:", error);
+    }
+  };
 
   const handleSortByOpenDate = () => {
     if (sortField === "openDate") {
@@ -120,32 +176,7 @@ export const StudentClassComponent = () => {
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
-  const fetchActivities = async () => {
-    try {
-      const response = await getStudentActivities();
-      if (!response || response.error) {
-        console.error("Failed to fetch activities:", response?.error);
-        return;
-      }
-      const filteredUpcoming = (response.upcoming || []).filter(
-        act => String(act.classID) === String(classID)
-      );
-      const filteredOngoing = (response.ongoing || []).filter(
-        act => String(act.classID) === String(classID)
-      );
-      const filteredCompleted = (response.completed || []).filter(
-        act => String(act.classID) === String(classID)
-      );
-
-      setUpcomingActivities(filteredUpcoming);
-      setOngoingActivities(filteredOngoing);
-      setCompletedActivities(filteredCompleted);
-    } catch (error) {
-      console.error("Error fetching activities:", error);
-    }
-  };
-
-  // --- LOGGING ADDED HERE ---
+  // Check local storage for progress info and return a formatted time if available
   const checkLocalStorageForActivity = (actID) => {
     const key = `activityState_${actID}`;
     const saved = localStorage.getItem(key);
@@ -174,9 +205,11 @@ export const StudentClassComponent = () => {
     return formatted;
   };
 
-  // --- LOGGING ADDED HERE ---
   const handleActivityClick = async (activity) => {
     console.log("[handleActivityClick] Activity clicked:", activity.actTitle, "ID:", activity.actID);
+    // Sync progress from DB before taking/resuming an activity
+    await syncProgressFromServer(activity.actID);
+
     const now = new Date();
     const activityOpen = new Date(activity.openDate);
     const activityClose = new Date(activity.closeDate);
@@ -215,13 +248,10 @@ export const StudentClassComponent = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         console.log("[handleActivityClick] Parsed saved state:", parsed);
-  
-        // If you stored selectedItem in local storage, use it:
-        let itemID = parsed.selectedItem; 
+        let itemID = parsed.selectedItem;
         if (!itemID && activity.items && activity.items[0]) {
           itemID = activity.items[0].itemID;
         }
-  
         let code = "";
         if (parsed.files && parsed.activeFileId !== undefined) {
           const fileObj = parsed.files[parsed.activeFileId];
@@ -229,11 +259,10 @@ export const StudentClassComponent = () => {
             code = fileObj.content;
           }
         }
-        
         const submissionData = {
-          itemID: itemID,  // Must be a valid itemID
-          codeSubmission: code, 
-          score: 0, 
+          itemID: itemID,
+          codeSubmission: code,
+          score: 0,
           timeSpent: Math.floor((Date.now() - (parsed.startTime || Date.now())) / 60000) || 0
         };
         console.log("[handleActivityClick] Auto-submitting with data:", submissionData);
@@ -306,7 +335,7 @@ export const StudentClassComponent = () => {
   const formatDateString = (dateString) => {
     if (!dateString) return "-";
     const dateObj = new Date(dateString);
-    const day = String(dateObj.getDate()).padStart(2, '0'); 
+    const day = String(dateObj.getDate()).padStart(2, '0');
     const monthName = dateObj.toLocaleString('default', { month: 'long' });
     const year = dateObj.getFullYear();
     let hours = dateObj.getHours();
@@ -641,8 +670,7 @@ export const StudentClassComponent = () => {
           ) : isResuming ? (
             <>
               <p>
-                Do you want to resume your progress on activity:{" "}
-                <strong>{selectedActivityForAssessment?.actTitle}</strong>?
+                Do you want to resume your progress on activity: <strong>{selectedActivityForAssessment?.actTitle}</strong>?
               </p>
               <p>
                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
@@ -652,15 +680,11 @@ export const StudentClassComponent = () => {
           ) : (
             <>
               <p>
-                Do you want to take the activity:{" "}
-                <strong>{selectedActivityForAssessment?.actTitle}</strong>?
+                Do you want to take the activity: <strong>{selectedActivityForAssessment?.actTitle}</strong>?
               </p>
               <p>
                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
-                Duration:{" "}
-                {selectedActivityForAssessment?.actDuration
-                  ? selectedActivityForAssessment.actDuration + " min"
-                  : "-"}
+                Duration: {selectedActivityForAssessment?.actDuration ? selectedActivityForAssessment.actDuration + " min" : "-"}
               </p>
             </>
           )}
@@ -680,9 +704,7 @@ export const StudentClassComponent = () => {
             <Button 
               variant="primary" 
               onClick={() => {
-                navigate(
-                  `/student/class/${classID}/activity/${selectedActivityForAssessment.actID}/assessment`
-                );
+                navigate(`/student/class/${classID}/activity/${selectedActivityForAssessment.actID}/assessment`);
               }}
             >
               Yes, {isResuming ? "resume activity" : "take activity"}

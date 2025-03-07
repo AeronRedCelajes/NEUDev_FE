@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-    const userRole = localStorage.getItem("user_type");
+    const userRole = sessionStorage.getItem("user_type");
 
     if (!userRole || !allowedRoles.includes(userRole)) {
         return <Navigate to="/signin" replace />;

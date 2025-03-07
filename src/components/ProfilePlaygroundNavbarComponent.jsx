@@ -9,7 +9,7 @@ export const ProfilePlaygroundNavbarComponent = () => {
 
     useEffect(() => {
         // Get user type from sessionStorage (or localStorage if you prefer)
-        const storedUserType = localStorage.getItem("user_type"); 
+        const storedUserType = sessionStorage.getItem("user_type"); 
         setUserType(storedUserType);
     }, []);
 

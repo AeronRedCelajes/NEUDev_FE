@@ -23,7 +23,7 @@ import {
   faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import '/src/style/student/assessment.css';
-import { getActivityItemsByStudent, finalizeSubmission } from '../api/API';
+import { getActivityItemsByStudent, finalizeSubmission, saveActivityProgress, clearActivityProgress } from '../api/API';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -66,7 +66,7 @@ export const StudentCodingAssessmentComponent = () => {
     imgSrc: '/src/assets/java2.png'
   });
 
-  // Default: one file with empty content
+  // Use files from saved progress (if any)
   const [files, setFiles] = useState([{ id: 0, fileName: 'main', extension: 'py', content: '' }]);
   const [activeFileId, setActiveFileId] = useState(0);
 
@@ -101,17 +101,15 @@ export const StudentCodingAssessmentComponent = () => {
   const [finalSpeed, setFinalSpeed] = useState('0m');
   const [finalActivityName, setFinalActivityName] = useState('');
 
-  // For calculating timeSpent
   const [startTime] = useState(Date.now());
 
   const [expandedTestCases, setExpandedTestCases] = useState({});
   const [expandedSummaryItems, setExpandedSummaryItems] = useState([]);
 
   const [isSubmitted, setIsSubmitted] = useState(false);
-
-  // NEW FLAG: wait until we've loaded the saved state before we sync
   const [hasLoadedSavedState, setHasLoadedSavedState] = useState(false);
 
+  // Fetch the latest activity details (to capture any teacher changes)
   useEffect(() => {
     async function fetchActivityData() {
       try {
@@ -121,7 +119,6 @@ export const StudentCodingAssessmentComponent = () => {
           setActDesc(resp.actDesc);
           setMaxPoints(resp.maxPoints);
           setActDuration(resp.actDuration);
-
           setItems(resp.items || []);
           if (resp.items && resp.items.length > 0) {
             setExpandedItem(resp.items[0].itemID);
@@ -134,7 +131,7 @@ export const StudentCodingAssessmentComponent = () => {
               name: first.progLangName,
               imgSrc: languageIconMap[first.progLangName] || '/src/assets/py.png'
             });
-            // If we want the default file to match the first language's extension:
+            // Update file extension for current file based on allowed languages
             setFiles((prev) =>
               prev.map((f) => ({
                 ...f,
@@ -147,74 +144,69 @@ export const StudentCodingAssessmentComponent = () => {
           }
         }
       } catch (err) {
-        console.error('Error fetching items:', err);
+        console.error('Error fetching activity details:', err);
       }
     }
     fetchActivityData();
   }, [actID]);
 
-  // 1) Initialization effect: load or create localStorage
+  // Local Storage Initialization & Timer Setup using DB progress if available
   useEffect(() => {
     if (!actDuration) return;
-
     let initialTimeLeft;
     let endTime;
     const savedState = localStorage.getItem(stateKey);
 
+    // Clear old state if endTime is missing or expired
     if (savedState) {
-      console.log("From assessment page: Found savedState for", stateKey, savedState);
       const parsed = JSON.parse(savedState);
-      // Check if timer is still valid
+      if (!parsed.endTime || parsed.endTime < Date.now()) {
+        localStorage.removeItem(stateKey);
+      }
+    }
+
+    const newSavedState = localStorage.getItem(stateKey);
+    if (newSavedState) {
+      console.log("From assessment page: Found savedState for", stateKey, newSavedState);
+      const parsed = JSON.parse(newSavedState);
       if (parsed.endTime && parsed.endTime > Date.now()) {
         endTime = parsed.endTime;
         initialTimeLeft = Math.floor((endTime - Date.now()) / 1000);
-
-        // Restore saved data
         console.log("From assessment page: Resuming with saved files:", parsed.files);
         if (parsed.files) setFiles(parsed.files);
         if (parsed.activeFileId !== undefined) setActiveFileId(parsed.activeFileId);
         if (parsed.testCaseResults) setTestCaseResults(parsed.testCaseResults);
-
-        // Also restore the selectedItem if it was stored
-        if (parsed.selectedItem) {
-          setSelectedItem(parsed.selectedItem);
-        }
+        if (parsed.selectedItem) setSelectedItem(parsed.selectedItem);
       } else {
-        // The saved state is expired, so auto-submit
-        console.log("From assessment page: Saved state expired. Auto-submitting.");
+        console.log("From assessment page: Saved state expired. Showing summary modal for manual submission.");
         setTimeLeft(0);
         setTimeExpired(true);
         setShowFinishAttempt(true);
-        handleSubmitAllAndFinish();
         return;
       }
     } else {
-      // No saved state found => create a new attempt
       console.log("From assessment page: No savedState found. Creating new attempt.");
       const [hh, mm, ss] = actDuration.split(':').map(Number);
       const totalSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
       initialTimeLeft = totalSeconds;
       endTime = Date.now() + totalSeconds * 1000;
-
       const newState = {
         endTime,
         files,
         activeFileId,
         actDuration,
         testCaseResults,
-        // We can also store selectedItem right away
         selectedItem
       };
       localStorage.setItem(stateKey, JSON.stringify(newState));
       console.log("From assessment page: New state created in localStorage:", newState);
     }
 
-    // Start the timer
     if (initialTimeLeft <= 0) {
       setTimeLeft(0);
       setTimeExpired(true);
       setShowFinishAttempt(true);
-      handleSubmitAllAndFinish();
+      return;
     } else {
       setTimeLeft(initialTimeLeft);
       timerRef.current = setInterval(() => {
@@ -224,7 +216,6 @@ export const StudentCodingAssessmentComponent = () => {
             setTimeLeft(0);
             setTimeExpired(true);
             setShowFinishAttempt(true);
-            handleSubmitAllAndFinish();
             return 0;
           }
           return prev - 1;
@@ -232,33 +223,59 @@ export const StudentCodingAssessmentComponent = () => {
       }, 1000);
     }
 
-    // Mark that we've loaded the saved state (or created a new one)
     setHasLoadedSavedState(true);
-
     return () => {
       clearInterval(timerRef.current);
     };
   }, [actDuration, stateKey]);
 
-  // 2) Sync effect: only runs after we've loaded or created the saved state
+  // Sync local state changes to local storage and database
   useEffect(() => {
     if (!hasLoadedSavedState) return;
-
     const saved = localStorage.getItem(stateKey);
     if (!saved) return;
-
     const parsed = JSON.parse(saved);
-    // Update the stored data with our current states
+    const originalEndTime = parsed.endTime; // Preserve endTime
     parsed.files = files;
     parsed.activeFileId = activeFileId;
     parsed.testCaseResults = testCaseResults;
     parsed.selectedItem = selectedItem;
-
+    if (originalEndTime) {
+      parsed.endTime = originalEndTime;
+    }
     localStorage.setItem(stateKey, JSON.stringify(parsed));
+    
     console.log("From assessment page: Syncing localStorage:", parsed);
-  }, [files, activeFileId, testCaseResults, selectedItem, stateKey, hasLoadedSavedState]);
+    // Prepare progress data payload
+    const progressData = {
+      itemID: selectedItem,
+      draftFiles: JSON.stringify(files),
+      draftTestCaseResults: JSON.stringify(testCaseResults),
+      timeRemaining: timeLeft,
+    };
+    saveActivityProgress(actID, progressData)
+      .then((res) => console.log("From assessment page: Progress saved to server:", res))
+      .catch((err) => console.error("From assessment page: Error saving progress:", err));
+  }, [files, activeFileId, testCaseResults, selectedItem, stateKey, hasLoadedSavedState, timeLeft]);
 
-  // If user closes browser tab
+  // Periodically sync progress every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!timeExpired && !isSubmitted) {
+        const progressData = {
+          itemID: selectedItem,
+          draftFiles: JSON.stringify(files),
+          draftTestCaseResults: JSON.stringify(testCaseResults),
+          timeRemaining: timeLeft,
+        };
+        saveActivityProgress(actID, progressData)
+          .then((res) => console.log("Periodic progress sync:", res))
+          .catch((err) => console.error("Error during periodic progress sync:", err));
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [files, activeFileId, testCaseResults, selectedItem, timeExpired, isSubmitted, actID, timeLeft]);
+
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (!timeExpired && !isSubmitted) {
@@ -278,7 +295,6 @@ export const StudentCodingAssessmentComponent = () => {
     return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
   };
 
-  // WebSocket setup
   useEffect(() => {
     const ws = new WebSocket('wss://neudevcompiler-production.up.railway.app');
     wsRef.current = ws;
@@ -317,18 +333,15 @@ export const StudentCodingAssessmentComponent = () => {
     setLines((prev) => [...prev, text]);
   };
 
-  // Navigate back
   const handleClassClick = () => {
     navigate(`/student/class/${classID}/activity`);
   };
 
-  // Expand/collapse item
   const toggleItem = (itemID) => {
     setExpandedItem((prev) => (prev === itemID ? null : itemID));
     setSelectedItem(itemID);
   };
 
-  // Language selection
   const handleSelectLanguage = (langName) => {
     const icon = languageIconMap[langName] || '/src/assets/py.png';
     setSelectedLanguage({ name: langName, imgSrc: icon });
@@ -341,19 +354,16 @@ export const StudentCodingAssessmentComponent = () => {
     );
   };
 
-  // Switch file tabs
   const handleTabSelect = (fileId) => {
     setActiveFileId(fileId);
   };
 
-  // As user types code
   const handleFileChange = (newContent) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === activeFileId ? { ...f, content: newContent } : f))
     );
   };
 
-  // Creating / deleting / editing files
   const openAddFileModal = () => {
     setNewFileExtension(getExtensionFromLanguage(selectedLanguage?.name || 'txt'));
     setNewFileName('');
@@ -375,7 +385,7 @@ export const StudentCodingAssessmentComponent = () => {
   };
 
   const handleDeleteFile = (fileId) => {
-    if (files.length === 1) return; // Don't allow deleting the last file
+    if (files.length === 1) return;
     if (window.confirm('Delete this file?')) {
       setFiles((prev) => prev.filter((f) => f.id !== fileId));
       if (activeFileId === fileId) {
@@ -409,7 +419,6 @@ export const StudentCodingAssessmentComponent = () => {
 
   const activeFile = files.find((f) => f.id === activeFileId);
 
-  // Running code
   const handleRunCode = () => {
     if (!activeFile || isSubmitted || timeExpired) return;
     setLines([]);
@@ -417,7 +426,6 @@ export const StudentCodingAssessmentComponent = () => {
     setTypedInput('');
     setShowTerminal(true);
     setLoading(true);
-
     const ws = wsRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(
@@ -434,7 +442,6 @@ export const StudentCodingAssessmentComponent = () => {
     }
   };
 
-  // Running a single test case
   const runSingleTestCase = (testCase, scoreUpdate = false) => {
     return new Promise((resolve) => {
       if (!selectedItem) {
@@ -446,7 +453,6 @@ export const StudentCodingAssessmentComponent = () => {
       setPrompt('');
       setTypedInput('');
       setShowTerminal(true);
-
       const ws = wsRef.current;
       if (ws && ws.readyState === WebSocket.OPEN) {
         let outputBuffer = [];
@@ -507,7 +513,6 @@ export const StudentCodingAssessmentComponent = () => {
     });
   };
 
-  // "Check Code" = run all test cases for the selected item
   const handleCheckCode = async () => {
     if (!selectedItem || isSubmitted || timeExpired) return;
     setTestCaseResults((prev) => {
@@ -517,14 +522,12 @@ export const StudentCodingAssessmentComponent = () => {
     });
     const itemData = items.find((it) => it.itemID === selectedItem);
     if (!itemData || !itemData.testCases) return;
-
     for (let i = 0; i < itemData.testCases.length; i++) {
       await runSingleTestCase(itemData.testCases[i], true);
     }
     setLoading(false);
   };
 
-  // Terminal input
   const handleInputKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -555,7 +558,6 @@ export const StudentCodingAssessmentComponent = () => {
     setTypedInput('');
   };
 
-  // Score computations
   const computeItemScore = (itemID) => {
     const item = items.find((it) => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
@@ -578,7 +580,6 @@ export const StudentCodingAssessmentComponent = () => {
     return total;
   };
 
-  // Expand/collapse summary
   const toggleSummaryItem = (itemID) => {
     setExpandedSummaryItems((prev) => {
       const arr = Array.isArray(prev) ? prev : [];
@@ -593,12 +594,11 @@ export const StudentCodingAssessmentComponent = () => {
     });
   };
 
-  // "Finish Attempt" => show summary modal
   const handleFinishAttempt = () => {
     setShowFinishAttempt(true);
   };
 
-  // Final submission
+  // Finalize submission, then clear progress from DB and localStorage
   const finalizeSubmissionHandler = async () => {
     if (isSubmitted) return;
     let itemID = selectedItem;
@@ -623,16 +623,15 @@ export const StudentCodingAssessmentComponent = () => {
     } else {
       setIsSubmitted(true);
       if (result.rank) setFinalRank(result.rank);
+      // Clear progress from DB and localStorage for a fresh attempt
+      await clearActivityProgress(actID);
       localStorage.removeItem(stateKey);
-      console.log("From assessment page: Submission successful, removed localStorage key", stateKey);
+      console.log("From assessment page: Submission successful, cleared progress.");
     }
   };
 
-  // "Submit All and Finish"
   const handleSubmitAllAndFinish = async () => {
     if (isSubmitted) return;
-
-    // Summarize test cases
     let totalTC = 0;
     let correctTC = 0;
     items.forEach((it) => {
@@ -654,7 +653,6 @@ export const StudentCodingAssessmentComponent = () => {
     setFinalActivityName(activityName);
     setFinalScore(`${totalScore}/${mp}`);
 
-    // Speed
     if (timeExpired) {
       const [hh, mm, ss] = actDuration.split(':').map(Number);
       setFinalSpeed(`${mm}m ${ss}s`);
@@ -671,7 +669,6 @@ export const StudentCodingAssessmentComponent = () => {
     setShowSubmit(true);
   };
 
-  // Download files
   const handleDownloadFiles = async () => {
     if (files.length === 1) {
       const single = files[0];
@@ -765,20 +762,10 @@ export const StudentCodingAssessmentComponent = () => {
                         />
                       ))}
                     </Tabs>
-                    <Button
-                      variant='link'
-                      style={{ textDecoration: 'none' }}
-                      onClick={openAddFileModal}
-                      title='Add File'
-                    >
+                    <Button variant='link' style={{ textDecoration: 'none' }} onClick={openAddFileModal} title='Add File'>
                       <FontAwesomeIcon icon={faPlusSquare} />
                     </Button>
-                    <Button
-                      variant='link'
-                      style={{ textDecoration: 'none' }}
-                      onClick={openEditFileModal}
-                      title='Edit File'
-                    >
+                    <Button variant='link' style={{ textDecoration: 'none' }} onClick={openEditFileModal} title='Edit File'>
                       <i className='bi bi-pencil'></i>
                     </Button>
                   </Col>
@@ -789,11 +776,7 @@ export const StudentCodingAssessmentComponent = () => {
                       size='sm'
                       title={
                         <>
-                          <img
-                            src={selectedLanguage.imgSrc}
-                            style={{ width: '17px', marginRight: '8px' }}
-                            alt='lang-icon'
-                          />
+                          <img src={selectedLanguage.imgSrc} style={{ width: '17px', marginRight: '8px' }} alt='lang-icon' />
                           {selectedLanguage.name}
                         </>
                       }
@@ -802,11 +785,7 @@ export const StudentCodingAssessmentComponent = () => {
                       {programmingLanguages.map((lang) => (
                         <Dropdown.Item eventKey={lang.progLangName} key={lang.progLangID}>
                           {languageIconMap[lang.progLangName] && (
-                            <img
-                              src={languageIconMap[lang.progLangName]}
-                              alt=''
-                              style={{ width: '17px', marginRight: '8px' }}
-                            />
+                            <img src={languageIconMap[lang.progLangName]} alt='' style={{ width: '17px', marginRight: '8px' }} />
                           )}
                           {lang.progLangName}
                         </Dropdown.Item>
@@ -822,20 +801,14 @@ export const StudentCodingAssessmentComponent = () => {
                   className='code-editor w-100'
                   style={{ height: '400px' }}
                   value={activeFile?.content || ''}
-                  onChange={(e) =>
-                    !isSubmitted && !timeExpired && handleFileChange(e.target.value)
-                  }
+                  onChange={(e) => !isSubmitted && !timeExpired && handleFileChange(e.target.value)}
                   placeholder='Write your code here...'
                   disabled={isSubmitted || timeExpired}
                 />
               </div>
 
               <div className='compiler-bottom'>
-                <Button
-                  className='run'
-                  onClick={handleRunCode}
-                  disabled={loading || isSubmitted || timeExpired}
-                >
+                <Button className='run' onClick={handleRunCode} disabled={loading || isSubmitted || timeExpired}>
                   {loading ? (
                     <Spinner animation='border' size='sm' />
                   ) : (
@@ -845,11 +818,7 @@ export const StudentCodingAssessmentComponent = () => {
                     </>
                   )}
                 </Button>
-                <Button
-                  className='check'
-                  onClick={handleCheckCode}
-                  disabled={loading || isSubmitted || timeExpired}
-                >
+                <Button className='check' onClick={handleCheckCode} disabled={loading || isSubmitted || timeExpired}>
                   {loading ? (
                     <Spinner animation='border' size='sm' />
                   ) : (
@@ -893,7 +862,6 @@ export const StudentCodingAssessmentComponent = () => {
                   Finish attempt...
                 </Button>
 
-                {/* ACTIVITY SUMMARY MODAL */}
                 <Modal
                   show={showFinishAttempt}
                   onHide={timeLeft > 0 ? () => setShowFinishAttempt(false) : undefined}
@@ -915,20 +883,12 @@ export const StudentCodingAssessmentComponent = () => {
                   </Modal.Header>
                   <Modal.Body>
                     <h3>{activityName}</h3>
-                    <p>
-                      Total Activity Score: {computeTotalScore()}/{maxPoints}
-                    </p>
+                    <p>Total Activity Score: {computeTotalScore()}/{maxPoints}</p>
                     {items.map((item, idx) => (
                       <div key={item.itemID}>
-                        <div
-                          className='item-summary'
-                          onClick={() => toggleSummaryItem(item.itemID)}
-                          style={{ cursor: 'pointer' }}
-                        >
+                        <div className='item-summary' onClick={() => toggleSummaryItem(item.itemID)} style={{ cursor: 'pointer' }}>
                           <p>{`Item ${idx + 1}: ${item.itemName} (${item.itemType})`}</p>
-                          <p>
-                            Score: {computeItemScore(item.itemID)}/{item.actItemPoints}
-                          </p>
+                          <p>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</p>
                           <i className='bi bi-arrow-right-circle'></i>
                         </div>
                         {expandedSummaryItems.includes(item.itemID) && (
@@ -938,29 +898,14 @@ export const StudentCodingAssessmentComponent = () => {
                                 key={tc.testCaseID}
                                 className='test-case-summary'
                                 onClick={() => toggleSummaryTestCase(index, item.itemID)}
-                                style={{
-                                  cursor: 'pointer',
-                                  paddingLeft: '1rem',
-                                  borderBottom: '1px solid #ddd',
-                                  marginBottom: '0.5rem'
-                                }}
+                                style={{ cursor: 'pointer', paddingLeft: '1rem', borderBottom: '1px solid #ddd', marginBottom: '0.5rem' }}
                               >
-                                <p>
-                                  <strong>Test Case {index + 1}</strong>
-                                </p>
+                                <p><strong>Test Case {index + 1}</strong></p>
                                 {expandedTestCases[`${item.itemID}-${index}`] && (
                                   <>
-                                    <p>
-                                      Your Output:{' '}
-                                      {testCaseResults[item.itemID]?.[tc.testCaseID]?.lockedOutput ||
-                                        '(none)'}
-                                    </p>
+                                    <p>Your Output: {testCaseResults[item.itemID]?.[tc.testCaseID]?.lockedOutput || '(none)'}</p>
                                     <p>Expected Output: {tc.expectedOutput}</p>
-                                    <p>
-                                      Points:{' '}
-                                      {testCaseResults[item.itemID]?.[tc.testCaseID]?.lockedPoints || 0}
-                                      /{tc.testCasePoints}
-                                    </p>
+                                    <p>Points: {testCaseResults[item.itemID]?.[tc.testCaseID]?.lockedPoints || 0}/{tc.testCasePoints}</p>
                                   </>
                                 )}
                               </div>
@@ -975,7 +920,6 @@ export const StudentCodingAssessmentComponent = () => {
                   </Modal.Body>
                 </Modal>
 
-                {/* FINAL SCORE MODAL */}
                 <Modal
                   show={showSubmit}
                   onHide={() => setShowSubmit(false)}
@@ -1024,7 +968,6 @@ export const StudentCodingAssessmentComponent = () => {
               </div>
             </div>
 
-            {/* TEST CONTAINER */}
             <div className='test-container'>
               <div className='test-header'>
                 Tests <i className='bi bi-info-circle'></i>
@@ -1049,60 +992,45 @@ export const StudentCodingAssessmentComponent = () => {
 
                       return (
                         <div key={tc.testCaseID} className='test-case'>
-                          <div
-                            onClick={() =>
-                              setExpandedTestCases((prev) => ({
-                                ...prev,
-                                [tc.testCaseID]: !prev[tc.testCaseID]
-                              }))
-                            }
-                            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                          >
-                            <Button
-                              style={{
-                                width: '25px',
-                                height: '25px',
-                                borderRadius: '50%',
-                                border: 'none',
-                                marginRight: '10px',
-                                backgroundColor:
-                                  passFail === 'pass'
-                                    ? 'green'
-                                    : passFail === 'fail'
-                                    ? 'red'
-                                    : '#D9D9D9',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              {passFail === 'pass' && (
-                                <FontAwesomeIcon icon={faCheck} style={{ color: '#fff' }} />
-                              )}
-                              {passFail === 'fail' && (
-                                <FontAwesomeIcon icon={faTimes} style={{ color: '#fff' }} />
-                              )}
-                              {passFail === 'untested' && (
-                                <FontAwesomeIcon icon={faQuestion} style={{ color: '#fff' }} />
-                              )}
+                          <div onClick={() =>
+                            setExpandedTestCases((prev) => ({
+                              ...prev,
+                              [tc.testCaseID]: !prev[tc.testCaseID]
+                            }))
+                          } style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                            <Button style={{
+                              width: '25px',
+                              height: '25px',
+                              borderRadius: '50%',
+                              border: 'none',
+                              marginRight: '10px',
+                              backgroundColor:
+                                passFail === 'pass'
+                                  ? 'green'
+                                  : passFail === 'fail'
+                                  ? 'red'
+                                  : '#D9D9D9',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              {passFail === 'pass' && (<FontAwesomeIcon icon={faCheck} style={{ color: '#fff' }} />)}
+                              {passFail === 'fail' && (<FontAwesomeIcon icon={faTimes} style={{ color: '#fff' }} />)}
+                              {passFail === 'untested' && (<FontAwesomeIcon icon={faQuestion} style={{ color: '#fff' }} />)}
                             </Button>
                             <p>{`Test Case ${idx + 1}`}</p>
-                            <i
-                              className='bi bi-play-circle'
+                            <i className='bi bi-play-circle'
                               style={{ cursor: 'pointer', marginLeft: 'auto' }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 runSingleTestCase(tc, false);
-                              }}
-                            ></i>
+                              }}></i>
                           </div>
                           {expandedTestCases[tc.testCaseID] && (
                             <div className='test-case-details' style={{ paddingLeft: '35px' }}>
                               <p>Your Output: {r.latestOutput || '(none)'}</p>
                               <p>Expected Output: {tc.expectedOutput}</p>
-                              <p>
-                                Points: {r.lockedPoints}/{tc.testCasePoints}
-                              </p>
+                              <p>Points: {r.lockedPoints}/{tc.testCasePoints}</p>
                             </div>
                           )}
                         </div>
@@ -1122,21 +1050,12 @@ export const StudentCodingAssessmentComponent = () => {
         </Row>
       </div>
 
-      {/* Terminal Modal */}
-      <Modal
-        show={showTerminal}
-        onHide={handleCloseTerminal}
-        size='lg'
-        backdrop='static'
-        keyboard={false}
-        centered
-      >
+      <Modal show={showTerminal} onHide={handleCloseTerminal} size='lg' backdrop='static' keyboard={false} centered>
         <Modal.Header closeButton>
           <Modal.Title>NEUDev Terminal</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ backgroundColor: '#1e1e1e', color: '#fff' }}>
-          <div
-            style={{
+          <div style={{
               padding: '10px',
               fontFamily: 'monospace',
               minHeight: '300px',
@@ -1161,20 +1080,13 @@ export const StudentCodingAssessmentComponent = () => {
             ))}
             <div style={{ whiteSpace: 'pre-wrap' }}>
               <span>{prompt}</span>
-              <span
-                ref={inputRef}
-                contentEditable
-                suppressContentEditableWarning
-                style={{ outline: 'none' }}
-                onInput={handleInputChange}
-                onKeyDown={handleInputKeyDown}
-              />
+              <span ref={inputRef} contentEditable suppressContentEditableWarning style={{ outline: 'none' }}
+                onInput={handleInputChange} onKeyDown={handleInputKeyDown} />
             </div>
           </div>
         </Modal.Body>
       </Modal>
 
-      {/* Add File Modal */}
       <Modal show={showAddFileModal} onHide={() => setShowAddFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Add File</Modal.Title>
@@ -1182,34 +1094,19 @@ export const StudentCodingAssessmentComponent = () => {
         <Modal.Body>
           <Form.Group>
             <Form.Label>Filename</Form.Label>
-            <Form.Control
-              type='text'
-              placeholder='Enter filename (without extension)'
-              value={newFileName}
-              onChange={(e) => setNewFileName(e.target.value)}
-            />
+            <Form.Control type='text' placeholder='Enter filename (without extension)' value={newFileName} onChange={(e) => setNewFileName(e.target.value)} />
           </Form.Group>
           <Form.Group className='mt-3'>
             <Form.Label>Extension</Form.Label>
-            <Form.Control
-              type='text'
-              placeholder='e.g. py, cs, java...'
-              value={newFileExtension}
-              onChange={(e) => setNewFileExtension(e.target.value)}
-            />
+            <Form.Control type='text' placeholder='e.g. py, cs, java...' value={newFileExtension} onChange={(e) => setNewFileExtension(e.target.value)} />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant='secondary' onClick={() => setShowAddFileModal(false)}>
-            Cancel
-          </Button>
-          <Button variant='primary' onClick={handleCreateNewFile}>
-            Create
-          </Button>
+          <Button variant='secondary' onClick={() => setShowAddFileModal(false)}>Cancel</Button>
+          <Button variant='primary' onClick={handleCreateNewFile}>Create</Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Edit File Modal */}
       <Modal show={showEditFileModal} onHide={() => setShowEditFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit File</Modal.Title>
@@ -1217,30 +1114,16 @@ export const StudentCodingAssessmentComponent = () => {
         <Modal.Body>
           <Form.Group>
             <Form.Label>Filename</Form.Label>
-            <Form.Control
-              type='text'
-              placeholder='Enter filename (without extension)'
-              value={editFileName}
-              onChange={(e) => setEditFileName(e.target.value)}
-            />
+            <Form.Control type='text' placeholder='Enter filename (without extension)' value={editFileName} onChange={(e) => setEditFileName(e.target.value)} />
           </Form.Group>
           <Form.Group className='mt-3'>
             <Form.Label>Extension</Form.Label>
-            <Form.Control
-              type='text'
-              placeholder='e.g. py, cs, java...'
-              value={editFileExtension}
-              onChange={(e) => setEditFileExtension(e.target.value)}
-            />
+            <Form.Control type='text' placeholder='e.g. py, cs, java...' value={editFileExtension} onChange={(e) => setEditFileExtension(e.target.value)} />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant='secondary' onClick={() => setShowEditFileModal(false)}>
-            Cancel
-          </Button>
-          <Button variant='primary' onClick={handleEditFile}>
-            Save Changes
-          </Button>
+          <Button variant='secondary' onClick={() => setShowEditFileModal(false)}>Cancel</Button>
+          <Button variant='primary' onClick={handleEditFile}>Save Changes</Button>
         </Modal.Footer>
       </Modal>
     </>
