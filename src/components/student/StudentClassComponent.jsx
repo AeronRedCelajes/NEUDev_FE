@@ -116,33 +116,37 @@ export const StudentClassComponent = () => {
   };
 
   // Merge server progress (from DB) into local storage.
-  // This now also includes the new draftScore property.
+  // If there is no progress found on the server, clear the local storage.
   const syncProgressFromServer = async (actID) => {
     try {
       const progressResponse = await getActivityProgress(actID);
+      const key = `activityState_${actID}`;
       if (
         progressResponse &&
         progressResponse.progress &&
         progressResponse.progress.length > 0
       ) {
         const serverProgress = progressResponse.progress[0];
-        const key = `activityState_${actID}`;
         const local = localStorage.getItem(key);
         let mergedProgress = {};
 
         if (local) {
           const parsedLocal = JSON.parse(local);
-          // Merge server progress, preserving local computed endTime if needed.
+          // Merge server progress, preserving the local computed endTime if set.
           mergedProgress = {
             ...parsedLocal,
             ...serverProgress,
-            endTime: parsedLocal.endTime // Retain local timer if already set
+            endTime: parsedLocal.endTime // retain local timer if already set
           };
         } else {
           mergedProgress = serverProgress;
         }
         localStorage.setItem(key, JSON.stringify(mergedProgress));
         console.log("[syncProgressFromServer] Merged progress:", mergedProgress);
+      } else {
+        // If there is no progress from the server, clear any existing local storage.
+        localStorage.removeItem(key);
+        console.log("[syncProgressFromServer] No progress found on server. Cleared local storage for key:", key);
       }
     } catch (error) {
       console.error("[syncProgressFromServer] Error fetching progress:", error);
@@ -203,11 +207,11 @@ export const StudentClassComponent = () => {
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  };  
+  };
 
   const handleActivityClick = async (activity) => {
     console.log("[handleActivityClick] Activity clicked:", activity.actTitle, "ID:", activity.actID);
-    // Sync progress from DB before taking/resuming an activity
+    // Sync progress from DB before taking/resuming an activity.
     await syncProgressFromServer(activity.actID);
 
     const now = new Date();
