@@ -902,7 +902,7 @@ async function deleteSubmission(actID, submissionID) {
 }
 
 //////////////////////////////////////////
-// ACTIVITY PROGRESS FUNCTIONS
+// ACTIVITY / ASSESSMENT FUNCTIONS
 //////////////////////////////////////////
 
 // Helper function to determine the correct progress endpoint based on user role.
@@ -950,6 +950,19 @@ async function clearActivityProgress(actID) {
       "Content-Type": "application/json",
       "Accept": "application/json"
     }
+  }).then(res => res.json());
+}
+
+//////////////////////////////////////////
+// ACTIVITY SUBMISSIONS FUNCTIONS
+//////////////////////////////////////////
+
+async function reviewSubmissions(actID) {
+  const token = sessionStorage.getItem("access_token");
+  if (!token) return { error: "Unauthorized access: No token found" };
+  return await apiFetch(`${API_LINK}/teacher/activities/${actID}/review`, {
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
   }).then(res => res.json());
 }
 
@@ -1007,5 +1020,6 @@ export {
   deleteSubmission,
   getActivityProgress,
   saveActivityProgress,
-  clearActivityProgress
+  clearActivityProgress,
+  reviewSubmissions
 };

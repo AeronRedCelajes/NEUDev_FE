@@ -115,27 +115,34 @@ export const StudentClassComponent = () => {
     }
   };
 
-  // Merge server progress (from DB) into local storage
+  // Merge server progress (from DB) into local storage.
+  // This now also includes the new draftScore property.
   const syncProgressFromServer = async (actID) => {
     try {
       const progressResponse = await getActivityProgress(actID);
-      if (progressResponse && progressResponse.progress && progressResponse.progress.length > 0) {
+      if (
+        progressResponse &&
+        progressResponse.progress &&
+        progressResponse.progress.length > 0
+      ) {
         const serverProgress = progressResponse.progress[0];
         const key = `activityState_${actID}`;
         const local = localStorage.getItem(key);
+        let mergedProgress = {};
+
         if (local) {
           const parsedLocal = JSON.parse(local);
-          const mergedProgress = {
+          // Merge server progress, preserving local computed endTime if needed.
+          mergedProgress = {
             ...parsedLocal,
             ...serverProgress,
-            endTime: parsedLocal.endTime // Preserve our locally computed timer endTime
+            endTime: parsedLocal.endTime // Retain local timer if already set
           };
-          localStorage.setItem(key, JSON.stringify(mergedProgress));
-          console.log("[syncProgressFromServer] Merged progress:", mergedProgress);
         } else {
-          localStorage.setItem(key, JSON.stringify(serverProgress));
-          console.log("[syncProgressFromServer] Set local storage from server progress:", serverProgress);
+          mergedProgress = serverProgress;
         }
+        localStorage.setItem(key, JSON.stringify(mergedProgress));
+        console.log("[syncProgressFromServer] Merged progress:", mergedProgress);
       }
     } catch (error) {
       console.error("[syncProgressFromServer] Error fetching progress:", error);
@@ -180,30 +187,23 @@ export const StudentClassComponent = () => {
   const checkLocalStorageForActivity = (actID) => {
     const key = `activityState_${actID}`;
     const saved = localStorage.getItem(key);
-    console.log(`[checkLocalStorageForActivity] Key: ${key}, saved state:`, saved);
     if (!saved) {
-      console.log("[checkLocalStorageForActivity] No saved state found.");
       return null;
     }
     const parsed = JSON.parse(saved);
     if (!parsed.endTime) {
-      console.log("[checkLocalStorageForActivity] Saved state has no endTime.");
       return null;
     }
     const diffMs = parsed.endTime - Date.now();
-    console.log(`[checkLocalStorageForActivity] Time difference (ms): ${diffMs}`);
     if (diffMs <= 0) {
-      console.log("[checkLocalStorageForActivity] Timer expired.");
       return "expired";
     }
     const totalSec = Math.floor(diffMs / 1000);
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
-    const formatted = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    console.log(`[checkLocalStorageForActivity] Returning time left: ${formatted}`);
-    return formatted;
-  };
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };  
 
   const handleActivityClick = async (activity) => {
     console.log("[handleActivityClick] Activity clicked:", activity.actTitle, "ID:", activity.actID);
@@ -259,10 +259,11 @@ export const StudentClassComponent = () => {
             code = fileObj.content;
           }
         }
+        // Use the new draftScore from progress if available; otherwise, default to 0.
         const submissionData = {
           itemID: itemID,
           codeSubmission: code,
-          score: 0,
+          score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
           timeSpent: Math.floor((Date.now() - (parsed.startTime || Date.now())) / 60000) || 0
         };
         console.log("[handleActivityClick] Auto-submitting with data:", submissionData);
@@ -428,6 +429,10 @@ export const StudentClassComponent = () => {
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
                             </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                            </div>
                           </div>
                         </Col>
                         <Col className='activity-stats'>
@@ -532,6 +537,10 @@ export const StudentClassComponent = () => {
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
                             </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                            </div>
                           </div>
                         </Col>
                         <Col className='activity-stats'>
@@ -592,6 +601,10 @@ export const StudentClassComponent = () => {
                             <div style={{ marginTop: "5px" }}>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
+                            </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
                           </div>
                         </Col>

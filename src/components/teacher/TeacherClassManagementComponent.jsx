@@ -97,6 +97,7 @@ export const TeacherClassManagementComponent = () => {
     maxPoints: '',
     actDuration: '', // in minutes (string)
     actAttempts: '', // NEW: store attempts as string
+    finalScorePolicy: 'last_attempt', // NEW: default policy
     // renamed "questions" -> "items"
     items: ['', '', ''],
   });
@@ -408,7 +409,7 @@ export const TeacherClassManagementComponent = () => {
       }
     }
 
-    // NEW: Include actAttempts (convert to string for form control)
+    // NEW: Include actAttempts and finalScorePolicy (converted to string for form control)
     setEditFormData({
       actTitle:       activity.actTitle || '',
       actDesc:        activity.actDesc || '',
@@ -418,6 +419,7 @@ export const TeacherClassManagementComponent = () => {
       maxPoints:      activity.maxPoints ? activity.maxPoints.toString() : '',
       actDuration:    totalMinutes,
       actAttempts:    activity.actAttempts !== undefined ? activity.actAttempts.toString() : "0",
+      finalScorePolicy: activity.finalScorePolicy || "last_attempt",
       items:          existingItems
     });
 
@@ -449,6 +451,7 @@ export const TeacherClassManagementComponent = () => {
       actDuration:   finalDuration,
       maxPoints:     computedPoints,
       actAttempts:   parseInt(editFormData.actAttempts || "0", 10),
+      finalScorePolicy: editFormData.finalScorePolicy, // Include updated finalScorePolicy
       progLangIDs:   editSelectedProgLangs,
       items: editFormData.items
         .filter(it => it.itemName.trim() !== '')
@@ -728,6 +731,10 @@ export const TeacherClassManagementComponent = () => {
                               {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
                             </div>
                             <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                            </div>
+                            <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                               Duration: {activity.actDuration ? activity.actDuration : "-"}
                             </div>
@@ -851,6 +858,10 @@ export const TeacherClassManagementComponent = () => {
                             <div>
                               <strong>Attempts: </strong>
                               {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                            </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
                             <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
@@ -978,6 +989,10 @@ export const TeacherClassManagementComponent = () => {
                               {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
                             </div>
                             <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                            </div>
+                            <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                               Duration: {activity.actDuration ? activity.actDuration : "-"}
                             </div>
@@ -1091,6 +1106,22 @@ export const TeacherClassManagementComponent = () => {
               />
               <Form.Text className="text-muted">
                 Enter 0 for unlimited attempts; otherwise, enter a positive number.
+              </Form.Text>
+            </Form.Group>
+            {/* NEW: Final Score Policy in Edit Modal */}
+            <Form.Group controlId="formFinalScorePolicy" className="mt-3">
+              <Form.Label>Final Score Policy</Form.Label>
+              <Form.Control
+                as="select"
+                value={editFormData.finalScorePolicy || "last_attempt"}
+                onChange={(e) => setEditFormData({ ...editFormData, finalScorePolicy: e.target.value })}
+                required
+              >
+                <option value="last_attempt">Last Attempt</option>
+                <option value="highest_score">Highest Score</option>
+              </Form.Control>
+              <Form.Text className="text-muted">
+                Choose whether the final score is determined by the student's last submission or their highest score.
               </Form.Text>
             </Form.Group>
             <Form.Group controlId="formSelectProgLang" className="mt-3">

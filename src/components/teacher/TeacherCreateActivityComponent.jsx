@@ -40,6 +40,9 @@ export const TeacherCreateActivityComponent = () => {
   // NEW: Activity Attempts (0 for unlimited; otherwise limited attempts)
   const [activityAttempts, setActivityAttempts] = useState("1");
 
+  // NEW: Final Score Policy (last_attempt or highest_score)
+  const [finalScorePolicy, setFinalScorePolicy] = useState("last_attempt");
+
   // -------------------- Item Bank State --------------------
   const [selectedItems, setSelectedItems] = useState([null, null, null]);
   const [presetItems, setPresetItems] = useState([]);
@@ -256,7 +259,7 @@ export const TeacherCreateActivityComponent = () => {
     const ss = "00"; // fixed seconds
     const finalDuration = `${hh}:${mm}:${ss}`;
 
-    // Build new activity object including actAttempts
+    // Build new activity object including actAttempts and finalScorePolicy
     const newActivity = {
       classID,
       actTitle: activityTitle,
@@ -268,7 +271,8 @@ export const TeacherCreateActivityComponent = () => {
       progLangIDs: selectedProgLangs,
       maxPoints: computedPoints,
       items: finalItems,
-      actAttempts: parseInt(activityAttempts, 10)  // NEW: include attempts
+      actAttempts: parseInt(activityAttempts, 10),
+      finalScorePolicy // either "last_attempt" or "highest_score"
     };
 
     console.log("📤 Sending Activity Data:", JSON.stringify(newActivity, null, 2));
@@ -427,6 +431,23 @@ export const TeacherCreateActivityComponent = () => {
               />
               <Form.Text className="text-muted">
                 Enter 0 for unlimited attempts; otherwise, enter a positive number.
+              </Form.Text>
+            </Form.Group>
+
+            {/* NEW: Final Score Policy */}
+            <Form.Group className="mt-3">
+              <Form.Label>Final Score Policy</Form.Label>
+              <Form.Control
+                as="select"
+                value={finalScorePolicy}
+                onChange={(e) => setFinalScorePolicy(e.target.value)}
+                required
+              >
+                <option value="last_attempt">Last Attempt</option>
+                <option value="highest_score">Highest Score</option>
+              </Form.Control>
+              <Form.Text className="text-muted">
+                Choose whether the final score is determined by the student's last submission or their highest score.
               </Form.Text>
             </Form.Group>
 
