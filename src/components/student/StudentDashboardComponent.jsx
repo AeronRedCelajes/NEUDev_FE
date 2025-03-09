@@ -104,8 +104,11 @@ export const StudentDashboardComponent = () => {
                 </Nav>
             </div>
 
+            {/* Sidebar Overlay for Mobile */}
+            {sidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
+
             {/* 📌 Dashboard Content */}
-            <div className='dashboard-content'>
+            <div className={`dashboard-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <Navbar expand='lg' fixed='top' className='navbar-top'>
                     <Button variant='transparent' className='toggle-btn' onClick={toggleSidebar}>
                         <FontAwesomeIcon icon={faBars} />
@@ -127,11 +130,12 @@ export const StudentDashboardComponent = () => {
                     </div>
                 </Navbar>
 
-                <div className='container'>
-                    <h5>Enrolled Classes</h5>
+                <div className='container-fluid'>
+                    <h4>Enrolled Classes</h4>
 
-                    <div className='classes-container'>
+                    <div className='container classes-container'>
                         {/* ✅ Dynamically Render Enrolled Classes */}
+                        
                         {classes.length > 0 ? (
                             classes.map((classItem, index) => (
                                 <Card className='class-card' key={index} 
@@ -139,7 +143,7 @@ export const StudentDashboardComponent = () => {
                                         sessionStorage.setItem("selectedClassID", classItem.classID);
                                         navigate(`/student/class/${classItem.classID}/activity`);
                                     }} 
-                                    style={{ cursor: 'pointer' }}>
+                                    style={{cursor: 'pointer'}}>
                                     <Card.Img variant='top' src='/src/assets/univ.png' />
                                     <Card.Body>
                                         <Card.Text>
@@ -151,19 +155,25 @@ export const StudentDashboardComponent = () => {
                                 </Card>
                             ))
                         ) : (
-                            <p>No enrolled classes yet.</p>
+                            <div className="no-classes-container">
+                                <p>No enrolled classes yet.</p>
+                                <Button variant='transparent' className='join-class' onClick={() => setShowJoinClass(true)}>
+                                    + Join a Class
+                                </Button>
+                            </div>
                         )}
-                        
-                        {/* Join Class Button */}
-                        <Button variant='transparent' className='join-class' onClick={() => setShowJoinClass(true)}>
-                            + Join a Class
-                        </Button>
+
+                        {classes.length > 0 && (
+                            <Button variant='transparent' className='join-class' onClick={() => setShowJoinClass(true)}>
+                                + Join a Class
+                            </Button>
+                        )}
                     </div>
                 </div>
 
                 {/* Join Class Modal */}
                 <Modal show={showJoinClass} onHide={() => setShowJoinClass(false)} backdrop='static' keyboard={false} size='lg'>
-                    <Modal.Header closeButton>Join Class</Modal.Header>
+                    <Modal.Header className='modal-class-header' closeButton>Join Class</Modal.Header>
                     <Modal.Body className='modal-class-body'>
                         <p>Enter the class code given to you by your teacher.</p>
                         <Form onSubmit={handleJoinClass}>
