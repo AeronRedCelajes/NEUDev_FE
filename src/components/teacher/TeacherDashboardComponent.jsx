@@ -28,6 +28,8 @@ export const TeacherDashboardComponent = () => {
     const [deletePassword, setDeletePassword] = useState("");
 
     const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -180,7 +182,7 @@ export const TeacherDashboardComponent = () => {
 
     return (
         <div className='dashboard'>
-            <div className={`sidebar open`}>
+            <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
                 <Nav className='flex-column sidebar-content'>
                     <Nav.Item className="nav-item active">
                         <Nav.Link href='#' className='nav-link'>
@@ -197,12 +199,20 @@ export const TeacherDashboardComponent = () => {
                             <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Item Bank
                         </Nav.Link>
                     </Nav.Item>
+                    <Nav.Item className='nav-item' onClick={() => navigate('/teacher/item')}>
+                        <Nav.Link href='#' className='nav-link'>
+                            <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Archived Classes
+                        </Nav.Link>
+                    </Nav.Item>
                 </Nav>
             </div>
 
-            <div className='dashboard-content'>
+            {/* Sidebar Overlay for Mobile */}
+            {sidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
+
+            <div className={`dashboard-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <Navbar expand='lg' fixed='top' className='navbar-top'>
-                    <Button variant='transparent' className='toggle-btn'>
+                    <Button variant='transparent' className='toggle-btn' onClick={toggleSidebar}>
                         <FontAwesomeIcon icon={faBars} />
                     </Button>
                     <div className='dashboard-navbar'>
@@ -222,7 +232,7 @@ export const TeacherDashboardComponent = () => {
                 </Navbar>
 
                 <div className='container dashboard-body'>
-                    <h5>Active Classes</h5>
+                    <h4>Active Classes</h4>
                     <div className='classes-container'>
                         {classes.map((classItem, index) => (
                             <Card className='class-card' key={index}

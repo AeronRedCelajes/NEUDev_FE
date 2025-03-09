@@ -127,7 +127,10 @@ export const TeacherProfileComponent = () => {
                 </label>
               </Button>
             </div>
-            <img src={newCoverImage ? URL.createObjectURL(newCoverImage) : profile.coverImage} className='preview-image' alt="Cover Preview" />
+
+            <div className='uploaded-image'>
+              <img src={newCoverImage ? URL.createObjectURL(newCoverImage) : profile.coverImage} className='preview-image' alt="Cover Preview" />
+            </div>
 
             {/* Profile Image Upload */}
             <div className='edit-button'>
@@ -139,7 +142,10 @@ export const TeacherProfileComponent = () => {
                 </label>
               </Button>
             </div>
-            <img src={newProfileImage ? URL.createObjectURL(newProfileImage) : profile.profileImage} className='preview-image' alt="Profile Preview" />
+            
+            <div className='uploaded-image'>
+              <img src={newProfileImage ? URL.createObjectURL(newProfileImage) : profile.profileImage} className='preview-image' alt="Profile Preview" />
+            </div>
 
             {/* Profile Details Edit */}
             <div className='edit-details'>
@@ -177,12 +183,12 @@ export const TeacherProfileComponent = () => {
         {/* Profile Display Section */}
         <div className='profile-container'>
           <div className='row'>
-            <div className='col-4'>
+            <div className='col-12 col-md-5 col-lg-4'>
               <div className='container info-container'>
                 <div className="profile-picture-container" style={{ backgroundImage: `url(${profile.profileImage})` }}></div>
                 <div>
                   <p className='name'>{profile.firstname} {profile.lastname}</p>
-                  <p><b>Role:</b> Instructor</p>
+                  <p className='program'><b>Role:</b> Instructor</p>
                 </div>
               </div>
             </div>

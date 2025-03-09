@@ -1,39 +1,113 @@
 .profile-playground-navbar {
-    background-color: #681e1e;
     border-bottom: 1px solid #ddd;
     box-shadow: 0 3px 4px rgba(89, 89, 89, 0.244);
     font-family: 'Poppins', sans-serif;
-    height: 60px;
+    height: 10vh;
+    max-height: 70px;
 }
 
-.profile-playground-navbar .bi-arrow-left-circle{
-    font-size: 20px;
+.profile-playground-navbar .nav-link{
+    color: #B84C20;
+    font-size: 1.25rem;
     font-weight: bolder;
+    margin-left: 20px;
+}
+
+.profile-playground-navbar .nav-link:hover{
+    color: #c18973;
+}
+
+.profile-playground-navbar .navbar-text{
     color: #B84C20;
-    border: none;
-    margin-inline: 10px;
-    padding-left: 20px;
+    font-size: 1rem;
+    margin-top: 2px;
 }
 
-.profile-playground-navbar .bi-arrow-left-circle:hover{
-    color: #e4bcac;
+@media (max-width: 768px) {
+    .profile-playground-navbar .nav-link{
+        font-size: 1.15rem;
+    }
+    
+    .profile-playground-navbar .navbar-text{
+        font-size: 0.9rem;
+    }
+
+    .dashboard-navbar .ping {
+        font-size: 0.8rem;
+    }
+    
+    .dashboard-navbar .bi{
+        font-size: 0.95rem;
+    }
 }
 
-.profile-playground-navbar p{
-    margin: auto 0;
-    font-size: 17px;
-    color: #B84C20;
+@media (max-width: 576px) {
+    .profile-playground-navbar {
+        height: 9vh;
+    }
+    
+    .profile-playground-navbar .nav-link{
+        font-size: 1.05rem;
+        margin-left: 10px;
+    }
+    
+    .profile-playground-navbar .navbar-text{
+        font-size: 0.85rem;
+    }
+
+    .dashboard-navbar .ping {
+        font-size: 0.8rem;
+    }
+    
+    .dashboard-navbar .bi{
+        font-size: 0.95rem;
+    }
 }
 
-.dashboard-navbar {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    gap: 15px;
-    margin-right: 10px;
+@media (max-width: 425px) {
+    .profile-playground-navbar {
+        height: 9vh;
+    }
+    
+    .profile-playground-navbar .nav-link{
+        font-size: 1.05rem;
+        margin-left: 10px;
+    }
+    
+    .profile-playground-navbar .navbar-text{
+        font-size: 0.85rem;
+    }
+
+    .dashboard-navbar .ping {
+        font-size: 0.75rem;
+    }
+    
+    .dashboard-navbar .bi{
+        font-size: 0.9rem;
+        margin-right: -15px;
+    }
+    
 }
 
-.ping {
-    color: #B84C20;
-    font-size: smaller;
+@media (max-width: 320px) {
+    .profile-playground-navbar {
+        height: 8vh;
+    }
+    
+    .profile-playground-navbar .nav-link{
+        font-size: 1rem;
+    }
+    
+    .profile-playground-navbar .navbar-text{
+        font-size: 0.8rem;
+    }
+
+    .dashboard-navbar .ping {
+        font-size: 0.7rem;
+    }
+    
+    .dashboard-navbar .bi{
+        font-size: 0.85rem;
+        margin-right: -10px;
+    }
 }

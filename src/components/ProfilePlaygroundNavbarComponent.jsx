@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navbar } from 'react-bootstrap';
+import { Navbar, Nav } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import '/src/style/ProfilePlaygroundNavbar.css';
 
@@ -23,14 +23,16 @@ export const ProfilePlaygroundNavbarComponent = () => {
 
     return (
         <>
-            <Navbar expand='lg' className='profile-playground-navbar'>
-                <a href='#'><i className='bi bi-arrow-left-circle' onClick={handleDashboardClick}></i></a>
-                <p>Dashboard</p>
-
-                <div className='dashboard-navbar'>
-                    <span className='ping'>20 ms</span>
-                    <a href='#'><i className='bi bi-moon'></i></a>
-                </div>
+            <Navbar className='profile-playground-navbar'>
+                <Nav>
+                    <Nav.Link href='#'><i className='bi bi-arrow-left-circle' onClick={handleDashboardClick}></i> </Nav.Link>
+                    <Navbar.Text>Dashboard</Navbar.Text>
+                    
+                    <div className='dashboard-navbar'>
+                        <span className='ping'>20 ms</span>
+                        <a href='#'><i className='bi bi-moon'></i></a>
+                    </div>
+                </Nav>
             </Navbar>
         </>
     );

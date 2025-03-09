@@ -1,47 +1,35 @@
-/* 🎯 Class Container Layout (Forcing Items to Stay in a Row) */
-.classes-container {
-    display: flex; /* ✅ Use flexbox for a row layout */
-    flex-wrap: wrap; /* ✅ Allows wrapping when needed */
-    gap: 20px; /* Space between cards */
-    align-items: stretch; /* ✅ Ensures all cards have the same height */
-    padding: 20px;
-}
-
-/* 🎯 Individual Class Card */
-.class-card {
-    flex: 0 0 250px; /* ✅ Ensures cards don’t shrink */
-    max-width: 280px;
-    min-height: 180px;
-    padding: 15px;
-    border-radius: 12px;
-    background: white;
-    transition: transform 0.2s ease-in-out;
-}
-
-.class-card:hover {
-    transform: scale(1.03);
-}
-
-/* 🎯 Fix the "Create a Class" Button */
-.classes-container .create-class {
-    flex: 0 0 250px; /* ✅ Ensures button doesn't shrink */
-    height: 180px;
+.classes-container .create-class{
+    width: 25%;
+    height: auto;
     border: 2px dashed #A7AAB6;
     border-radius: 12px;
-    font-size: 16px;
+    font-size: 0.8rem;
     color: #A7AAB6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     text-align: center;
-    transition: border-color 0.3s ease-in-out, color 0.3s ease-in-out;
+    padding: 10px;
 }
 
-.classes-container .create-class:hover {
-    border-color: #72747d;
+.classes-container .create-class:hover{
+    border: 2px dashed #72747d;
+    border-radius: 12px; 
     color: #72747d;
 }
 
+.classes-container .card-options .dropdown-item {
+    color: #C4907B;
+    font-size: 0.9rem;
+}
+  
+.classes-container .card-options .dropdown-item:hover {
+    background-color: #F5DAD0;
+    color: #B84C20;
+    border-left: 5px solid #B84C20;
+}
+
+.classes-container .card-options .dropdown-menu {
+    background-color: #FFF5F1;
+    width: 100%;
+}
 
 /* 🎯 Modal Styling */
 .modal-create-class .modal-content {
@@ -119,12 +107,15 @@
 }
 
 /* 🎯 Responsive Fixes */
-@media (max-width: 768px) {
-    .classes-container {
-        justify-content: center;
+@media (max-width: 992px) {
+    .classes-container .class-card{
+        width: 47%;
+    }
+}
+
+@media (max-width: 680px) {
+    .classes-container .class-card{
+        width: 80%;
     }
 
-    .modal-create-class .modal-dialog {
-        max-width: 90%;
-    }
 }

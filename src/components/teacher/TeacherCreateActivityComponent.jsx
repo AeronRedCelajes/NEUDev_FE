@@ -33,13 +33,10 @@ export const TeacherCreateActivityComponent = () => {
   const [activityTitle, setActivityTitle] = useState('');
   const [activityDescription, setActivityDescription] = useState('');
   const [actDifficulty, setDifficulty] = useState('');
-  
+
   // Store duration as "HH:MM:SS" (input as minutes)
   const [activityDuration, setActivityDuration] = useState('');
   
-  // NEW: Activity Attempts (0 for unlimited; otherwise limited attempts)
-  const [activityAttempts, setActivityAttempts] = useState("1");
-
   // -------------------- Item Bank State --------------------
   const [selectedItems, setSelectedItems] = useState([null, null, null]);
   const [presetItems, setPresetItems] = useState([]);
@@ -253,10 +250,9 @@ export const TeacherCreateActivityComponent = () => {
     const total = parseInt(durationInMinutes, 10);
     const hh = String(Math.floor(total / 60)).padStart(2, "0");
     const mm = String(total % 60).padStart(2, "0");
-    const ss = "00"; // fixed seconds
+    const ss = "00"; // fixed
     const finalDuration = `${hh}:${mm}:${ss}`;
 
-    // Build new activity object including actAttempts
     const newActivity = {
       classID,
       actTitle: activityTitle,
@@ -267,8 +263,7 @@ export const TeacherCreateActivityComponent = () => {
       closeDate: dateClosed,
       progLangIDs: selectedProgLangs,
       maxPoints: computedPoints,
-      items: finalItems,
-      actAttempts: parseInt(activityAttempts, 10)  // NEW: include attempts
+      items: finalItems
     };
 
     console.log("📤 Sending Activity Data:", JSON.stringify(newActivity, null, 2));
@@ -340,10 +335,12 @@ export const TeacherCreateActivityComponent = () => {
                     required={index === 0}
                     style={{ flex: 1 }}
                   />
+                  {/* Here we display each language's icon + name */}
                   {item && (item.programming_languages || item.programmingLanguages) && (
                     <div style={{ marginLeft: "8px" }}>
                       {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
                         const langName = langObj.progLangName;
+                        // Use the map that matches exactly your backend's language names:
                         const known = programmingLanguageMap[langName] || { name: langName, image: null };
                         return (
                           <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
@@ -411,22 +408,6 @@ export const TeacherCreateActivityComponent = () => {
               />
               <Form.Text className="text-muted">
                 e.g., 90 → 1 hour 30 minutes
-              </Form.Text>
-            </Form.Group>
-
-            {/* NEW: Activity Attempts Input */}
-            <Form.Group className="mt-3">
-              <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
-              <Form.Control
-                type="number"
-                min="0"
-                value={activityAttempts}
-                onChange={(e) => setActivityAttempts(e.target.value)}
-                placeholder="Enter maximum attempts"
-                required
-              />
-              <Form.Text className="text-muted">
-                Enter 0 for unlimited attempts; otherwise, enter a positive number.
               </Form.Text>
             </Form.Group>
 

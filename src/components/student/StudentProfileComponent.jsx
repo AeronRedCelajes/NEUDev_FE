@@ -153,7 +153,10 @@ export const StudentProfileComponent = () => {
                 </label>
               </Button>
             </div>
-            <img src={newCoverImage ? URL.createObjectURL(newCoverImage) : profile.coverImage} className='preview-image' alt="Cover Preview" />
+
+            <div className='uploaded-image'>
+              <img src={newCoverImage ? URL.createObjectURL(newCoverImage) : profile.coverImage} className='preview-image' alt="Cover Preview" />
+            </div>
 
             {/* Profile Image Upload */}
             <div className='edit-button'>
@@ -165,7 +168,10 @@ export const StudentProfileComponent = () => {
                 </label>
               </Button>
             </div>
-            <img src={newProfileImage ? URL.createObjectURL(newProfileImage) : profile.profileImage} className='preview-image' alt="Profile Preview" />
+
+            <div className='uploaded-image'>
+              <img src={newProfileImage ? URL.createObjectURL(newProfileImage) : profile.profileImage} className='preview-image' alt="Profile Preview" />
+            </div>
 
             {/* Profile Details Edit */}
             <div className='edit-details'>
@@ -203,7 +209,7 @@ export const StudentProfileComponent = () => {
             </div>
           </Modal.Body>
 
-          <Modal.Footer>
+          <Modal.Footer className='custom-modal-footer'>
             <Button variant="danger" onClick={handleDeleteProfile}>Delete Profile</Button>
             <Button onClick={handleSaveChanges}>Save Changes</Button>
           </Modal.Footer>
@@ -212,41 +218,43 @@ export const StudentProfileComponent = () => {
         {/* Profile Display Section */}
         <div className='profile-container'>
           <div className='row'>
-            <div className='col-4'>
+            <div className='col-12 col-md-5 col-lg-4'>
               <div className='container info-container'>
                 <div className="profile-picture-container" style={{ backgroundImage: `url(${profile.profileImage})` }}></div>
                 <div>
                   <p className='name'>{profile.firstname} {profile.lastname}</p>
                   <p className='student-no'>Student # {profile.student_num}</p>
-                  <p><b>Program:</b> {profile.program}</p>
+                  <p className='program'><b>Program:</b> {profile.program}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className='col-12 col-md-7 col-lg-8'>
+              <div className='container performance-container'>
+                <div className='performance-content'>   
+                  <p className='title'>Performance</p>
+                  <span className='border border-dark'></span>
+                  <div className='analysis'>
+                    <h4>Graph Analysis</h4>
+                    <div className='row graph'>
+                      <div className='col-7 linear'>
+                        <img src='/src/assets/graph.png' alt='graph'/>
+                      </div>
+                      <div className='col-3 bar'>
+                        <img src='/src/assets/bar.png' alt='bar'/>
+                      </div>
+                    </div>
+                    <h6>Strengths</h6>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    <h6>Weaknesses</h6>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className='col-8'>
-          <div className='container performance-container'>
-            <div className='performance-content'>   
-              <p className='title'>Performance</p>
-              <span className='border border-dark'></span>
-              <div className='analysis'>
-                <h4>Graph Analysis</h4>
-                <div className='row graph'>
-                  <div className='col-7 linear'>
-                    <img src='/src/assets/graph.png' alt='graph'/>
-                  </div>
-                  <div className='col-3 bar'>
-                    <img src='/src/assets/bar.png' alt='bar'/>
-                  </div>
-                </div>
-                <h6>Strengths</h6>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                <h6>Weaknesses</h6>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </>
   );
