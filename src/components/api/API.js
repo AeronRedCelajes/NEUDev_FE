@@ -127,19 +127,24 @@ async function logout() {
 
 // Function to verify password
 async function verifyPassword(email, password) {
+  const token = sessionStorage.getItem("access_token");
     try {
-      const response = await fetch(`${API_LINK}/login`, {
+      const response = await fetch(`${API_LINK}/verify-password`, {
         method: "POST",
         body: JSON.stringify({ email, password }),
-        headers: { "Content-Type": "application/json" }
+        headers: {
+           "Authorization": `Bearer ${token}`,
+           "Content-Type": "application/json",
+           "Accept": "application/json"
+          }
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         return { error: data.message || "Wrong password" };
       }
-  
+
       return { success: true };
     } catch (error) {
       console.error("❌ verifyPassword Error:", error);
@@ -377,7 +382,8 @@ async function deleteClass(classID) {
     method: "DELETE",
     headers: {
       "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Accept": "application/json"
     }
   }).then(res => res.json());
 }
@@ -619,7 +625,8 @@ async function deleteActivity(actID) {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept": "application/json"
       }
     });
     const data = await response.json();
@@ -629,6 +636,7 @@ async function deleteActivity(actID) {
     return { error: "Something went wrong while deleting the activity." };
   }
 }
+
 
 async function getClassActivities(classID) {
   const token = sessionStorage.getItem("access_token");

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ProfilePlaygroundNavbarComponent } from '../ProfilePlaygroundNavbarComponent.jsx';
 import { Modal, Button } from 'react-bootstrap';
-import { getProfile, updateProfile, deleteProfile } from '../api/API.js'; // Import API functions
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { getProfile, updateProfile, deleteProfile, verifyPassword } from '../api/API.js';
 import '/src/style/student/profile.css';
 
 export const StudentProfileComponent = () => {
@@ -12,6 +14,7 @@ export const StudentProfileComponent = () => {
   const [profile, setProfile] = useState({
     firstname: '',
     lastname: '',
+    email: '',
     student_num: '',
     program: '',
     profileImage: '',
@@ -22,13 +25,17 @@ export const StudentProfileComponent = () => {
   const [newProfileImage, setNewProfileImage] = useState(null);
   const [newCoverImage, setNewCoverImage] = useState(null);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
-  // -------------------- Helper: Format student number --------------------
-  // This function formats the student number as "xx-xxxxx-xxx"
+  // State for the deletion confirmation modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+
+  // Helper: Format student number as "xx-xxxxx-xxx"
   const formatStudentNumber = (value) => {
-    // Remove any non-digit characters
     let digits = value.replace(/\D/g, '');
-    // Limit to 10 digits (2 + 5 + 3)
     digits = digits.slice(0, 10);
     let formatted = "";
     if (digits.length > 0) {
@@ -43,13 +50,16 @@ export const StudentProfileComponent = () => {
     return formatted;
   };
 
-  // -------------------- Fetch Profile --------------------
+  // Fetch student profile on component mount
   useEffect(() => {
     const fetchProfile = async () => {
       const data = await getProfile();
       if (!data.error) {
         setProfile({
           ...data,
+          email: data.email || '',
+          student_num: data.student_num || '',
+          program: data.program || '',
           profileImage: data.profileImage || defaultProfileImage,
           coverImage: data.coverImage || defaultCoverImage,
         });
@@ -60,7 +70,7 @@ export const StudentProfileComponent = () => {
     fetchProfile();
   }, []);
 
-  // -------------------- Handle Input Changes --------------------
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "student_num") {
@@ -70,7 +80,7 @@ export const StudentProfileComponent = () => {
     }
   };
 
-  // -------------------- Handle File Changes --------------------
+  // Handle file changes
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
     if (file) {
@@ -82,9 +92,33 @@ export const StudentProfileComponent = () => {
     }
   };
 
-  // -------------------- Save Profile Changes --------------------
+  // Save profile changes
   const handleSaveChanges = async () => {
-    // Build the updatedProfile object
+    // Validate email format
+    if (!profile.email.endsWith("@neu.edu.ph")) {
+      alert("Invalid email format! Use '@neu.edu.ph'.");
+      return;
+    }
+    // Validate student number format
+    if (!/^\d{2}-\d{5}-\d{3}$/.test(profile.student_num)) {
+      alert("Invalid Student Number format! Example: 21-12345-678");
+      return;
+    }
+    // Validate new password if provided (minimum 8 characters)
+    if (profile.newPassword || confirmNewPassword) {
+      if (profile.newPassword.length < 8) {
+        alert("New Password must be at least 8 characters.");
+        return;
+      }
+      if (profile.newPassword !== confirmNewPassword) {
+        alert("New Password and Confirm New Password do not match.");
+        return;
+      }
+    } else {
+      // Remove newPassword key so password remains unchanged
+      delete profile.newPassword;
+    }
+
     const updatedProfile = { ...profile };
     if (newProfileImage) {
       updatedProfile.profileImage = newProfileImage;
@@ -92,7 +126,7 @@ export const StudentProfileComponent = () => {
     if (newCoverImage) {
       updatedProfile.coverImage = newCoverImage;
     }
-    // Remove empty fields
+    // Remove keys with empty values
     Object.keys(updatedProfile).forEach((key) => {
       if (updatedProfile[key] === "") {
         delete updatedProfile[key];
@@ -103,18 +137,29 @@ export const StudentProfileComponent = () => {
     if (!response.error) {
       alert("Profile updated successfully!");
       setShowEditModal(false);
-      // Optionally, refresh the profile data
       window.location.reload();
     } else {
       alert("Failed to update profile: " + response.error);
     }
   };
 
-  // -------------------- Handle Profile Deletion --------------------
-  const handleDeleteProfile = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete your profile? This action cannot be undone.");
-    if (!confirmDelete) return;
+  // Open deletion confirmation modal
+  const handleDeleteProfile = () => {
+    setShowDeleteModal(true);
+  };
 
+  // Confirm deletion: verify password then delete profile
+  const handleConfirmDeleteProfile = async () => {
+    const userEmail = sessionStorage.getItem("user_email");
+    if (!userEmail) {
+      alert("No user email found. Please log in again.");
+      return;
+    }
+    const verification = await verifyPassword(userEmail, deletePassword);
+    if (verification.error) {
+      alert(verification.error);
+      return;
+    }
     const response = await deleteProfile();
     if (!response.error) {
       alert("Profile deleted successfully!");
@@ -122,13 +167,14 @@ export const StudentProfileComponent = () => {
     } else {
       alert("Failed to delete profile: " + response.error);
     }
+    setShowDeleteModal(false);
+    setDeletePassword("");
   };
 
   return (
     <>
       <ProfilePlaygroundNavbarComponent />
       <div className='profile'>
-
         {/* Cover Image Section */}
         <div className='cover-container' style={{ backgroundImage: `url(${profile.coverImage})` }}>
           <button type="button" className='btn' onClick={() => setShowEditModal(true)}>
@@ -141,7 +187,6 @@ export const StudentProfileComponent = () => {
           <Modal.Header closeButton>
             <p className='modal-title w-100'>Edit Profile</p>
           </Modal.Header>
-
           <Modal.Body>
             {/* Cover Image Upload */}
             <div className='edit-button'>
@@ -170,10 +215,31 @@ export const StudentProfileComponent = () => {
             {/* Profile Details Edit */}
             <div className='edit-details'>
               <label>First Name:</label>
-              <input type='text' name='firstname' value={profile.firstname} onChange={handleInputChange} className='form-control' />
+              <input
+                type='text'
+                name='firstname'
+                value={profile.firstname}
+                onChange={handleInputChange}
+                className='form-control'
+              />
 
               <label>Last Name:</label>
-              <input type='text' name='lastname' value={profile.lastname} onChange={handleInputChange} className='form-control' />
+              <input
+                type='text'
+                name='lastname'
+                value={profile.lastname}
+                onChange={handleInputChange}
+                className='form-control'
+              />
+
+              <label>Email:</label>
+              <input
+                type='email'
+                name='email'
+                value={profile.email}
+                onChange={handleInputChange}
+                className='form-control'
+              />
 
               <label>Student #:</label>
               <input
@@ -194,18 +260,90 @@ export const StudentProfileComponent = () => {
                 <option value="BSIS">BSIS</option>
               </select>
 
-              {/* New Password (Editable) */}
+              {/* New Password Field with toggle */}
               <label>New Password:</label>
               <div className="password-field">
-                <input type={showNewPassword ? "text" : "password"} name="newPassword" value={profile.newPassword || ""} onChange={handleInputChange} className='form-control' placeholder="Enter new password" />
-                <i className={`bi ${showNewPassword ? "bi-eye-slash" : "bi-eye"}`} onClick={() => setShowNewPassword(!showNewPassword)}></i>
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  name="newPassword"
+                  value={profile.newPassword || ""}
+                  onChange={handleInputChange}
+                  className='form-control'
+                  placeholder="Enter new password"
+                />
+                <FontAwesomeIcon
+                  icon={showNewPassword ? faEyeSlash : faEye}
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  style={{ cursor: "pointer", marginLeft: "5px" }}
+                />
+              </div>
+
+              {/* Confirm New Password Field with toggle */}
+              <label>Confirm New Password:</label>
+              <div className="password-field">
+                <input
+                  type={showConfirmNewPassword ? "text" : "password"}
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className='form-control'
+                  placeholder="Re-enter new password"
+                />
+                <FontAwesomeIcon
+                  icon={showConfirmNewPassword ? faEyeSlash : faEye}
+                  onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                  style={{ cursor: "pointer", marginLeft: "5px" }}
+                />
               </div>
             </div>
           </Modal.Body>
-
           <Modal.Footer>
             <Button variant="danger" onClick={handleDeleteProfile}>Delete Profile</Button>
             <Button onClick={handleSaveChanges}>Save Changes</Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Delete Confirmation Modal with password visibility toggle */}
+        <Modal
+          show={showDeleteModal}
+          onHide={() => {
+            setShowDeleteModal(false);
+            setDeletePassword("");
+          }}
+          backdrop='static'
+          keyboard={false}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Deletion</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <label>Enter your password to confirm deletion:</label>
+            <div className="d-flex align-items-center">
+              <input
+                type={showDeletePassword ? "text" : "password"}
+                className="form-control"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+              />
+              <FontAwesomeIcon
+                icon={showDeletePassword ? faEyeSlash : faEye}
+                onClick={() => setShowDeletePassword(!showDeletePassword)}
+                style={{ cursor: "pointer", marginLeft: "5px" }}
+              />
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeletePassword("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleConfirmDeleteProfile}>
+              Delete Profile
+            </Button>
           </Modal.Footer>
         </Modal>
 
@@ -224,30 +362,10 @@ export const StudentProfileComponent = () => {
             </div>
           </div>
         </div>
-        <div className='col-8'>
-          <div className='container performance-container'>
-            <div className='performance-content'>   
-              <p className='title'>Performance</p>
-              <span className='border border-dark'></span>
-              <div className='analysis'>
-                <h4>Graph Analysis</h4>
-                <div className='row graph'>
-                  <div className='col-7 linear'>
-                    <img src='/src/assets/graph.png' alt='graph'/>
-                  </div>
-                  <div className='col-3 bar'>
-                    <img src='/src/assets/bar.png' alt='bar'/>
-                  </div>
-                </div>
-                <h6>Strengths</h6>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                <h6>Weaknesses</h6>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </>
   );
 };
+
+export default StudentProfileComponent;
