@@ -160,10 +160,10 @@ table {
     height: 35px;
     background-color: #ccc;
     border-radius: 50%;
-    overflow: hidden; 
+    overflow: hidden;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* Ensures the image covers the container without distortion */
   }
   
   .avatar-image {
