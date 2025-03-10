@@ -37,57 +37,10 @@ function AutoResizeTextarea({ value, ...props }) {
   );
 }
 
-// Timer component calculates time remaining.
-const Timer = ({ openDate, closeDate }) => {
-  const [timeLeft, setTimeLeft] = useState("00:00:00");
-  const [isTimeLow, setIsTimeLow] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const open = new Date(openDate);
-      const close = new Date(closeDate);
-      let diff = 0;
-
-      if (now < open) {
-        diff = open - now;
-      } else if (now >= open && now <= close) {
-        diff = close - now;
-      } else {
-        diff = 0;
-      }
-
-      if (diff <= 0) {
-        setTimeLeft("00:00:00");
-        setIsTimeLow(false);
-      } else {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        const formatted = `${hours.toString().padStart(2, '0')}:${minutes
-          .toString()
-          .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        setTimeLeft(formatted);
-        setIsTimeLow(diff <= 10 * 60 * 1000);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [openDate, closeDate]);
-
-  return (
-    <span style={{ 
-      color: isTimeLow ? "red" : "inherit", 
-      fontWeight: isTimeLow ? "bold" : "normal" 
-    }}>
-      {timeLeft}
-    </span>
-  );
-};
-
 const TeacherActivityItemsComponent = () => {
   const { actID, classID } = useParams();
   const navigate = useNavigate();
+
   const [activity, setActivity] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,21 +49,22 @@ const TeacherActivityItemsComponent = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Fetch activity data on mount
+  // Fetch activity data on mount only.
   useEffect(() => {
     fetchActivityData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchActivityData = async () => {
+    setLoading(true);
     try {
       const response = await getActivityItemsByTeacher(actID);
       if (!response.error) {
-        // Set basic activity info and items (backend now returns "items")
         setActivity({
           name: response.activityName,
           description: response.actDesc,
           maxPoints: response.maxPoints,
+          actDuration: response.actDuration,
         });
         setItems(response.items || []);
       }
@@ -127,21 +81,6 @@ const TeacherActivityItemsComponent = () => {
     setShowDetailsModal(true);
   };
 
-  // Format date from ISO string
-  const formatDateString = (isoString) => {
-    if (!isoString) return "-";
-    const dateObj = new Date(isoString);
-    const options = {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    };
-    return dateObj.toLocaleString("en-US", options);
-  };
-
   return (
     <div className="activity-items">
       <TeacherAMNavigationBarComponent />
@@ -153,6 +92,13 @@ const TeacherActivityItemsComponent = () => {
           actItemPoints={activity.maxPoints}
         />
       )}
+
+      {/* Refresh Button */}
+      <div style={{ margin: '10px 0', textAlign: 'right' }}>
+        <Button variant="secondary" onClick={fetchActivityData}>
+          Refresh Data
+        </Button>
+      </div>
 
       <TableComponent items={items} loading={loading} onRowClick={handleRowClick} />
 
@@ -266,7 +212,6 @@ const TeacherActivityItemsComponent = () => {
   );
 };
 
-// Activity Header Component
 const ActivityHeader = ({ name, description, actItemPoints }) => (
   <header className="activity-header">
     <div className="header-content">
@@ -284,7 +229,6 @@ const ActivityHeader = ({ name, description, actItemPoints }) => (
   </header>
 );
 
-// Table Component (Dynamic Data)
 const TableComponent = ({ items, loading, onRowClick }) => {
   return (
     <div className="table-wrapper">

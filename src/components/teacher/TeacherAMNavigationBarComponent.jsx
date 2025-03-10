@@ -27,6 +27,7 @@ const TeacherAMNavigationBarComponent = () => {
     if (location.pathname.includes("leaderboard")) return "leaderboard";
     if (location.pathname.includes("items")) return "items";
     if (location.pathname.includes("settings")) return "settings";
+    
     return "leaderboard"; // Default to leaderboard
   };
 
