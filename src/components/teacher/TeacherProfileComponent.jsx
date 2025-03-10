@@ -302,7 +302,7 @@ export const TeacherProfileComponent = () => {
                 <div className="profile-picture-container" style={{ backgroundImage: `url(${profile.profileImage})` }}></div>
                 <div>
                   <p className='name'>{profile.firstname} {profile.lastname}</p>
-                  <p><b>Role:</b> Instructor</p>
+                  <p><b>Role:</b> Teacher</p>
                 </div>
               </div>
             </div>
