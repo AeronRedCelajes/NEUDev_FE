@@ -353,6 +353,25 @@ async function getClasses() {
   });
 }
 
+async function getArchivedClasses() {
+  const token = sessionStorage.getItem("access_token");
+  const teacherID = sessionStorage.getItem("userID");
+  if (!token || !teacherID) return { error: "Unauthorized access: No token or teacher ID found" };
+
+  // Append the query parameter "archived=1" so that the backend returns archived classes.
+  return await apiFetch(`${API_LINK}/teacher/classes?archived=1`, { 
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
+  }).then(async response => {
+    const data = await response.json();
+    if (!data.error) {
+      // Although the server should now return only inactive classes,
+      // you can further filter if needed:
+      return data.filter(cls => cls.teacherID == teacherID && !cls.activeClass);
+    }
+    return data;
+  });
+}
 
 async function createClass(classData) {
   const token = sessionStorage.getItem("access_token");
@@ -400,9 +419,9 @@ async function updateClass(classID, updatedData) {
   if (updatedData.classSection && updatedData.classSection.trim() !== "") {
     formData.append("classSection", updatedData.classSection.trim());
   }
-  // If you want to support updating the active status:
+  // Append activeClass field (convert boolean to "1" or "0")
   if (updatedData.hasOwnProperty("activeClass")) {
-    formData.append("activeClass", updatedData.activeClass);
+    formData.append("activeClass", updatedData.activeClass ? "1" : "0");
   }
 
   // Append cover image: similar to how profile update works
@@ -1050,5 +1069,6 @@ export {
   getActivityProgress,
   saveActivityProgress,
   clearActivityProgress,
-  reviewSubmissions
+  reviewSubmissions,
+  getArchivedClasses
 };
