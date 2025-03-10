@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import "../../style/teacher/leaderboard.css";
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
-import { getActivityLeaderboardByTeacher } from "../api/API"; // ✅ Import API function
+import { getActivityLeaderboardByTeacher } from "../api/API";
 
 const TeacherActivityLeaderboardComponent = () => {
-  const { actID } = useParams(); // ✅ Get actID from URL
-  const [students, setStudents] = useState([]);
+  const { actID } = useParams();
+  const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +17,9 @@ const TeacherActivityLeaderboardComponent = () => {
     try {
       const response = await getActivityLeaderboardByTeacher(actID);
       if (!response.error) {
-        setStudents(response);
+        // Expecting each item to include:
+        // { studentName, program, score, timeSpent, rank, profileImage }
+        setLeaderboard(response.leaderboard);
       } else {
         console.error("❌ Error fetching leaderboard:", response.error);
       }
@@ -43,23 +45,28 @@ const TeacherActivityLeaderboardComponent = () => {
                   <th className="leaderboard-column-titles">Student Name</th>
                   <th className="leaderboard-column-titles">Program</th>
                   <th className="leaderboard-column-titles">Score</th>
+                  <th className="leaderboard-column-titles">Time Spent</th>
                   <th className="leaderboard-column-titles">Rank</th>
                 </tr>
               </thead>
               <tbody className="leaderboard-students">
-                {students.length > 0 ? (
-                  students.map((student, index) => (
+                {leaderboard.length > 0 ? (
+                  leaderboard.map((student, index) => (
                     <LeaderboardItem
                       key={index}
                       name={student.studentName}
                       program={student.program}
-                      averageScore={student.averageScore}
+                      score={student.score}
+                      timeSpent={student.timeSpent}
                       rank={student.rank}
+                      profileImage={student.profileImage}
                     />
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="no-data">No students available</td>
+                    <td colSpan="5" className="no-data">
+                      No students available
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -71,22 +78,30 @@ const TeacherActivityLeaderboardComponent = () => {
   );
 };
 
-// ✅ Updated Leaderboard Item Component
-const LeaderboardItem = ({ name, program, averageScore, rank }) => {
+const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }) => {
+  // Use the profile image from the student if provided; otherwise, fall back to the default.
+  const defaultProfileImage = "/src/assets/noy.png";
+  const imageToShow = profileImage && profileImage.trim() !== "" ? profileImage : defaultProfileImage;
+
   return (
     <tr>
       <td>
         <div className="avatar-name">
           <div className="avatar">
-            <img src="src/assets/avatar.png" alt="Avatar" className="avatar-image" />
+            <img
+              src={imageToShow}
+              alt="Avatar"
+              className="avatar-image"
+            />
           </div>
           <span className="student-name">{name}</span>
         </div>
       </td>
       <td>{program}</td>
       <td>
-        <div className="score-circle">{averageScore}</div>
+        <div className="score-circle">{score}</div>
       </td>
+      <td>{timeSpent}</td>
       <td>
         <div className="score-circle">{rank}</div>
       </td>

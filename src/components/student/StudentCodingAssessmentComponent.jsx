@@ -56,8 +56,7 @@ export const StudentCodingAssessmentComponent = () => {
   const [activityName, setActivityName] = useState('');
   const [actDesc, setActDesc] = useState('');
   const [maxPoints, setMaxPoints] = useState(0);
-  // actDuration provided by teacher (formatted as HH:MM:SS)
-  const [actDuration, setActDuration] = useState('');
+  const [actDuration, setActDuration] = useState(''); // HH:MM:SS
 
   // Items & allowed languages
   const [items, setItems] = useState([]);
@@ -115,9 +114,19 @@ export const StudentCodingAssessmentComponent = () => {
   const [expandedTestCases, setExpandedTestCases] = useState({});
   const [expandedSummaryItems, setExpandedSummaryItems] = useState([]);
 
-  // ---------------------------
-  // Fetch Activity Data (Dynamic Updates)
-  // ---------------------------
+  // --- New: Track per-item times --- 
+  // itemTimes: { [itemID]: { start: timestamp, accumulated: seconds } }
+  const [itemTimes, setItemTimes] = useState({});
+
+  // --- Helper: Format seconds into HH:MM:SS ---
+  const formatTimeLeft = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+  };
+
+  // --- Fetch activity data ---
   useEffect(() => {
     async function fetchActivityData() {
       try {
@@ -129,8 +138,9 @@ export const StudentCodingAssessmentComponent = () => {
           setActDuration(resp.actDuration);
           setItems(resp.items || []);
           if (resp.items && resp.items.length > 0) {
-            setExpandedItem(resp.items[0].itemID);
-            setSelectedItem(resp.items[0].itemID);
+            // setExpandedItem(resp.items[0].itemID);
+            // setSelectedItem(resp.items[0].itemID);
+            toggleItem(resp.items[0].itemID);
           }
           if (resp.allowedLanguages && resp.allowedLanguages.length > 0) {
             setProgrammingLanguages(resp.allowedLanguages);
@@ -151,9 +161,7 @@ export const StudentCodingAssessmentComponent = () => {
     fetchActivityData();
   }, [actID]);
 
-  // ---------------------------
-  // Poll for Dynamic Updates (Duration and Items)
-  // ---------------------------
+  // --- Poll for updates (duration and items) every 10s ---
   useEffect(() => {
     const pollInterval = setInterval(async () => {
       try {
@@ -168,7 +176,6 @@ export const StudentCodingAssessmentComponent = () => {
               const remainingDeadlineSec = Math.floor((closeDate - Date.now()) / 1000);
               effectiveSec = Math.min(teacherDurationSec, remainingDeadlineSec);
             }
-            // Update localStorage only if not submitted.
             if (!isSubmitted) {
               const saved = localStorage.getItem(stateKey);
               if (saved) {
@@ -202,13 +209,10 @@ export const StudentCodingAssessmentComponent = () => {
         console.error('Error polling activity updates:', error);
       }
     }, 10000);
-  
     return () => clearInterval(pollInterval);
   }, [actID, stateKey, isSubmitted]);
 
-  // ---------------------------
-  // Initialize Local State and Timer from LocalStorage or New State
-  // ---------------------------
+  // --- Initialize local state and timer from localStorage or new state ---
   useEffect(() => {
     if (isSubmitted) return;
     if (!actDuration) return;
@@ -231,6 +235,9 @@ export const StudentCodingAssessmentComponent = () => {
         if (parsed.activeFileId !== undefined) setActiveFileId(parsed.activeFileId);
         if (parsed.testCaseResults) setTestCaseResults(parsed.testCaseResults);
         if (parsed.selectedItem) setSelectedItem(parsed.selectedItem);
+        if (parsed.itemTimes) {
+          setItemTimes(parsed.itemTimes);
+        }
       } else {
         setTimeLeft(0);
         setTimeExpired(true);
@@ -243,6 +250,7 @@ export const StudentCodingAssessmentComponent = () => {
       initialTimeLeft = totalSeconds;
       endTime = Date.now() + totalSeconds * 1000;
       const newState = {
+        startTime,
         endTime,
         teacherDuration: totalSeconds,
         files,
@@ -250,7 +258,8 @@ export const StudentCodingAssessmentComponent = () => {
         actDuration,
         testCaseResults,
         selectedItem,
-        draftScore: computeTotalScore()
+        draftScore: computeTotalScore(),
+        itemTimes
       };
       localStorage.setItem(stateKey, JSON.stringify(newState));
     }
@@ -276,11 +285,9 @@ export const StudentCodingAssessmentComponent = () => {
     }
     setHasLoadedSavedState(true);
     return () => clearInterval(timerRef.current);
-  }, [actDuration, stateKey, isSubmitted]);
+  }, [startTime, actDuration, stateKey, isSubmitted]);
 
-  // ---------------------------
-  // Sync Local State to LocalStorage and Backend (Progress)
-  // ---------------------------
+  // --- Sync local state to localStorage and backend progress ---
   useEffect(() => {
     if (!hasLoadedSavedState || isSubmitted) return;
     const saved = localStorage.getItem(stateKey);
@@ -290,6 +297,9 @@ export const StudentCodingAssessmentComponent = () => {
     parsed.files = files;
     parsed.activeFileId = activeFileId;
     parsed.testCaseResults = testCaseResults;
+    // Also save the per-item times
+    parsed.itemTimes = itemTimes; // you can store it directly or stringify it
+
     if (originalEndTime) {
       parsed.endTime = originalEndTime;
     }
@@ -297,7 +307,8 @@ export const StudentCodingAssessmentComponent = () => {
     console.log("Syncing progress: ", {
       draftScore: parsed.draftScore,
       files,
-      testCaseResults
+      testCaseResults,
+      itemTimes
     });
     localStorage.setItem(stateKey, JSON.stringify(parsed));
     
@@ -306,16 +317,15 @@ export const StudentCodingAssessmentComponent = () => {
       draftTestCaseResults: JSON.stringify(testCaseResults),
       timeRemaining: timeLeft,
       selectedLanguage: selectedLanguage.name,
-      draftScore: computeTotalScore()
+      draftScore: computeTotalScore(),
+      itemTimes: JSON.stringify(itemTimes)
     };
     saveActivityProgress(actID, progressData)
       .then(res => console.log("Progress saved to server:", res))
       .catch(err => console.error("Error saving progress:", err));
-  }, [files, activeFileId, testCaseResults, stateKey, hasLoadedSavedState, timeLeft, selectedLanguage, isSubmitted]);
+  }, [files, activeFileId, testCaseResults, itemTimes, stateKey, hasLoadedSavedState, timeLeft, selectedLanguage, isSubmitted]);
 
-  // ---------------------------
-  // Periodic progress sync every 5 seconds.
-  // ---------------------------
+  // --- Periodic progress sync every 5 seconds ---
   useEffect(() => {
     const interval = setInterval(() => {
       if (!timeExpired && !isSubmitted) {
@@ -334,9 +344,7 @@ export const StudentCodingAssessmentComponent = () => {
     return () => clearInterval(interval);
   }, [files, activeFileId, testCaseResults, timeExpired, isSubmitted, actID, timeLeft, selectedLanguage]);
 
-  // ---------------------------
-  // Auto-finalize submission on beforeunload.
-  // ---------------------------
+  // --- Auto-finalize submission on beforeunload ---
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (!timeExpired && !isSubmitted) {
@@ -347,19 +355,7 @@ export const StudentCodingAssessmentComponent = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [timeExpired, isSubmitted]);
 
-  // ---------------------------
-  // Helper: Format seconds to HH:MM:SS.
-  // ---------------------------
-  const formatTimeLeft = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
-  };
-
-  // ---------------------------
-  // Setup WebSocket for code execution.
-  // ---------------------------
+  // --- WebSocket setup for code execution ---
   useEffect(() => {
     const ws = new WebSocket('wss://neudevcompiler-production.up.railway.app');
     wsRef.current = ws;
@@ -398,13 +394,34 @@ export const StudentCodingAssessmentComponent = () => {
     setLines(prev => [...prev, text]);
   };
 
-  const handleClassClick = () => {
-    navigate(`/student/class/${classID}/activity`);
-  };
-
+  // --- Per-item timer: When toggling items, update times ---
   const toggleItem = (itemID) => {
-    setExpandedItem(prev => (prev === itemID ? null : itemID));
+    const now = Date.now();
+    // If an item was previously selected, update its accumulated time.
+    if (selectedItem) {
+      setItemTimes((prev) => {
+        const prevItem = prev[selectedItem] || { accumulated: 0 };
+        const startTimeValue = prev[selectedItem]?.start || now;
+        const elapsed = Math.floor((now - startTimeValue) / 1000); // seconds elapsed
+        return {
+          ...prev,
+          [selectedItem]: {
+            start: null,
+            accumulated: (prevItem.accumulated || 0) + elapsed,
+          },
+        };
+      });
+    }
+    // Set the new selected item and start its timer.
     setSelectedItem(itemID);
+    setExpandedItem(itemID);
+    setItemTimes((prev) => ({
+      ...prev,
+      [itemID]: {
+        accumulated: prev[itemID]?.accumulated || 0,
+        start: now,
+      },
+    }));
   };
 
   const handleSelectLanguage = (langName) => {
@@ -420,7 +437,7 @@ export const StudentCodingAssessmentComponent = () => {
   };
 
   const handleTabSelect = (fileId) => {
-    setActiveFileId(fileId);
+    setActiveFileId(Number(fileId));
   };
 
   const handleFileChange = (newContent) => {
@@ -530,7 +547,6 @@ export const StudentCodingAssessmentComponent = () => {
             setLoading(false);
             let fullOutput = outputBuffer.join('');
             fullOutput = fullOutput.replace(/\n\n>>> Program Terminated\s*$/, '').trim();
-            // Log the raw output and expected output for debugging.
             console.log("TestCase Output:", fullOutput, "Expected:", testCase.expectedOutput);
             const pass = fullOutput.trim() === testCase.expectedOutput.trim();
             console.log("TestCase Pass:", pass, "Points:", pass ? testCase.testCasePoints : 0);
@@ -622,7 +638,7 @@ export const StudentCodingAssessmentComponent = () => {
     setTypedInput('');
   };
 
-  // Computes the score for a given item by summing lockedPoints from its test cases.
+  // --- Compute per-item score (unchanged) ---
   const computeItemScore = (itemID) => {
     const item = items.find(it => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
@@ -638,7 +654,7 @@ export const StudentCodingAssessmentComponent = () => {
     return sum;
   };
 
-  // Sums all item scores.
+  // --- Compute total score ---
   const computeTotalScore = () => {
     let total = 0;
     items.forEach(item => {
@@ -666,37 +682,90 @@ export const StudentCodingAssessmentComponent = () => {
     setShowFinishAttempt(true);
   };
 
-  // ---------------------------
-  // Finalize Submission (Using draftScore if available)
-  // ---------------------------
-  const finalizeSubmissionHandler = async () => {
-    if (isSubmitted) return;
-    let draftScoreFromProgress = computeTotalScore();
-    const savedState = localStorage.getItem(stateKey);
-    if (savedState) {
-      const parsed = JSON.parse(savedState);
-      if (parsed.draftScore !== undefined) {
-        draftScoreFromProgress = parsed.draftScore;
-      }
-    }
-    console.log("Finalizing submission with draft score: ", draftScoreFromProgress);
-    const submissionData = {
-      codeSubmission: JSON.stringify(files),
-      score: draftScoreFromProgress,
-      timeSpent: Math.floor((Date.now() - startTime) / 60000)
+  // Create a helper function to convert seconds into HH:MM:SS
+  function formatSecondsToHMS(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+  }
+
+  // --- Finalize submission handler with per-item times ---
+// Helper: convert seconds to HH:MM:SS
+function formatSecondsToHMS(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+}
+
+// In your component:
+const finalizeSubmissionHandler = async () => {
+  if (isSubmitted) return;
+  const now = Date.now();
+
+  // 1) Create a local copy of itemTimes
+  let updatedTimes = { ...itemTimes };
+
+  // 2) If there’s an active item, calculate how many seconds have passed
+  //    since it was last toggled and add that to its accumulated time.
+  if (selectedItem) {
+    const current = updatedTimes[selectedItem] || { accumulated: 0 };
+    const startTimeValue = current.start || now;
+    const elapsed = Math.floor((now - startTimeValue) / 1000);
+
+    updatedTimes[selectedItem] = {
+      start: null,
+      accumulated: (current.accumulated || 0) + elapsed,
     };
-    console.log("Submitting final:", submissionData);
-    const result = await finalizeSubmission(actID, submissionData);
-    if (result.error) {
-      console.error("Submission failed:", result.error, result.details);
-    } else {
-      setIsSubmitted(true);
-      if (result.rank) setFinalRank(result.rank);
-      await clearActivityProgress(actID);
-      localStorage.removeItem(stateKey);
-      console.log("Submission successful, cleared progress.");
-    }
+  }
+
+  // 3) Now update the state once with your final local times
+  setItemTimes(updatedTimes);
+
+  // 4) Build the submission payload using updatedTimes (NOT the old itemTimes)
+  const submissionData = {
+    submissions: items.map(item => {
+      const timeData = updatedTimes[item.itemID] || { accumulated: 0 };
+      const secondsSpent = timeData.accumulated;
+
+      console.log(
+        `[finalizeSubmissionHandler] itemID=${item.itemID}, ` +
+        `rawTimeSpent=${secondsSpent}, ` +
+        `formattedTimeSpent=${formatSecondsToHMS(secondsSpent)}`
+      );
+
+      return {
+        itemID: item.itemID,
+        codeSubmission: JSON.stringify(files),
+        score: computeItemScore(item.itemID),
+        timeSpent: secondsSpent, // in seconds
+      };
+    })
   };
+
+  console.log("Submitting final:", submissionData);
+
+  // 5) Proceed with final submission
+  const result = await finalizeSubmission(actID, submissionData);
+  if (result.error) {
+    console.error("Submission failed:", result.error, result.details);
+  } else {
+    if (result.finalScore !== undefined) {
+      setFinalScore(`${result.finalScore}/${maxPoints}`);
+    } else {
+      setFinalScore(`${computeTotalScore()}/${maxPoints}`);
+    }
+    if (result.rank !== undefined) {
+      setFinalRank(result.rank);
+    }
+    setIsSubmitted(true);
+    await clearActivityProgress(actID);
+    localStorage.removeItem(stateKey);
+    console.log("Submission successful, cleared progress.");
+  }
+};
+
 
   const handleSubmitAllAndFinish = async () => {
     if (isSubmitted) return;
@@ -744,10 +813,11 @@ export const StudentCodingAssessmentComponent = () => {
     }
   };
 
+  // --- Render ---
   return (
     <>
       <Navbar expand='lg' className='assessment-navbar-top'>
-        <a href='#' onClick={handleClassClick}>
+        <a href='#' onClick={() => navigate(`/student/class/${classID}/activity`)}>
           <i className='bi bi-arrow-left-circle'></i>
         </a>
         <p>Back to previous page</p>
@@ -790,7 +860,7 @@ export const StudentCodingAssessmentComponent = () => {
               <div className='compiler-header'>
                 <Row>
                   <Col sm={10} className='compiler-left-corner'>
-                    <Tabs activeKey={activeFileId} id='dynamic-file-tabs' onSelect={(k) => setActiveFileId(Number(k))}>
+                    <Tabs activeKey={activeFileId} id='dynamic-file-tabs' onSelect={handleTabSelect}>
                       {files.map(file => (
                         <Tab
                           key={file.id}
@@ -895,7 +965,7 @@ export const StudentCodingAssessmentComponent = () => {
                   <Button
                     key={item.itemID}
                     className={`item-button ${selectedItem === item.itemID ? 'active' : ''}`}
-                    onClick={() => { setSelectedItem(item.itemID); setExpandedItem(item.itemID); }}
+                    onClick={() => toggleItem(item.itemID)}
                   >
                     {idx + 1}
                   </Button>
@@ -918,7 +988,8 @@ export const StudentCodingAssessmentComponent = () => {
                     <Modal.Title>
                       {timeExpired ? (
                         <span style={{ color: 'red' }}>
-                          <FontAwesomeIcon icon={faExclamationTriangle} /> Time Expired
+                          <FontAwesomeIcon icon={faExclamationTriangle} style={{ marginRight: '5px' }} />
+                          Time Expired
                         </span>
                       ) : (
                         'Activity Summary'
@@ -965,7 +1036,7 @@ export const StudentCodingAssessmentComponent = () => {
                           <p>Test Cases</p>
                           <p>{finalTestCases}</p>
                         </div>
-                        <Button onClick={handleClassClick}>Home</Button>
+                        <Button onClick={() => navigate(`/student/class/${classID}/activity`)}>Home</Button>
                       </Col>
                     </Row>
                     <div className='activity-standing'>
@@ -1014,10 +1085,8 @@ export const StudentCodingAssessmentComponent = () => {
                           setExpandedTestCases(prev => ({ 
                             ...prev, 
                             [tc.testCaseID]: !prev[tc.testCaseID] 
-                          }))
-                        }
-                          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                        >
+                          }))}
+                          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                           <Button style={{
                             width: '25px',
                             height: '25px',
