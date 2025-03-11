@@ -76,7 +76,7 @@ const TeacherActivityLeaderboardComponent = () => {
                 ) : (
                   <tr>
                     <td colSpan="5" className="no-data">
-                      No students attempted yet
+                      No students available
                     </td>
                   </tr>
                 )}

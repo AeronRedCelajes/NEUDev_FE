@@ -682,15 +682,7 @@ export const StudentCodingAssessmentComponent = () => {
     setShowFinishAttempt(true);
   };
 
-  // Create a helper function to convert seconds into HH:MM:SS
-  function formatSecondsToHMS(seconds) {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
-  }
-
-  // --- Finalize submission handler with per-item times ---
+// --- Finalize submission handler with per-item times ---
 // Helper: convert seconds to HH:MM:SS
 function formatSecondsToHMS(seconds) {
   const h = Math.floor(seconds / 3600);

@@ -324,16 +324,12 @@ async function getStudentClasses() {
   }).then(async response => {
     const data = await response.json();
     if (!data.error) {
-      return data.map(cls => ({
-        classID: cls.classID,
-        className: cls.className,
-        classSection: cls.classSection,
-        teacherName: cls.teacherName
-      }));
+      return data; // Return all fields for each class object
     }
     return data;
   });
 }
+
 
 //////////////////////////////////////////
 // CLASS FUNCTIONS (TEACHERS) - Protected
@@ -350,7 +346,28 @@ async function getClasses() {
   }).then(async response => {
     const data = await response.json();
     if (!data.error) {
-      return data.filter(cls => cls.teacherID == teacherID);
+      // Filter out classes that are not active (activeClass false)
+      return data.filter(cls => cls.teacherID == teacherID && cls.activeClass);
+    }
+    return data;
+  });
+}
+
+async function getArchivedClasses() {
+  const token = sessionStorage.getItem("access_token");
+  const teacherID = sessionStorage.getItem("userID");
+  if (!token || !teacherID) return { error: "Unauthorized access: No token or teacher ID found" };
+
+  // Append the query parameter "archived=1" so that the backend returns archived classes.
+  return await apiFetch(`${API_LINK}/teacher/classes?archived=1`, { 
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
+  }).then(async response => {
+    const data = await response.json();
+    if (!data.error) {
+      // Although the server should now return only inactive classes,
+      // you can further filter if needed:
+      return data.filter(cls => cls.teacherID == teacherID && !cls.activeClass);
     }
     return data;
   });
@@ -392,19 +409,42 @@ async function updateClass(classID, updatedData) {
   const token = sessionStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
-  return await apiFetch(`${API_LINK}/teacher/class/${classID}`, {
-    method: "PUT",
+  const formData = new FormData();
+  formData.append("_method", "PUT");
+
+  // Append text fields
+  if (updatedData.className && updatedData.className.trim() !== "") {
+    formData.append("className", updatedData.className.trim());
+  }
+  if (updatedData.classSection && updatedData.classSection.trim() !== "") {
+    formData.append("classSection", updatedData.classSection.trim());
+  }
+  // Append activeClass field (convert boolean to "1" or "0")
+  if (updatedData.hasOwnProperty("activeClass")) {
+    formData.append("activeClass", updatedData.activeClass ? "1" : "0");
+  }
+
+  // Append cover image: similar to how profile update works
+  if (updatedData.classCoverPhoto && updatedData.classCoverPhoto instanceof File) {
+    formData.append("classCoverImage", updatedData.classCoverPhoto);
+  } else if (updatedData.classCoverPhoto && typeof updatedData.classCoverPhoto === "string") {
+    // If the cover photo is already a URL string, send it as is
+    formData.append("classCoverImage", updatedData.classCoverPhoto);
+  }
+
+  const response = await fetch(`${API_LINK}/teacher/class/${classID}`, {
+    method: "POST", // Use POST with _method override for PUT
     headers: {
       "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
       "Accept": "application/json"
     },
-    body: JSON.stringify({
-      className: updatedData.className.trim(),
-      classSection: updatedData.classSection.trim()
-    })
-  }).then(res => res.json());
+    body: formData,
+    credentials: "include"
+  });
+  const data = await response.json();
+  return response.ok ? data : { error: data.message || "Request failed", details: data };
 }
+
 
 async function getClassInfo(classID) {
   const token = sessionStorage.getItem("access_token");
@@ -1029,5 +1069,6 @@ export {
   getActivityProgress,
   saveActivityProgress,
   clearActivityProgress,
-  reviewSubmissions
+  reviewSubmissions,
+  getArchivedClasses
 };
