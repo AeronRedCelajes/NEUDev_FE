@@ -152,162 +152,164 @@ export const TeacherClassManagementBulletinComponent = () => {
 
   return (
     <>
+    <div className='class-post-container'>
       <TeacherCMNavigationBarComponent/>
-      <div className='bulletin-content'>
-        <div className="create-new-activity-wrapper"></div> 
-        <div className="create-new-activity-container">
-          <button className="create-new-activity-button" onClick={() => setShowPostAnnouncement(true)}>
-            + Create New Post
-          </button>
+      <div className="class-wrapper"></div>
+        <div className='bulletin-content'>
+          <div className="create-new-post-container">
+            <button className="create-new-activity-button" onClick={() => setShowPostAnnouncement(true)}>
+              + Create New Post
+            </button>
 
-          <Modal className='modal-post-announcement' show={showPostAnnouncement} onHide={() => setShowPostAnnouncement(false)} backdrop='static' keyboard={false} size='md'>
-            <Modal.Header closeButton>
-              <h3>Create a Post</h3>
-            </Modal.Header>
-            <Modal.Body>
-              <Form className='create-activity-form'>
-                <Form.Control 
-                  className='create-activity-title' 
-                  type='text' 
-                  placeholder='Title...' 
-                  value={newPostTitle}
-                  onChange={(e) => setNewPostTitle(e.target.value)}
-                />
-                <div className='description-section'>
-                  <div className='description-toolbar'>
-                    <FontAwesomeIcon icon={faBold} />
-                    <FontAwesomeIcon icon={faItalic} />
-                    <FontAwesomeIcon icon={faUnderline} />
-                    <FontAwesomeIcon icon={faSuperscript} />
-                    <FontAwesomeIcon icon={faAlignLeft} />
-                    <FontAwesomeIcon icon={faAlignCenter} />
-                    <FontAwesomeIcon icon={faAlignRight} />
-                  </div>
+            <Modal className='modal-post-announcement' show={showPostAnnouncement} onHide={() => setShowPostAnnouncement(false)} backdrop='static' keyboard={false} size='md'>
+              <Modal.Header closeButton>
+                <h3>Create a Post</h3>
+              </Modal.Header>
+              <Modal.Body>
+                <Form className='create-activity-form'>
                   <Form.Control 
-                    as='textarea' 
-                    placeholder='Description...' 
-                    value={newPostMessage}
-                    onChange={(e) => setNewPostMessage(e.target.value)}
+                    className='create-activity-title' 
+                    type='text' 
+                    placeholder='Title...' 
+                    value={newPostTitle}
+                    onChange={(e) => setNewPostTitle(e.target.value)}
                   />
+                  <div className='description-section'>
+                    <div className='description-toolbar'>
+                      <FontAwesomeIcon icon={faBold} />
+                      <FontAwesomeIcon icon={faItalic} />
+                      <FontAwesomeIcon icon={faUnderline} />
+                      <FontAwesomeIcon icon={faSuperscript} />
+                      <FontAwesomeIcon icon={faAlignLeft} />
+                      <FontAwesomeIcon icon={faAlignCenter} />
+                      <FontAwesomeIcon icon={faAlignRight} />
+                    </div>
+                    <Form.Control 
+                      as='textarea' 
+                      placeholder='Description...' 
+                      value={newPostMessage}
+                      onChange={(e) => setNewPostMessage(e.target.value)}
+                    />
+                  </div>
+                </Form>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button onClick={handleCreatePost}>Post</Button>
+              </Modal.Footer>
+            </Modal>
+          </div>
+          
+          <Row className='announcement-container'>
+            <Col xs={12} md={12} lg={9}>
+              <div className='announcement'>
+                <div className='announcement-header'>
+                  <h5>Teacher's Announcements</h5>
                 </div>
-              </Form>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button onClick={handleCreatePost}>Post</Button>
-            </Modal.Footer>
-          </Modal>
-        </div>
-        
-        <Row>
-          <Col></Col>
-          <Col xs={7}>
-            <div className='announcement'>
-              <div className='announcement-header'>
-                <h5>Teacher's Announcements</h5>
+                {posts.length > 0 ? (
+                  posts.map((post) =>
+                    <Card className='post-card' style={{ borderRadius: "20px" }} key={post.id}>
+                      <Card.Header className="d-flex justify-content-between align-items-center">
+                        <div>
+                          <h2>{post.title}</h2>
+                          <p>{post.teacherName}</p>
+                          <p>{post.dateCreated} {post.timeCreated}</p>
+                        </div>
+                        <Dropdown>
+                          <Dropdown.Toggle variant="link" id="dropdown-basic">
+                            <FontAwesomeIcon icon={faEllipsisH} />
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => confirmDelete(post.id)}>Delete</Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </Card.Header>
+                      <Card.Body>
+                        <p>{post.message}</p>
+                      </Card.Body>
+                    </Card>
+                  )
+                ) : (
+                  <p>No Announcement</p>
+                )}
               </div>
-              {posts.length > 0 ? (
-                posts.map((post) =>
-                  <Card className='post-card' style={{ borderRadius: "20px" }} key={post.id}>
-                    <Card.Header className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <h2>{post.title}</h2>
-                        <p>{post.teacherName}</p>
-                        <p>{post.dateCreated} {post.timeCreated}</p>
+            </Col>
+            <Col xs={12} md={7} lg={3}>
+              <div className='concern'>
+                <div className='concern-header'>
+                  <h5>Student Concerns</h5>
+                </div>
+                <div className='concern-body'>
+                  {concerns.length > 0 ? concerns.map((concern) =>
+                    <div className='concern-details' key={concern.id}>
+                      <h6>{concern.name}</h6>
+                      <p>Created on {concern.dateCreated} {concern.timeCreated}</p>
+                      <p className='concern-message'>{concern.message}</p>
+                      <div className='concern-actions'>
+                        <p>
+
+                          <h6>Your reply</h6>
+                          {concern.reply ? (
+                            <span className="concern-title">{concern.reply}</span>
+                          ) : "You have no reply yet"}
+                        </p>
+                        <p>
+                          Reply
+                          <i className='bi bi-reply-fill'
+                            onClick={() => { setSelectedConcernId(concern.id); setShowResponse(true); }}/>
+                        </p>
                       </div>
-                      <Dropdown>
-                        <Dropdown.Toggle variant="link" id="dropdown-basic">
-                          <FontAwesomeIcon icon={faEllipsisH} />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          <Dropdown.Item onClick={() => confirmDelete(post.id)}>Delete</Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </Card.Header>
-                    <Card.Body>
-                      <p>{post.message}</p>
-                    </Card.Body>
-                  </Card>
-                )
-              ) : (
-                <p>No Announcement</p>
-              )}
-            </div>
-          </Col>
-          <Col xs={3}>
-  <div className='concern'>
-    <div className='concern-header'>
-      <h5>Student Concerns</h5>
-    </div>
-    <div className='concern-body'>
-      {concerns.length > 0 ? concerns.map((concern) =>
-        <div className='concern-details' key={concern.id}>
-          <h6>{concern.name}</h6>
-          <p>Created on {concern.dateCreated} {concern.timeCreated}</p>
-          <p className='concern-message'>{concern.message}</p>
-          <div className='concern-actions'>
-            <p>
-
-              <h6>Your reply</h6>
-              {concern.reply ? (
-                <span className="concern-title">{concern.reply}</span>
-              ) : "You have no reply yet"}
-            </p>
-            <p>
-              Reply
-              <i className='bi bi-reply-fill'
-                onClick={() => { setSelectedConcernId(concern.id); setShowResponse(true); }}/>
-            </p>
-          </div>
+                    </div>
+                  ) : <p>No concerns posted yet.</p>}
+                  <Modal className='post-concern' show={showResponse} onHide={() => setShowResponse(false)} backdrop='static' keyboard={false} size='md'>
+                    <Modal.Header closeButton>
+                      <div className='modal-activity-header'>
+                        <h3>Send Your Response</h3>
+                        <p>To student, {concerns.find(c => c.id === selectedConcernId)?.name || 'Student'}</p>
+                      </div>
+                    </Modal.Header>
+                    <Modal.Body>
+                      <Form.Control 
+                        as='textarea' 
+                        className='post-concern-textarea'
+                        value={replyMessage}
+                        onChange={(e) => setReplyMessage(e.target.value)}
+                      />
+                    </Modal.Body>
+                    <Modal.Footer>
+                      <Button onClick={handleReplyToConcern}>Send Response</Button>
+                    </Modal.Footer>
+                  </Modal>
+                </div>
+              </div>
+            </Col>
+          </Row>
         </div>
-      ) : <p>No concerns posted yet.</p>}
-      <Modal className='post-concern' show={showResponse} onHide={() => setShowResponse(false)} backdrop='static' keyboard={false} size='md'>
-        <Modal.Header closeButton>
-          <div className='modal-activity-header'>
-            <h3>Send Your Response</h3>
-            <p>To student, {concerns.find(c => c.id === selectedConcernId)?.name || 'Student'}</p>
-          </div>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Control 
-            as='textarea' 
-            className='post-concern-textarea'
-            value={replyMessage}
-            onChange={(e) => setReplyMessage(e.target.value)}
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={handleReplyToConcern}>Send Response</Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
-  </div>
-</Col>
-        </Row>
-      </div>
 
-      {/* Delete Confirmation Modal */}
-      <Modal 
-        show={showDeleteModal} 
-        onHide={() => setShowDeleteModal(false)} 
-        backdrop='static' 
-        keyboard={false} 
-        size='sm'
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to delete this post?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            No
-          </Button>
-          <Button variant="danger" onClick={() => handleDeletePost(postToDelete)}>
-            Yes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        {/* Delete Confirmation Modal */}
+        <Modal 
+          show={showDeleteModal} 
+          onHide={() => setShowDeleteModal(false)} 
+          backdrop='static' 
+          keyboard={false} 
+          size='sm'
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Delete</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to delete this post?
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+              No
+            </Button>
+            <Button variant="danger" onClick={() => handleDeletePost(postToDelete)}>
+              Yes
+            </Button>
+          </Modal.Footer>
+        </Modal>
+    </div>
+      
     </>
   );
 };

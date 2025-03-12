@@ -179,6 +179,7 @@ export const StudentBulletinComponent = () => {
   return (
     <>
       <StudentCMNavigationBarComponent />
+      <div className="class-wrapper"></div>
       <div className='bulletin-content'>
         <div className='container-fluid bulletin-header'>
           <div className='bulletin-search'>
@@ -190,9 +191,8 @@ export const StudentBulletinComponent = () => {
           </div>
         </div>
 
-        <Row>
-          <Col></Col>
-          <Col xs={7}>
+        <Row className='announcement-container'>
+          <Col xs={12} md={12} lg={9}>
             <div className='announcement'>
               <div className='announcement-header'>
                 <h5>Teacher's Announcements</h5>
@@ -215,7 +215,7 @@ export const StudentBulletinComponent = () => {
               )}
             </div>
           </Col>
-          <Col xs={3}>
+          <Col xs={12} md={7} lg={3}>
             <div className='concern'>
               <div className='concern-header'>
                 <h5>Your Concerns</h5>

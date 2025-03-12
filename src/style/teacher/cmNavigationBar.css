@@ -1,26 +1,98 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
+.class-navbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  height: 60px;
+  width: 100%;
+  background-color: #FFF5F1;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 3px 4px rgba(89, 89, 89, 0.244);
+  position: fixed !important; /* Keep the navbar fixed at the top */
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.profile-image {
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%; 
+  object-fit: cover;
+}
+
+.navbar-profile-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  max-height: 60px; 
+  overflow: hidden;
+}
+
+.dashboard-navbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 100%;
+}
+
+.class-navbar-top .bi-arrow-left-circle {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #B84C20;
+  margin-right: 8px;
+  margin-left: 20px;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.class-navbar-top .bi-arrow-left-circle:hover{
+  color: #e4bcac;
+}
+
+.class-navbar-top p{
+  margin: auto 0;
+  font-size: 1.1rem;
+  color: #B84C20;
+}
+
+.navbar-left{
+  display: flex;
+  flex-direction: row;
+}
+
 .navbar-center {
+  position: fixed;
+  top: 60px; /* ✅ Match navbar height */
+  left: 50%;
+  padding-top: 5px;
+  transform: translateX(-50%);
+  width: 30rem;
+  max-width: 1200px;
+  background-color: #FFF5F1; /* Ensure it has a background */
   display: flex;
   justify-content: center;
-  align-items: center;
-  width: 100%;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 50%;
-  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 10px 10px;
+  z-index: 999;
 }
 
 .navbar-center .nav-tabs .nav-link {
+  display: flex;
+  justify-content: center;
   color: #eab8a7;
   border: none;
   border-bottom: 2px solid transparent;
   font-weight: normal;
   transition: color 0.3s ease, border-color 0.3s ease;
   padding-bottom: 5px;
-  display: flex;
-  justify-content: center;
   border-bottom: none;
 }
 
@@ -41,6 +113,70 @@
   border-style: none;
 }
 
-.class-navbar-top .bi-arrow-left-circle{
-  z-index: 10;
+@media (max-width: 768px) {
+  .class-navbar-top p{
+    font-size: 1rem;
+  }
+
+  .navbar-center .nav-tabs .nav-link {
+    font-size: 0.9rem;
+  }
+
+  .navbar-center {
+    width: 25rem;
+  }
+}
+
+@media (max-width: 425px) {
+  .class-navbar-top {
+    height: 50px;
+  }
+
+  .navbar-center {
+    top: 50px;
+  }
+
+  .class-navbar-top .bi-arrow-left-circle {
+    font-size: 1.1rem;
+    margin-left: 10px;
+  }
+
+  .class-navbar-top p{
+    font-size: 0.9rem;
+  }
+
+  .navbar-center .nav-tabs .nav-link {
+    font-size: 0.8rem;
+  }
+
+  .navbar-center {
+    width: 21rem;
+  }
+
+  .dashboard-navbar{
+    margin-right: 15px;
+  }
+
+  .dashboard-navbar i{
+    margin-right: -15px;
+    font-size: 0.9rem;
+  }
+
+  .dashboard-navbar .ping{
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .class-navbar-top p{
+    display: none;
+  }
+
+  .navbar-center {
+    width: 20rem;
+  }
+
+  .dashboard-navbar .student-badge{
+    margin-right: -15px;
+  }
 }

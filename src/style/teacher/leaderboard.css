@@ -14,47 +14,6 @@
   .leaderboard-body {
     scrollbar-width: none;
   }
-
-.navbar-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.navbar-center .nav-tabs .nav-link {
-  color: #eab8a7;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-weight: normal;
-  transition: color 0.3s ease, border-color 0.3s ease;
-  padding-bottom: 5px;
-  display: flex;
-  justify-content: center;
-  border-bottom: none;
-}
-
-.navbar-center .nav-tabs .nav-link.active {
-  background-color: transparent !important;
-  color: #B84C20 !important;
-  font-weight: bold !important;
-  border-bottom: 5px solid #B84C20 !important;
-}
-
-.navbar-center .nav-tabs .nav-link:focus,
-.navbar-center .nav-tabs .nav-link:active {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.navbar-center .nav-tabs .nav-link:hover {
-  border-style: none;
-}
   
   .leaderboard-body {
     font-family: Poppins, sans-serif;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; 
 import { getClassStudents, getClassInfo, unenrollStudent, verifyPassword } from "../api/API";
-import "../../style/teacher/leaderboard.css";
+import "../../style/teacher/cmClassRecord.css";
 import TeacherAMNavigationBarComponent from "./TeacherCMNavigationBarComponent";
 import { Modal, Button, Form } from "react-bootstrap"; // Bootstrap components
 
@@ -152,9 +152,10 @@ const ClassRecord = () => {
   return (
     <div className="leaderboard-body">
       <TeacherAMNavigationBarComponent />
+      <div className="class-wrapper"></div>
       <div className="leaderboard-container">
         <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Students in {className || "Loading..."}</h1>
+          <h2 className="leaderboard-title">Students in {className || "Loading..."}</h2>
           
           {/* Sorting Buttons */}
           <div className="sorting-buttons">

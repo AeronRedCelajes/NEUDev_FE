@@ -1,64 +1,66 @@
-/* Remove all borders and focus outlines */
-
-body {
-    background-color: #CCCFDA;
-}
-.nav-tabs {
-    border-bottom: none !important;
-}
-
-/* Style tab links */
-.nav-tabs .nav-link {
-    color: #C4907B; /* Default color */
-    font-size: 15px;
-    border: none !important;
-    padding: 20px;
-    border-radius: 20px 0px 0px 0px;
-    outline: none !important;
-    box-shadow: none !important;
-    transition: color 0.3s ease, border-color 0.3s ease;
-}
-
-/* Remove blue focus border when clicking the tab */
-.nav-tabs .nav-link:focus,
-.nav-tabs .nav-link:active,
-.nav-tabs .nav-link:focus-visible,
-.nav-tabs .nav-link:focus-within {
-    outline: none !important;
-    box-shadow: none !important;
-    border: none !important;
-}
-
-/* Active tab styling */
-.nav-tabs .nav-link.active {
-    background-color: #FFF5F1 !important;
-    color: #B84C20 !important;
-    font-weight: bold !important;
-    border: none !important;
-}
-
-/* Hover effect */
-.nav-tabs .nav-link:hover {
-    border-bottom: 2px solid #b84b2086; 
-}
-
-.create-new-activity-wrapper {
+.class-wrapper {
     background-color: #CCCFDA; /* Space between navbar and button */
-    height: 20px; /* Adjust height to create space */
+    height: 130px; /* Adjust height to create space */
     align-items: center;
 }
 
 .create-new-activity-container {
     display: flex;
-    justify-content: space-between; /* key change */
-    align-items: center;           /* keep center alignment vertically */
-    background-color: #FFF5F1; 
-    padding: 10px 20px;            /* add some horizontal padding */
+    justify-content: space-between;
+    align-items: center;  
+    background-color: #fff9f7; 
+    padding: 10px 20px;     
+    position: relative;
+    padding-inline: 20px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
 }
 
+.create-new-activity-container h3{
+    color: #B84C20;
+    font-weight: 800;
+    position: relative;
+    display: inline-block;
+}
 
-  /* Button Styling */
-  .create-new-activity-button {
+.create-new-activity-container .class-id{
+    color: #bc6a4a;
+    font-size: 1.2rem;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+}
+
+.create-new-activity-container .class-id:hover{
+    color: #8a4e37;
+}
+
+.create-new-activity-container .popup{
+    position: absolute;
+    top: -20px;
+    left: 80%;
+    transform: translateX(80%);
+    background: rgba(53, 53, 53, 0.849);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    animation: fadeOut 2s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+}
+
+/* Button Styling */
+.create-new-activity-button {
     background-color: #64c5b1; /* Soft teal button */
     color: white;
     font-size: 14px;
@@ -69,13 +71,13 @@ body {
     cursor: pointer;
     transition: background 0.3s ease-in-out;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow effect */
-  }
-  
-  /* Hover Effect */
-  .create-new-activity-button:hover {
+}
+
+/* Hover Effect */
+.create-new-activity-button:hover {
     background-color: #4ea99a; /* Slightly darker teal on hover */
     border: none;
-  }
+}
 
   /* Remove black border on click */
 .create-new-activity-button:focus,
@@ -84,7 +86,38 @@ body {
     border: none; /* Ensures no border appears */
     box-shadow: none; /* Removes any browser-added shadow */
 }
-  
+
+.sort-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #CCCFDA;
+}
+
+.sort-container .sort-content{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 25rem;
+    background-color: #fff9f7;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.sort-container span{
+    color: #333;
+    font-weight: bold;
+}
+
+.sort-container button{
+    color: #4ea99a;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.sort-container button:hover{
+    color: #30685e;
+}
 
 .class-management{
     background-color: #CCCFDA;
@@ -342,3 +375,61 @@ body {
     margin-left: auto; /* push this icon to the far right */
   }
   
+@media (max-width: 768px) {
+    .create-new-activity-container h3{
+        font-size: 1.4rem;
+    }
+
+    .create-new-activity-container .class-id{
+        font-size: 1rem;
+    }
+
+    .create-new-activity-button {
+        font-size: 0.8rem;
+        padding: 8px 17px;
+    }
+
+    .sort-container span{
+        font-size: 0.9rem;
+    }
+
+    .sort-container button{
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 425px) {
+    .create-new-activity-container h3{
+        font-size: 1.1rem;
+        margin-left: -10px;
+    }
+
+    .create-new-activity-container .class-id{
+        font-size: 0.9rem;
+    }
+
+    .create-new-activity-button {
+        font-size: 0.7rem;
+        padding: 5px 8px;
+        margin-right: -10px;
+    }
+
+    .sort-container .sort-content{
+        width: 20rem;
+    }
+
+    .sort-container span{
+        font-size: 0.8rem;
+    }
+
+    .sort-container button{
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 375px) {
+
+    .sort-container .sort-content{
+        width: 18rem;
+    }
+}

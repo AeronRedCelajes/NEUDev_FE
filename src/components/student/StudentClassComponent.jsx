@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Row, Tabs, Col, Tab, Modal, Button } from 'react-bootstrap';
 import StudentCMNavigationBarComponent from './StudentCMNavigationBarComponent';
-import "../../style/teacher/cmActivities.css";
+import "../../style/student/class.css";
 import { getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent} from "../api/API";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCaretDown, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
@@ -583,12 +583,26 @@ const handleActivityClick = async (activity) => {
     navigate(`/student/class/${classID}/activity`);
   };
 
+   // -------------------- Class Info --------------------
+    const [classInfo, setClassInfo] = useState(null);
+
   return (
     <>
       <StudentCMNavigationBarComponent />
-      <div className='class-management'>
-        <div className='container class-content'>
-          <div style={{ margin: "20px 0" }}>
+      <div className="class-wrapper"></div>
+      <div className="class-info">
+        {/* Dynamic header using fetched classInfo */}
+        <h3>
+          {classInfo 
+            ? classInfo.className   // ✅ Correct syntax
+            : "Loading class..."}
+        </h3>
+
+      </div>
+      <div className='class-management-container'>
+        {/* Sorting Controls for Activities */}
+        <div className='sort-container'>
+          <div className='sort-content'>
             <span>Sort by: </span>
             <Button variant="link" onClick={handleSortByOpenDate}>
               Open Date{" "}
@@ -615,7 +629,9 @@ const handleActivityClick = async (activity) => {
               )}
             </Button>
           </div>
+        </div>
 
+        <div className='container class-content'>
           <Tabs defaultActiveKey={contentKey} id="tab" onSelect={(k) => setContentKey(k)} fill>
             <Tab eventKey="upcoming" title="Upcoming"></Tab>
             <Tab eventKey="ongoing" title="Ongoing"></Tab>
