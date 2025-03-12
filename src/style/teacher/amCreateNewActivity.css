@@ -488,12 +488,6 @@ Form.Control, select, input[type="date"] {
 }
 
 
-
-
-
-
-
-
 .date-time-item input[type="datetime-local"] {
     width: 100%;
     padding: 10px 15px;
@@ -536,3 +530,20 @@ color:#84C776;
     }
 
 
+/* Highlight the selected item in the modal */
+.custom-modal .question-item.highlighted {
+    background-color: #B84C20;
+    border-color: var(--primary-color);
+    color: white;
+}
+
+/* Style for the item description dropdown */
+.item-description-dropdown {
+    background-color: var(--light-bg);
+    border: 1px solid var(--primary-color);
+    border-radius: 10px;
+    padding: 10px;
+    margin: 5px 0 10px 0;
+    color: var(--primary-color);
+    font-size: 14px;
+}

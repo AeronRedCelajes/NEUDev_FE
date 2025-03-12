@@ -15,7 +15,7 @@ const convertSecondsToHMS = (seconds) => {
     .join(":");
 };
 
-const TeacherActivityLeaderboardComponent = () => {
+const TeacherActivitySubmissionComponent = () => {
   const { actID } = useParams();
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +46,7 @@ const TeacherActivityLeaderboardComponent = () => {
       <TeacherAMNavigationBarComponent />
       <div className="leaderboard-container">
         <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Leaderboard</h1>
+          <h1 className="leaderboard-title">Activity Submissions</h1>
           {loading ? (
             <p>Loading students...</p>
           ) : (
@@ -116,4 +116,4 @@ const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }
   );
 };
 
-export default TeacherActivityLeaderboardComponent;
+export default TeacherActivitySubmissionComponent;

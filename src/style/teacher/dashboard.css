@@ -106,6 +106,11 @@
     border-bottom-right-radius: 20px;
 }
 
+.class-card-archived{
+    opacity: 70%;
+}
+
+
 /* 🎯 Responsive Fixes */
 @media (max-width: 992px) {
     .classes-container .class-card{

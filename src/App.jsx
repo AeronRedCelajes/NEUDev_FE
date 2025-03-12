@@ -36,6 +36,7 @@ import TeacherItemBankComponent from "./components/teacher/TeacherItemBankCompon
 import TeacherActivitySettingsComponent from "./components/teacher/TeacherActivitySettingsComponent.jsx";
 import TeacherActivityItemsComponent from "./components/teacher/TeacherActivityItemsComponent.jsx";
 import TeacherActivityLeaderboardComponent from "./components/teacher/TeacherActivityLeaderboardComponent.jsx";
+import TeacherActivitySubmissionComponent from "./components/teacher/TeacherActivitySubmissionComponent.jsx";
 
 import { TeacherCodingAssessmentComponent } from "./components/teacher/TeacherCodingAssessmentComponent.jsx";
 
@@ -85,6 +86,7 @@ function App() {
                     <Route path="/teacher/class/:classID/activity/:actID/leaderboard" element={<TeacherActivityLeaderboardComponent />} />
                     <Route path="/teacher/class/:classID/activity/:actID/items" element={<TeacherActivityItemsComponent />} />
                     <Route path="/teacher/class/:classID/activity/:actID/settings" element={<TeacherActivitySettingsComponent />} />
+                    <Route path="/teacher/class/:classID/activity/:actID/submissions" element={<TeacherActivitySubmissionComponent />} />
 
                     <Route path="/teacher/class/:classID/activity/:actID/assessment" element={<TeacherCodingAssessmentComponent />} />
                 </Route>

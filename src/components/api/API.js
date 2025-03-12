@@ -163,7 +163,7 @@ function getUserRole() {
 }
 
 //////////////////////////////////////////
-// OTHER PROTECTED FUNCTIONS (Use apiFetch)
+// PROFILE FUNCTIONS (Use apiFetch)
 //////////////////////////////////////////
 
 // Function to get user info (protected)
