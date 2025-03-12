@@ -4,22 +4,20 @@
     align-items: flex-start;
     font-family: 'Poppins', sans-serif;
     background-color: #eaeaea;
-    height: 100vh;
-}
+    min-height: 100vh; /* Use min-height instead of fixed height */
+    padding: 20px;
+  }
 
-.playground-container {
+  .playground-container {
     background-color: #f3f3f3;
-    margin: 20px;
-    padding: 0;
-    height: 550px;
     width: 100%;
+    max-width: 1200px; /* limit width on larger screens */
     border: solid 2px #9196A1;
     border-radius: 15px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-}
+    flex: 1; /* allows container to grow */
+  }
 
 /* Header */
 .left-corner {
@@ -97,11 +95,10 @@
 
 /* Code Editor and Input */
 .playground-editor {
-    display: flex;
-    flex-direction: column;
+    flex: 1; /* makes the editor take available vertical space */
     margin: 15px;
     gap: 10px;
-}
+  }
 
 .code-editor,
 .input-editor {

@@ -12,6 +12,7 @@ import NotFound from "./components/NotFound"; // ✅ Import the 404 NotFound com
 import { StudentDashboardComponent } from "./components/student/StudentDashboardComponent";
 import { StudentProfileComponent } from "./components/student/StudentProfileComponent";
 import { StudentPlaygroundComponent } from "./components/student/StudentPlaygroundComponent.jsx";
+import { StudentPlaygroundComponentTest } from "./components/student/StudentPlaygroundComponentTest.jsx";
 
 import { StudentClassComponent } from "./components/student/StudentClassComponent.jsx";
 import { StudentBulletinComponent } from "./components/student/StudentBulletinComponent.jsx";
@@ -59,6 +60,7 @@ function App() {
                     <Route path="/student/dashboard" element={<StudentDashboardComponent />} />
                     <Route path="/student/profile" element={<StudentProfileComponent />} />
                     <Route path="/student/sandbox" element={<StudentPlaygroundComponent />} />
+                    <Route path="/student/sandbox2" element={<StudentPlaygroundComponentTest />} />
 
                     <Route path="/student/class/:classID/activity" element={<StudentClassComponent />} />
                     <Route path="/student/class/:classID/student-bulletin" element={<StudentBulletinComponent />} />
