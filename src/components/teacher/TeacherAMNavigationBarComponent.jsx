@@ -26,6 +26,7 @@ const TeacherAMNavigationBarComponent = () => {
   const getActiveTab = () => {
     if (location.pathname.includes("leaderboard")) return "leaderboard";
     if (location.pathname.includes("items")) return "items";
+    if (location.pathname.includes("submissions")) return "submissions";
     if (location.pathname.includes("settings")) return "settings";
     
     return "leaderboard"; // Default to leaderboard
@@ -57,6 +58,7 @@ const TeacherAMNavigationBarComponent = () => {
         <Tabs activeKey={getActiveTab()} onSelect={handleSelect} id="am-tabs" fill>
           <Tab eventKey="leaderboard" title="Leaderboard"></Tab>
           <Tab eventKey="items" title="Items"></Tab>
+          <Tab eventKey="submissions" title="Submissions"></Tab>
           <Tab eventKey="settings" title="Settings"></Tab>
         </Tabs>
       </div>

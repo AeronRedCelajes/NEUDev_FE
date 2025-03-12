@@ -134,9 +134,9 @@ export const TeacherDashboardArchivedComponent = () => {
       setIsEditing(false);
       return;
     }
-    const updatedClasses = classes.map(cls => {
+    const updatedClasses = classes.map((cls) => {
       if ((cls.id || cls.classID) === editClassData.id) {
-        return { ...cls, ...editClassData, instructorName };
+        return { ...cls, ...response, instructorName };
       }
       return cls;
     });
@@ -144,7 +144,7 @@ export const TeacherDashboardArchivedComponent = () => {
     alert("✅ Class updated successfully!");
     setShowEditModal(false);
     setIsEditing(false);
-  };
+  };  
 
   // Open the delete modal and set the class to delete
   const handleDeleteClass = (classItem, event) => {
@@ -268,7 +268,7 @@ export const TeacherDashboardArchivedComponent = () => {
           <h4>Archived Classes</h4>
           <div className='classes-container'>
             {classes.map((classItem, index) => (
-              <Card className='class-card' key={index}
+              <Card className='class-card-archived' key={index}
                 onClick={() => {
                   sessionStorage.setItem("selectedClassID", classItem.id || classItem.classID);
                   navigate(`/teacher/class/${classItem.id || classItem.classID}/activity`);

@@ -130,19 +130,24 @@ export const TeacherDashboardComponent = () => {
       return;
     }
     setIsEditing(true);
+  
+    // Call updateClass and wait for the response. The response includes the updated cover image URL.
     const response = await updateClass(editClassData.id, editClassData);
     if (response.error) {
       alert(`❌ Failed to update class: ${response.error}`);
       setIsEditing(false);
       return;
     }
-    const updatedClasses = classes.map(cls => {
+  
+    // Update the state using the response (which has the updated classCoverImage URL)
+    const updatedClasses = classes.map((cls) => {
       if ((cls.id || cls.classID) === editClassData.id) {
-        return { ...cls, ...editClassData, instructorName };
+        return { ...cls, ...response, instructorName };
       }
       return cls;
     });
     setClasses(updatedClasses);
+  
     alert("✅ Class updated successfully!");
     setShowEditModal(false);
     setIsEditing(false);

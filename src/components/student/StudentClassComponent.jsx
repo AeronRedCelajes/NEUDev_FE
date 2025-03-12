@@ -327,7 +327,7 @@ const handleActivityClick = async (activity) => {
           itemID: item.itemID,
           codeSubmission: code,
           score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
-          timeSpent: timeSpentSeconds
+          itemTimeSpent: timeSpentSeconds
         }));
       } else {
         // Fallback submission if no items loaded
@@ -335,7 +335,7 @@ const handleActivityClick = async (activity) => {
           itemID: itemID,
           codeSubmission: code,
           score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
-          timeSpent: timeSpentSeconds
+          itemTimeSpent: timeSpentSeconds
         }];
       }
 

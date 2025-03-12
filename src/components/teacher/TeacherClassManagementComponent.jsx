@@ -1244,7 +1244,6 @@ export const TeacherClassManagementComponent = () => {
               </div>
             )}
 
-            {/* NEW: Item Creator Selector */}
             <div className="filter-section" style={{ marginBottom: "10px" }}>
               <label>Item Creator:</label>
               <select
@@ -1259,7 +1258,6 @@ export const TeacherClassManagementComponent = () => {
               </select>
             </div>
 
-            {/* Sorting Controls for preset items */}
             <div
               style={{
                 margin: "10px 0",
@@ -1289,34 +1287,40 @@ export const TeacherClassManagementComponent = () => {
               </p>
             ) : (
               sortedPresetItems.map((item, idx) => (
-                <Button
-                  key={idx}
-                  className={`question-item d-block ${selectedItem === item ? "highlighted" : ""}`}
-                  onClick={() => handleSelectItem(item)}
-                  style={{ textAlign: "left", marginBottom: "8px" }}
-                >
-                  <div>
-                    <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
-                  </div>
-                  <div style={{ marginTop: "5px" }}>
-                    {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
-                      const plName = langObj.progLangName;
-                      const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
-                      return mapping.image ? (
-                        <img
-                          key={i}
-                          src={mapping.image}
-                          alt={mapping.name}
-                          style={{ width: "20px", marginRight: "5px" }}
-                        />
-                      ) : (
-                        <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
-                          {mapping.name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </Button>
+                <div key={idx}>
+                  <Button
+                    className={`question-item d-block ${selectedItem && selectedItem.itemID === item.itemID ? "highlighted" : ""}`}
+                    onClick={() => handleSelectItem(item)}
+                    style={{ textAlign: "left", marginBottom: "8px", width: "100%" }}
+                  >
+                    <div>
+                      <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
+                    </div>
+                    <div style={{ marginTop: "5px" }}>
+                      {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
+                        const plName = langObj.progLangName;
+                        const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
+                        return mapping.image ? (
+                          <img
+                            key={i}
+                            src={mapping.image}
+                            alt={mapping.name}
+                            style={{ width: "20px", marginRight: "5px" }}
+                          />
+                        ) : (
+                          <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
+                            {mapping.name}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </Button>
+                  {selectedItem && selectedItem.itemID === item.itemID && (
+                    <div className="item-description-dropdown" style={{ padding: "10px", backgroundColor: "#f1f1f1", marginBottom: "8px", borderRadius: "4px" }}>
+                      {item.itemDesc}
+                    </div>
+                  )}
+                </div>
               ))
             )}
           </Modal.Body>

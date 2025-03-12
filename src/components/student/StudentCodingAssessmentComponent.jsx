@@ -57,6 +57,7 @@ export const StudentCodingAssessmentComponent = () => {
   const [actDesc, setActDesc] = useState('');
   const [maxPoints, setMaxPoints] = useState(0);
   const [actDuration, setActDuration] = useState(''); // HH:MM:SS
+  const [finalScorePolicy, setFinalScorePolicy] = useState('last_attempt'); // default
 
   // Items & allowed languages
   const [items, setItems] = useState([]);
@@ -80,6 +81,7 @@ export const StudentCodingAssessmentComponent = () => {
   const [showTerminal, setShowTerminal] = useState(false);
   const wsRef = useRef(null);
   const inputRef = useRef(null);
+  // testCaseResults now holds objects with latest and best fields
   const [testCaseResults, setTestCaseResults] = useState({});
 
   // Timer and submission states
@@ -136,10 +138,11 @@ export const StudentCodingAssessmentComponent = () => {
           setActDesc(resp.actDesc);
           setMaxPoints(resp.maxPoints);
           setActDuration(resp.actDuration);
+          if (resp.finalScorePolicy) {
+            setFinalScorePolicy(resp.finalScorePolicy);
+          }
           setItems(resp.items || []);
           if (resp.items && resp.items.length > 0) {
-            // setExpandedItem(resp.items[0].itemID);
-            // setSelectedItem(resp.items[0].itemID);
             toggleItem(resp.items[0].itemID);
           }
           if (resp.allowedLanguages && resp.allowedLanguages.length > 0) {
@@ -297,8 +300,7 @@ export const StudentCodingAssessmentComponent = () => {
     parsed.files = files;
     parsed.activeFileId = activeFileId;
     parsed.testCaseResults = testCaseResults;
-    // Also save the per-item times
-    parsed.itemTimes = itemTimes; // you can store it directly or stringify it
+    parsed.itemTimes = itemTimes;
 
     if (originalEndTime) {
       parsed.endTime = originalEndTime;
@@ -397,12 +399,11 @@ export const StudentCodingAssessmentComponent = () => {
   // --- Per-item timer: When toggling items, update times ---
   const toggleItem = (itemID) => {
     const now = Date.now();
-    // If an item was previously selected, update its accumulated time.
     if (selectedItem) {
       setItemTimes((prev) => {
         const prevItem = prev[selectedItem] || { accumulated: 0 };
         const startTimeValue = prev[selectedItem]?.start || now;
-        const elapsed = Math.floor((now - startTimeValue) / 1000); // seconds elapsed
+        const elapsed = Math.floor((now - startTimeValue) / 1000);
         return {
           ...prev,
           [selectedItem]: {
@@ -412,7 +413,6 @@ export const StudentCodingAssessmentComponent = () => {
         };
       });
     }
-    // Set the new selected item and start its timer.
     setSelectedItem(itemID);
     setExpandedItem(itemID);
     setItemTimes((prev) => ({
@@ -550,28 +550,35 @@ export const StudentCodingAssessmentComponent = () => {
             console.log("TestCase Output:", fullOutput, "Expected:", testCase.expectedOutput);
             const pass = fullOutput.trim() === testCase.expectedOutput.trim();
             console.log("TestCase Pass:", pass, "Points:", pass ? testCase.testCasePoints : 0);
+            // Update test case results: store both latest and best values
             setTestCaseResults(prev => {
               const itemResults = prev[selectedItem] || {};
               const existing = itemResults[testCase.testCaseID] || {
-                lockedPass: null,
-                lockedPoints: 0,
-                lockedOutput: '',
                 latestPass: null,
-                latestOutput: ''
+                latestPoints: 0,
+                latestOutput: '',
+                bestPass: null,
+                bestPoints: 0,
+                bestOutput: ''
               };
-              const updated = { ...existing };
-              updated.latestPass = pass;
-              updated.latestOutput = fullOutput;
-              if (scoreUpdate) {
-                updated.lockedPass = pass;
-                updated.lockedOutput = fullOutput;
-                updated.lockedPoints = pass ? testCase.testCasePoints : 0;
+
+              // Always update latest to reflect this new attempt
+              existing.latestPass = pass;
+              existing.latestPoints = pass ? testCase.testCasePoints : 0;
+              existing.latestOutput = fullOutput;
+
+              // Update best if this attempt is better than before
+              if (existing.latestPoints > (existing.bestPoints || 0)) {
+                existing.bestPass = existing.latestPass;
+                existing.bestPoints = existing.latestPoints;
+                existing.bestOutput = existing.latestOutput;
               }
+
               return {
                 ...prev,
                 [selectedItem]: {
                   ...itemResults,
-                  [testCase.testCaseID]: updated
+                  [testCase.testCaseID]: existing
                 }
               };
             });
@@ -638,19 +645,22 @@ export const StudentCodingAssessmentComponent = () => {
     setTypedInput('');
   };
 
-  // --- Compute per-item score (unchanged) ---
+  // --- Compute per-item score ---
+  // Uses bestPoints if finalScorePolicy is 'highest_score', otherwise latestPoints.
   const computeItemScore = (itemID) => {
     const item = items.find(it => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
-    const itemResults = testCaseResults[item.itemID] || {};
+  
+    const itemResults = testCaseResults[itemID] || {};
     let sum = 0;
     item.testCases.forEach(tc => {
-      const r = itemResults[tc.testCaseID];
-      if (r && r.lockedPass !== null) {
-        sum += r.lockedPoints;
+      const r = itemResults[tc.testCaseID] || {};
+      if (finalScorePolicy === 'highest_score') {
+        sum += r.bestPoints || 0;
+      } else {
+        sum += r.latestPoints || 0;
       }
     });
-    console.log(`Item ${itemID} Score: `, sum);
     return sum;
   };
 
@@ -682,83 +692,70 @@ export const StudentCodingAssessmentComponent = () => {
     setShowFinishAttempt(true);
   };
 
-// --- Finalize submission handler with per-item times ---
-// Helper: convert seconds to HH:MM:SS
-function formatSecondsToHMS(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
-}
-
-// In your component:
-const finalizeSubmissionHandler = async () => {
-  if (isSubmitted) return;
-  const now = Date.now();
-
-  // 1) Create a local copy of itemTimes
-  let updatedTimes = { ...itemTimes };
-
-  // 2) If there’s an active item, calculate how many seconds have passed
-  //    since it was last toggled and add that to its accumulated time.
-  if (selectedItem) {
-    const current = updatedTimes[selectedItem] || { accumulated: 0 };
-    const startTimeValue = current.start || now;
-    const elapsed = Math.floor((now - startTimeValue) / 1000);
-
-    updatedTimes[selectedItem] = {
-      start: null,
-      accumulated: (current.accumulated || 0) + elapsed,
-    };
+  // --- Finalize submission handler with per-item times ---
+  function formatSecondsToHMS(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   }
 
-  // 3) Now update the state once with your final local times
-  setItemTimes(updatedTimes);
-
-  // 4) Build the submission payload using updatedTimes (NOT the old itemTimes)
-  const submissionData = {
-    submissions: items.map(item => {
-      const timeData = updatedTimes[item.itemID] || { accumulated: 0 };
-      const secondsSpent = timeData.accumulated;
-
-      console.log(
-        `[finalizeSubmissionHandler] itemID=${item.itemID}, ` +
-        `rawTimeSpent=${secondsSpent}, ` +
-        `formattedTimeSpent=${formatSecondsToHMS(secondsSpent)}`
-      );
-
-      return {
-        itemID: item.itemID,
-        codeSubmission: JSON.stringify(files),
-        score: computeItemScore(item.itemID),
-        timeSpent: secondsSpent, // in seconds
+  const finalizeSubmissionHandler = async (overallTimeSpent) => {
+    if (isSubmitted) return;
+    const now = Date.now();
+  
+    // Update active item's accumulated time if needed.
+    let updatedTimes = { ...itemTimes };
+    if (selectedItem) {
+      const current = updatedTimes[selectedItem] || { accumulated: 0 };
+      const startTimeValue = current.start || now;
+      const elapsed = Math.floor((now - startTimeValue) / 1000);
+      updatedTimes[selectedItem] = {
+        start: null,
+        accumulated: (current.accumulated || 0) + elapsed,
       };
-    })
+    }
+    setItemTimes(updatedTimes);
+  
+    // Build the submission payload, including overallTimeSpent.
+    const submissionData = {
+      overallTimeSpent, // overall elapsed time (actDuration - timeLeft)
+      submissions: items.map(item => {
+        const timeData = updatedTimes[item.itemID] || { accumulated: 0 };
+        const secondsSpent = timeData.accumulated;
+        console.log(
+          `[finalizeSubmissionHandler] itemID=${item.itemID}, rawTimeSpent=${secondsSpent}, formattedTimeSpent=${formatSecondsToHMS(secondsSpent)}`
+        );
+        return {
+          itemID: item.itemID,
+          codeSubmission: JSON.stringify(files),
+          score: computeItemScore(item.itemID),
+          itemTimeSpent: secondsSpent, // key matches backend field
+        };
+      })
+    };
+  
+    console.log("Submitting final:", submissionData);
+    const result = await finalizeSubmission(actID, submissionData);
+    if (result.error) {
+      console.error("Submission failed:", result.error, result.details);
+    } else {
+      if (result.finalScore !== undefined) {
+        setFinalScore(`${result.finalScore}/${maxPoints}`);
+      } else {
+        setFinalScore(`${computeTotalScore()}/${maxPoints}`);
+      }
+      if (result.rank !== undefined) {
+        setFinalRank(result.rank);
+      }
+      setIsSubmitted(true);
+      await clearActivityProgress(actID);
+      localStorage.removeItem(stateKey);
+      console.log("Submission successful, cleared progress.");
+    }
   };
 
-  console.log("Submitting final:", submissionData);
-
-  // 5) Proceed with final submission
-  const result = await finalizeSubmission(actID, submissionData);
-  if (result.error) {
-    console.error("Submission failed:", result.error, result.details);
-  } else {
-    if (result.finalScore !== undefined) {
-      setFinalScore(`${result.finalScore}/${maxPoints}`);
-    } else {
-      setFinalScore(`${computeTotalScore()}/${maxPoints}`);
-    }
-    if (result.rank !== undefined) {
-      setFinalRank(result.rank);
-    }
-    setIsSubmitted(true);
-    await clearActivityProgress(actID);
-    localStorage.removeItem(stateKey);
-    console.log("Submission successful, cleared progress.");
-  }
-};
-
-
+  // --- Handle submission and final modal ---
   const handleSubmitAllAndFinish = async () => {
     if (isSubmitted) return;
     let totalTC = 0;
@@ -774,18 +771,22 @@ const finalizeSubmissionHandler = async () => {
       }
     });
     setFinalTestCases(`${correctTC}/${totalTC}`);
-
+  
     const totalScore = computeTotalScore();
     const mp = maxPoints || 1;
     const percent = (totalScore / mp) * 100;
     setFinalTitle(percent < 60 ? 'Bummer...' : 'You are Awesome!');
     setFinalActivityName(activityName);
     setFinalScore(`${totalScore}/${mp}`);
-
-    const diffInSeconds = Math.floor((Date.now() - startTime) / 1000);
-    setFinalSpeed(formatTimeLeft(diffInSeconds));
-
-    await finalizeSubmissionHandler();
+  
+    // Compute overallTimeSpent as (actDuration in seconds) - timeLeft
+    const [hh, mm, ss] = actDuration.split(':').map(Number);
+    const totalActSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
+    const overallTimeSpent = totalActSeconds - timeLeft;
+    setFinalSpeed(formatTimeLeft(overallTimeSpent));
+  
+    // Pass overallTimeSpent in your submission payload:
+    await finalizeSubmissionHandler(overallTimeSpent);
     setShowFinishAttempt(false);
     setShowSubmit(true);
   };
@@ -805,7 +806,6 @@ const finalizeSubmissionHandler = async () => {
     }
   };
 
-  // --- Render ---
   return (
     <>
       <Navbar expand='lg' className='assessment-navbar-top'>
@@ -1061,11 +1061,12 @@ const finalizeSubmissionHandler = async () => {
                   it.testCases?.map((tc, idx) => {
                     const itemResults = testCaseResults[it.itemID] || {};
                     const r = itemResults[tc.testCaseID] || {
-                      lockedPass: null,
-                      lockedPoints: 0,
-                      lockedOutput: '',
                       latestPass: null,
-                      latestOutput: ''
+                      latestPoints: 0,
+                      latestOutput: '',
+                      bestPass: null,
+                      bestPoints: 0,
+                      bestOutput: ''
                     };
                     let passFail = 'untested';
                     if (r.latestPass === true) passFail = 'pass';
@@ -1106,7 +1107,9 @@ const finalizeSubmissionHandler = async () => {
                                 <>
                                   <p>Your Output: {r.latestOutput || '(none)'}</p>
                                   <p>Expected Output: {tc.expectedOutput}</p>
-                                  <p>Points: {r.lockedPoints}/{tc.testCasePoints}</p>
+                                  <p>
+                                    Points: {finalScorePolicy === 'highest_score' ? (r.bestPoints || 0) : (r.latestPoints || 0)}/{tc.testCasePoints}
+                                  </p>
                                 </>
                               )
                             }
@@ -1148,8 +1151,7 @@ const finalizeSubmissionHandler = async () => {
                 sel.removeAllRanges();
                 sel.addRange(range);
               }
-            }}
-          >
+            }}>
             {lines.map((line, idx) => (
               <div key={idx} style={{ whiteSpace: 'pre-wrap' }}>
                 {line}
