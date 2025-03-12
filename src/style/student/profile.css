@@ -1,22 +1,26 @@
 .profile{
     padding: 20px;
-    background-color: #CCCFDA;
+    background-color: #ffffff;
     font-family: 'Poppins', sans-serif;
+    width: 100%;
+    max-width: 100vw;
     height: 100vh;
     min-height: fit-content;
+    overflow: hidden;
 }
 
 .cover-container{
-    height: 300px;
-    /* background-image: url('/src/assets/univ.png'); */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-radius: 10px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     align-items: flex-end;
+    height: 45%;
+    /* background-image: url('/src/assets/univ.png'); */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
     padding: 20px;
     box-sizing: border-box;
     background-color: rgba(67, 67, 67, 0.5);
@@ -42,12 +46,8 @@
     padding-left: 5px;
 }
 
-.modal{
-    font-family: 'Poppins', sans-serif;
-}
-
 .modal-profile .modal-header{
-    font-size: larger;
+    font-size: 1.2rem;
     color: #ffffff;
     font-weight: bolder;
     background-color: #C79E8E;
@@ -77,6 +77,17 @@
     cursor: pointer;
 }
 
+.uploaded-image{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-image{
+    width: 30%;
+    height: auto;
+}
+
 .edit-button button:hover{
     background-color: transparent;
     color: rgb(220, 141, 102);
@@ -84,46 +95,29 @@
     transition: all 0.3s ease-in-out;
 }
 
-.edit-info{
+.edit-details label{
+    font-size: 0.95rem;
+    margin-top: 10px;
+}
+
+.edit-details input,
+.edit-details select{
+    font-size: 0.85rem;
+}
+
+.password-field{
     display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
+    flex-direction: row;
 }
 
-.edit-info img{
-    width: 50%;
-    height: auto;
+.password-field input{
+    width: 96%;
 }
 
-.edit-info p{
-    margin: 0;
-    color: #454445;
-}
-
-.custom-modal-edit .modal-dialog{
-    height: 100vh;
-}
-
-.custom-modal-edit .modal-content{
-    height: 100%;
-}
-
-.body-details label{
-    margin-top: 20px;
-}
-
-.custom-modal-edit .custom-modal-footer{
-    background-color: #C79E8E;
-    
-}
-
-.custom-modal-edit .custom-modal-footer button{
-    background-color: #ff7918;
-    font-weight: bold;
-    border: none;
-    border-radius: 20px;
-    padding-inline: 20px;
+.password-field i{
+    align-self: center;
+    margin-left: 10px;
+    cursor: pointer;
 }
 
 .profile-picture-container {
@@ -131,57 +125,54 @@
     /* background-image: url('/src/assets/angelica.png'); */
     background-size: cover;
     background-position: center;
-    width: 250px;
-    height: 250px;
+    width: 20vw;
+    height: 20vw;
+    max-width: 250px;
+    max-height: 250px;
     border-radius: 50%;
     margin-top: -150px;
     overflow: hidden;
 }
 
 .info-container{
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    padding-bottom: 40px;
-    overflow: visible;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    background-color: #fffaf7 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    overflow: visible;
 }
 
 .info-container .name{
-    font-size: xx-large;
+    font-size: 1.7rem;
     font-weight: bold;
     color: #2C292A;
+    text-align: center;
 }
 
 .info-container .student-no{
-    font-size: medium;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #929292;
     margin-top: -20px;
     padding-bottom: 20px;
-    color: #7e7e7e;
-}
-
-.details{
-    margin-bottom: 20px;
-}
-
-.details p{
-    font-size: medium;
-    margin-top: -15px;
-    color: #454445;
 }
 
 .performance-container{
     background-color: #fffef0;
-    border-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
     display: block;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     padding: 20px;
 }
 
 .performance-content .title{
-    font-size: 30px;
+    font-size: 1.85rem;
     font-weight: bolder;
     padding: 30px;
     color: #2C292A;
@@ -197,10 +188,10 @@
 }
 
 .graph{
-    padding-top: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding-top: 20px;
     gap: 30px;
 }
 
@@ -210,9 +201,9 @@
 }
 
 .bar img{
+    display: flex;
     width: 70%;
     height: auto;
-    display: flex;
     margin: 0 auto;
 }
 
@@ -223,20 +214,383 @@
 }
 
 .analysis h6{
-    padding-left: 50px;
+    padding-left: 3vw;
     padding-top: 30px;
     font-weight: bold;
 }
 
 .analysis p{
-    padding-inline: 50px;
-    font-size: 15px;
+    padding-inline: 3vw;
+    font-size: 0.87rem;
     text-align: justify;
 }
 
-.history-content .title{
-    font-size: 30px;
-    font-weight: bolder;
-    padding: 30px;
-    color: #2C292A;
+@media (max-width: 1024px) {
+    .cover-container{
+        height: 22vw;
+    }
+
+    .cover-container .btn,
+    .custom-modal-footer button{
+        font-size: 0.9rem;
+    }
+
+    .profile-picture-container {
+        width: 18vw;
+        height: 18vw;
+        margin-top: -100px;
+    }
+
+    .info-container .name{
+        font-size: 1.2rem;
+    }
+    
+    .info-container .student-no{
+        font-size: 0.8rem;
+    }
+
+    .info-container .program{
+        font-size: 0.9rem;
+    }
+    
+    .border{
+        width: 91%;
+    }
+    
+    .performance-content .title{
+        font-size: 1.5rem;
+    }
+    
+    .analysis h4{
+        font-size: 1.3rem;
+    }
+    
+    .analysis h6{
+        font-size: 1rem;
+    }
+    
+    .analysis p{
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 880px) {
+    .cover-container .btn,
+    .custom-modal-footer button{
+        font-size: 0.85rem;
+    }
+
+    .profile-picture-container {
+        width: 17vw;
+        height: 17vw;
+        margin-top: -80px;
+    }
+
+    .info-container .name{
+        font-size: 1rem;
+    }
+    
+    .info-container .student-no{
+        font-size: 0.7rem;
+    }
+
+    .info-container .program{
+        font-size: 0.8rem;
+    }
+
+    .border{
+        width: 87%;
+    }
+    
+    .performance-content .title{
+        font-size: 1.2rem;
+        padding-top: 10px;
+    }
+    
+    .analysis h4{
+        font-size: 1rem;
+        padding-top: 10px;
+    }
+    
+    .analysis h6{
+        font-size: 0.85rem;
+    }
+    
+    .analysis p{
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .cover-container .btn{
+        font-size: 0.8rem;
+    }
+
+    .modal-profile .modal-header{
+        font-size: 1rem;
+    }
+
+    .edit-button span{
+        font-size: 0.9rem;
+    }
+
+    .edit-button label{
+        font-size: 0.85rem;
+    }
+
+    .edit-details label{
+        font-size: 0.8rem;
+    }
+    
+    .edit-details input,
+    .edit-details select{
+        font-size: 0.75rem;
+    }
+
+    .profile-picture-container {
+        margin-top: -60px;
+    }
+
+    .info-container{
+        background-color: transparent !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.0) !important;
+    }
+
+    .info-container .name{
+        font-size: 1.1rem;
+    }
+    
+    .info-container .student-no{
+        font-size: 0.75rem;
+    }
+    
+    .info-container .program{
+        font-size: 0.8rem;
+        text-align: center;
+    }
+
+    .performance-container{
+        margin: 0;
+    }
+
+    .performance-content .title{
+        font-size: 1.1rem;
+    }
+
+    .analysis h4{
+        font-size: 0.95rem;
+    }
+    
+    .analysis h6{
+        font-size: 0.85rem;
+    }
+    
+    .analysis p{
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .cover-container{
+        height: 25vw;
+    }
+
+    .profile-picture-container {
+        width: 20vw;
+        height: 20vw;
+    }
+
+    .cover-container .btn{
+        font-size: 0.65rem;
+    }
+
+    .custom-modal-footer button{
+        font-size: 0.8rem;
+    }
+
+    .info-container .name{
+        font-size: 1rem;
+    }
+    
+    .info-container .student-no{
+        font-size: 0.7rem;
+    }
+    
+    .info-container .program{
+        font-size: 0.75rem;
+    }
+
+    .performance-content .title{
+        font-size: 1rem;
+    }
+
+    .analysis h4{
+        font-size: 0.9rem;
+    }
+    
+    .analysis h6{
+        font-size: 0.8rem;
+    }
+    
+    .analysis p{
+        font-size: 0.7rem;
+    }
+
+    .cover-container .btn{
+        padding-left: 15px;
+        padding-right: 8px;
+        margin: -10px;
+    }
+}
+
+@media (max-width: 425px) {
+    .profile{
+        padding: 10px;
+    }
+
+    .modal-profile .modal-header{
+        font-size: 0.9rem;
+    }
+
+    .edit-button span{
+        font-size: 0.8rem;
+    }
+
+    .edit-button label{
+        font-size: 0.75rem;
+    }
+
+    .edit-details label{
+        font-size: 0.7rem;
+    }
+    
+    .edit-details input,
+    .edit-details select{
+        font-size: 0.65rem;
+    }
+
+    .custom-modal-footer button{
+        font-size: 0.7rem;
+    }
+
+
+    .profile-picture-container {
+        margin-top: -55px;
+    }
+
+    .cover-container{
+        height: 27vw;
+    }
+
+    .cover-container .btn{
+        padding-left: 15px;
+        padding-right: 8px;
+        margin: -10px;
+    }
+}
+
+@media (max-width: 375px) {
+    .cover-container{
+        height: 28vw;
+    }
+
+    .performance-content .title{
+        font-size: 0.9rem;
+    }
+
+    .border{
+        width: 82%;
+    }
+
+    .analysis h4{
+        font-size: 0.8rem;
+    }
+    
+    .analysis h6{
+        font-size: 0.75rem;
+    }
+    
+    .analysis p{
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 320px) {
+    .cover-container{
+        height: 28vw;
+    }
+    
+    .profile-picture-container {
+        width: 21vw;
+        height: 21vw;
+        margin-top: -45px;
+    }
+
+    .cover-container .btn{
+        font-size: 0.55rem;
+    }
+
+    .modal-profile .modal-header{
+        font-size: 0.9rem;
+    }
+
+    .edit-button span{
+        font-size: 0.75rem;
+    }
+
+    .edit-button label{
+        font-size: 0.7rem;
+    }
+
+    .edit-details label{
+        font-size: 0.7rem;
+    }
+    
+    .edit-details input,
+    .edit-details select{
+        font-size: 0.65rem;
+    }
+
+    .custom-modal-footer button{
+        font-size: 0.65rem;
+    }
+
+    .cover-container .btn{
+        padding-left: 10px;
+        padding-right: 5px;
+        padding-block: 4px;
+        margin: -10px;
+    }
+
+    .info-container .name{
+        font-size: 0.9rem;
+    }
+    
+    .info-container .student-no{
+        font-size: 0.65rem;
+    }
+    
+    .info-container .program{
+        font-size: 0.7rem;
+    }
+
+    .performance-content .title{
+        font-size: 0.85rem;
+    }
+
+    .border{
+        width: 80%;
+    }
+    
+    .analysis h4{
+        font-size: 0.8rem;
+    }
+    
+    .analysis h6{
+        font-size: 0.75rem;
+    }
+    
+    .analysis p{
+        font-size: 0.65rem;
+    }
 }

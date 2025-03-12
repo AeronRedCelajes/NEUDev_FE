@@ -23,6 +23,7 @@ import StudentCodingAssessmentComponent from "./components/student/StudentCoding
 
 // Teacher Components
 import { TeacherDashboardComponent } from "./components/teacher/TeacherDashboardComponent";
+import { TeacherDashboardArchivedComponent } from "./components/teacher/TeacherDashboardArchivedComponent";
 import { TeacherProfileComponent } from "./components/teacher/TeacherProfileComponent";
 import { TeacherPlaygroundComponent } from "./components/teacher/TeacherPlaygroundComponent.jsx";
 
@@ -70,6 +71,7 @@ function App() {
                 {/* Protected Teacher Routes */}
                 <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
                     <Route path="/teacher/dashboard" element={<TeacherDashboardComponent />} />
+                    <Route path="/teacher/archived" element={<TeacherDashboardArchivedComponent />} />
                     <Route path="/teacher/profile" element={<TeacherProfileComponent />} />
                     <Route path="/teacher/sandbox" element={<TeacherPlaygroundComponent />} />
 

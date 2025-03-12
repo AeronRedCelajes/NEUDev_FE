@@ -13,7 +13,7 @@ const LeaderboardItem = ({ index, name, studentNumber, score, avatarUrl, onUnenr
         <div className="avatar-name">
           <div className="avatar">
             <img
-              src={avatarUrl || "/src/assets/avatar.png"}
+              src={avatarUrl || "/src/assests/profile_default.png"}
               alt="Avatar"
               className="avatar-image"
             />

@@ -5,9 +5,9 @@ import { Button, Card, Dropdown, Form, Modal, Nav, Navbar } from 'react-bootstra
 import { useNavigate } from 'react-router-dom';
 import '/src/style/teacher/dashboard.css';
 
-import { logout, getProfile, createClass, getClasses, updateClass, deleteClass, verifyPassword } from '../api/API.js';
+import { logout, getProfile, createClass, getArchivedClasses, updateClass, deleteClass, verifyPassword } from '../api/API.js';
 
-export const TeacherDashboardComponent = () => {
+export const TeacherDashboardArchivedComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
   const [profileImage, setProfileImage] = useState(defaultProfileImage);
   const [className, setClassName] = useState("");
@@ -23,9 +23,7 @@ export const TeacherDashboardComponent = () => {
     id: null,
     className: "",
     classSection: "",
-    // Will hold the File object if a new file is chosen, or a URL if already stored.
     classCoverPhoto: "",
-    // For preview display in the modal
     classCoverPreview: ""
   });
   const [isEditing, setIsEditing] = useState(false);
@@ -35,7 +33,7 @@ export const TeacherDashboardComponent = () => {
   const [deleteClassData, setDeleteClassData] = useState(null);
   const [deletePassword, setDeletePassword] = useState("");
 
-  // State for archiving a class
+  // State for unarchiving a class
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [archiveClassData, setArchiveClassData] = useState(null);
   const [isArchiving, setIsArchiving] = useState(false);
@@ -59,8 +57,9 @@ export const TeacherDashboardComponent = () => {
     };
 
     const fetchClasses = async () => {
-      const response = await getClasses();
-      console.log("📥 Fetched Classes (Filtered for Teacher):", response);
+      // Get archived classes (i.e. inactive)
+      const response = await getArchivedClasses();
+      console.log("📥 Fetched Archived Classes:", response);
       if (!response.error) {
         const updatedClasses = response.map(cls => ({
           ...cls,
@@ -68,7 +67,7 @@ export const TeacherDashboardComponent = () => {
         }));
         setClasses(updatedClasses);
       } else {
-        console.error("❌ Failed to fetch classes:", response.error);
+        console.error("❌ Failed to fetch archived classes:", response.error);
       }
     };
 
@@ -108,21 +107,20 @@ export const TeacherDashboardComponent = () => {
     setIsCreating(false);
   };
 
-  // Open the edit modal and load class data including cover photo
+  // Open the edit modal and load class data
   const handleEditClass = (classItem, event) => {
     event.stopPropagation();
     setEditClassData({
       id: classItem.id || classItem.classID,
       className: classItem.className,
       classSection: classItem.classSection,
-      // Use the stored relative path if available, fallback to a default cover.
       classCoverPhoto: classItem.classCoverImage || '/src/assets/defaultCover.png',
       classCoverPreview: classItem.classCoverImage || '/src/assets/defaultCover.png'
     });
     setShowEditModal(true);
   };
 
-  // Save changes including the updated cover photo
+  // Save changes including updated cover photo
   const handleEditClassSave = async (e) => {
     e.preventDefault();
     if (!editClassData.className.trim() || !editClassData.classSection.trim()) {
@@ -155,7 +153,7 @@ export const TeacherDashboardComponent = () => {
     setShowDeleteModal(true);
   };
 
-  // Delete the class after verifying the teacher's password
+  // Delete class after verifying password
   const handleDeleteClassConfirm = async (e) => {
     e.preventDefault();
     if (!deletePassword.trim()) {
@@ -182,31 +180,33 @@ export const TeacherDashboardComponent = () => {
     setDeleteClassData(null);
   };
 
-  // Open the archive modal and set the class to archive
+  // Open the unarchive modal and set the class to unarchive
   const handleArchiveClass = (classItem, event) => {
     event.stopPropagation();
     setArchiveClassData(classItem);
     setShowArchiveModal(true);
   };
 
-  // Confirm archive action – update activeClass field to false
+  // Confirm unarchive action – update activeClass field to true
   const handleArchiveClassConfirm = async (e) => {
     e.preventDefault();
     if (!archiveClassData) return;
     setIsArchiving(true);
     const classID = archiveClassData.id || archiveClassData.classID;
+    // For unarchiving, set activeClass to true
     const archiveData = {
       className: archiveClassData.className,
       classSection: archiveClassData.classSection,
-      activeClass: false
+      activeClass: true
     };
     const response = await updateClass(classID, archiveData);
     if (response.error) {
-      alert(`❌ Failed to archive class: ${response.error}`);
+      alert(`❌ Failed to unarchive class: ${response.error}`);
       setIsArchiving(false);
       return;
     }
-    alert("✅ Class archived successfully!");
+    alert("✅ Class unarchived successfully!");
+    // Remove the class from the archived list since it is now active
     const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
     setClasses(updatedClasses);
     setShowArchiveModal(false);
@@ -218,7 +218,7 @@ export const TeacherDashboardComponent = () => {
     <div className='dashboard'>
       <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <Nav className='flex-column sidebar-content'>
-          <Nav.Item className="nav-item active" onClick={() => navigate('/teacher/dashboard')}>
+          <Nav.Item className="nav-item" onClick={() => navigate('/teacher/dashboard')}>
             <Nav.Link href='#' className='nav-link'>
               <FontAwesomeIcon icon={faDesktop} className='sidebar-icon' /> My Classes
             </Nav.Link>
@@ -233,7 +233,7 @@ export const TeacherDashboardComponent = () => {
               <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Item Bank
             </Nav.Link>
           </Nav.Item>
-          <Nav.Item className='nav-item' onClick={() => navigate('/teacher/archived')}>
+          <Nav.Item className='nav-item active' onClick={() => navigate('/teacher/archived')}>
             <Nav.Link href='#' className='nav-link'>
               <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Archived Classes
             </Nav.Link>
@@ -265,7 +265,7 @@ export const TeacherDashboardComponent = () => {
         </Navbar>
 
         <div className='container dashboard-body'>
-          <h4>Active Classes</h4>
+          <h4>Archived Classes</h4>
           <div className='classes-container'>
             {classes.map((classItem, index) => (
               <Card className='class-card' key={index}
@@ -274,9 +274,7 @@ export const TeacherDashboardComponent = () => {
                   navigate(`/teacher/class/${classItem.id || classItem.classID}/activity`);
                 }}
                 style={{ position: 'relative', cursor: 'pointer' }}>
-                {/* When rendering the class cover image, prepend the storage URL */}
-                  <Card.Img variant='top' src={classItem.classCoverImage || '/src/assets/univ.png'} />
-
+                <Card.Img variant='top' src={classItem.classCoverImage || '/src/assets/univ.png'} />
                 <div className="card-options" style={{ position: 'absolute', top: '10px', right: '10px' }}>
                   <Dropdown onClick={(e) => e.stopPropagation()}>
                     <Dropdown.Toggle
@@ -291,7 +289,7 @@ export const TeacherDashboardComponent = () => {
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
                       <Dropdown.Item onClick={(e) => handleEditClass(classItem, e)}>Edit</Dropdown.Item>
-                      <Dropdown.Item onClick={(e) => handleArchiveClass(classItem, e)}>Archive</Dropdown.Item>
+                      <Dropdown.Item onClick={(e) => handleArchiveClass(classItem, e)}>Unarchive</Dropdown.Item>
                       <Dropdown.Item onClick={(e) => handleDeleteClass(classItem, e)}>Delete</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
@@ -305,10 +303,6 @@ export const TeacherDashboardComponent = () => {
                 </Card.Body>
               </Card>
             ))}
-
-            <Button variant='transparent' className='create-class' onClick={() => setShowCreateClass(true)}>
-              + Create a Class
-            </Button>
           </div>
         </div>
 
@@ -441,19 +435,19 @@ export const TeacherDashboardComponent = () => {
           </Modal.Body>
         </Modal>
 
-        {/* Archive Class Modal */}
+        {/* Unarchive Class Modal */}
         <Modal className='modal-archive-class' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
-            <Modal.Title>Confirm Archive</Modal.Title>
+            <Modal.Title>Confirm Unarchive</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <p>Are you sure you want to archive <strong>{archiveClassData?.className}</strong>?</p>
+            <p>Are you sure you want to unarchive <strong>{archiveClassData?.className}</strong>?</p>
             <div className='d-flex justify-content-end mt-3'>
               <Button variant='secondary' onClick={() => setShowArchiveModal(false)} className='me-2'>
                 Cancel
               </Button>
               <Button variant='warning' onClick={handleArchiveClassConfirm} disabled={isArchiving}>
-                {isArchiving ? "Archiving..." : "Archive Class"}
+                {isArchiving ? "Unarchiving..." : "Unarchive Class"}
               </Button>
             </div>
           </Modal.Body>
@@ -463,4 +457,4 @@ export const TeacherDashboardComponent = () => {
   );
 };
 
-export default TeacherDashboardComponent;
+export default TeacherDashboardArchivedComponent;

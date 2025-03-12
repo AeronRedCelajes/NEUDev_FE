@@ -7,7 +7,7 @@ import { getProfile, updateProfile, deleteProfile, verifyPassword } from '../api
 import '/src/style/student/profile.css';
 
 export const StudentProfileComponent = () => {
-  const defaultProfileImage = '/src/assets/noy.png';
+  const defaultProfileImage = '/src/assets/profile_default.png';
   const defaultCoverImage = '/src/assets/univ.png';
 
   const [showEditModal, setShowEditModal] = useState(false);
