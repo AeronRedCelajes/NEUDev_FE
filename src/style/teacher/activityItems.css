@@ -96,6 +96,29 @@ body {
   flex-grow: 1;
 }
 
+.header-content button{
+  background-color: #20c997;
+  border: none;
+  border-radius: 10px;
+  padding: 5px 15px;
+  color: white;
+  font-weight: 600;
+}
+
+.header-content button:hover{
+  background-color: #179a73;
+  transition: ease-in-out 0.3s;
+}
+
+.filter-section{
+  padding-inline: 20px;
+}
+.filter-section label{
+  color: #2C2829;
+  font-weight: 700;
+  margin-top: 20px;
+}
+
 .points {
   color: #cc4b00;
   font-weight: bold;

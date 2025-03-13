@@ -289,6 +289,7 @@ export const TeacherCreateActivityComponent = () => {
   return (
     <div className="whole-container">
       <TeacherCMNavigationBarComponent />
+      <div className="class-wrapper"></div>
       <div className='create-activity-content'>
         <div className='create-activity-container'>
           <h2>Create an Activity</h2>

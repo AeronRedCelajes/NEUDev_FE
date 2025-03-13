@@ -23,7 +23,7 @@ export const ProfilePlaygroundNavbarComponent = () => {
 
     return (
         <>
-            <Navbar expand='lg' className='profile-playground-navbar'>
+            <Navbar className='profile-playground-navbar'>
                 <a href='#'><i className='bi bi-arrow-left-circle' onClick={handleDashboardClick}></i></a>
                 <p>Dashboard</p>
 
