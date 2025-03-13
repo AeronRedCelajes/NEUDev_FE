@@ -1,7 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
+import { getSessionData } from "./components/api/API"; 
 
 const ProtectedRoute = ({ allowedRoles }) => {
-    const userRole = sessionStorage.getItem("user_type");
+    const sessionData = getSessionData();
+    const userRole = sessionData.user_type;
 
     if (!userRole || !allowedRoles.includes(userRole)) {
         return <Navigate to="/signin" replace />;

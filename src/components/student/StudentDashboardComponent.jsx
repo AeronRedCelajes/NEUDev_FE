@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLaptopCode, faDesktop, faBars } from '@fortawesome/free-solid-svg-icons';
 import '/src/style/student/dashboard.css';
 
-import { logout, getProfile, enrollInClass, getStudentClasses } from '../api/API.js'; // Import API functions
+import { logout, getProfile, enrollInClass, getStudentClasses, getSessionData, setSessionData } from '../api/API.js'; // Import API functions
 
 export const StudentDashboardComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
@@ -143,10 +143,12 @@ export const StudentDashboardComponent = () => {
             {classes.length > 0 ? (
               classes.map((classItem, index) => (
                 <Card className='class-card' key={index}
-                  onClick={() => {
-                    sessionStorage.setItem("selectedClassID", classItem.classID);
-                    navigate(`/student/class/${classItem.classID}/activity`);
-                  }}
+                onClick={() => {
+                  const sessionData = getSessionData();
+                  sessionData.selectedClassID = classItem.classID;
+                  setSessionData(sessionData);
+                  navigate(`/student/class/${classItem.classID}/activity`);
+                }}
                   style={{ cursor: 'pointer' }}>
                    <Card.Img variant='top' src={classItem.classCoverImage || '/src/assets/univ.png'} />
                   <Card.Body>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; 
-import { getClassStudents, getClassInfo, unenrollStudent, verifyPassword } from "../api/API";
+import { getClassStudents, getClassInfo, unenrollStudent, verifyPassword, getSessionData } from "../api/API";
 import "../../style/teacher/leaderboard.css";
 import TeacherAMNavigationBarComponent from "./TeacherCMNavigationBarComponent";
 import { Modal, Button, Form } from "react-bootstrap"; // Bootstrap components
@@ -92,33 +92,41 @@ const ClassRecord = () => {
   const handleConfirmUnenroll = async (e) => {
     e.preventDefault();
     setIsProcessing(true);
-
+  
     if (!password) {
       setErrorMessage("Please enter your password.");
       setIsProcessing(false);
       return;
     }
-
+  
     try {
-      const teacherEmail = sessionStorage.getItem("user_email");
+      // Instead of sessionStorage.getItem("user_email")
+      const sessionData = getSessionData();
+      const teacherEmail = sessionData.email;
+      if (!teacherEmail) {
+        setErrorMessage("No teacher email found. Please log in again.");
+        setIsProcessing(false);
+        return;
+      }
+  
       const verifyResponse = await verifyPassword(teacherEmail, password);
-
+  
       if (verifyResponse.error) {
         setErrorMessage("Incorrect password. Please try again.");
         setIsProcessing(false);
         return;
       }
-
+  
       const unenrollResponse = await unenrollStudent(classID, selectedStudent.studentID);
-
+  
       if (unenrollResponse.error) {
         setErrorMessage(unenrollResponse.error);
         setIsProcessing(false);
         return;
       }
-
+  
       setStudents(students.filter((student) => student.studentID !== selectedStudent.studentID));
-
+  
       setShowUnenrollModal(false);
       setSelectedStudent(null);
     } catch (error) {
@@ -127,7 +135,7 @@ const ClassRecord = () => {
     } finally {
       setIsProcessing(false);
     }
-  };
+  };  
 
   const sortStudents = (criteria) => {
     let sortedStudents = [...students];

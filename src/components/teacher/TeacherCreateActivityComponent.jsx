@@ -14,7 +14,8 @@ import {
   getItems,
   createActivity, 
   getItemTypes, 
-  getProgrammingLanguages 
+  getProgrammingLanguages,
+  getSessionData
 } from '../api/API';
 
 const programmingLanguageMap = {
@@ -136,7 +137,9 @@ export const TeacherCreateActivityComponent = () => {
   };
 
   const fetchPresetItems = async () => {
-    const teacherID = sessionStorage.getItem("userID");
+    const sessionData = getSessionData();
+    const teacherID = sessionData.userID;
+
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
       setPresetItems(response);
@@ -220,7 +223,8 @@ export const TeacherCreateActivityComponent = () => {
       return;
     }
 
-    const classID = sessionStorage.getItem("selectedClassID");
+    const sessionData = getSessionData();
+    const classID = sessionData.selectedClassID;
 
     const finalItems = selectedItems
       .filter(item => item !== null)

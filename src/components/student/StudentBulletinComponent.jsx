@@ -8,16 +8,17 @@ import {
   getConcerns, 
   createConcern, 
   deleteConcern,
-  getClassInfo
+  getClassInfo,
+  getSessionData 
 } from '../api/API.js';
 
 export const StudentBulletinComponent = () => {
   // Get classID from URL parameters.
   const { classID } = useParams();
 
-  // Get the logged-in student's ID from sessionStorage.
-  const storedUserID = sessionStorage.getItem("userID");
-  const studentID = storedUserID ? parseInt(storedUserID) : 0;
+  // Retrieve session data for the current tab
+  const sessionData = getSessionData();
+  const studentID = sessionData.userID ? parseInt(sessionData.userID) : 0;
 
   // Teacher details will be fetched from class info.
   const [teacherID, setTeacherID] = useState(null);
