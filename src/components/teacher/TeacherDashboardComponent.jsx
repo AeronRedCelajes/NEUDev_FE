@@ -374,10 +374,12 @@ export const TeacherDashboardComponent = () => {
                 />
               </Form.Group>
               <Form.Group controlId='formEditClassCoverPhoto' className='mt-3'>
-                <Form.Label>Class Cover Photo</Form.Label>
-                <Button variant="secondary" as="label" htmlFor="class-cover-upload">
-                  Upload Cover Photo
-                </Button>
+                <div className='d-flex flex-row align-items-center justify-content-between'>
+                  <Form.Label>Class Cover Photo</Form.Label>
+                  <Button variant="secondary" as="label" htmlFor="class-cover-upload">
+                    Upload Cover Photo
+                  </Button>
+                </div>
                 <input
                   id="class-cover-upload"
                   type="file"
