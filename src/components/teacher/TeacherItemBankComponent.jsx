@@ -622,7 +622,7 @@ export default function TeacherItemBankComponent() {
               <th>ACTIONS</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="item-table-body">
             {loading && items.length === 0 ? (
               <tr>
                 <td colSpan="7" style={{ textAlign: "center" }}>
@@ -640,10 +640,10 @@ export default function TeacherItemBankComponent() {
                 const progLangArray = item.programming_languages || [];
                 return (
                   <tr key={item.itemID}>
-                    <td>{item.itemName}</td>
-                    <td>{item.itemDifficulty}</td>
-                    <td>{item.itemPoints || "-"}</td>
-                    <td>
+                    <td data-label="Item Name">{item.itemName}</td>
+                    <td data-label="Difficulty">{item.itemDifficulty}</td>
+                    <td data-label="Points">{item.itemPoints || "-"}</td>
+                    <td data-label="Languages">
                       {progLangArray.length > 0
                         ? progLangArray.map((langObj, idx) => {
                             const langName = langObj.progLangName;
@@ -669,63 +669,67 @@ export default function TeacherItemBankComponent() {
                         : "-"}
                     </td>
                     {isConsoleApp && (
-                      <td>
+                      <td data-label="Test Cases">
                         {item.test_cases && item.test_cases.length > 0
                           ? `${item.test_cases.length} test case(s)`
                           : "No test cases"}
                       </td>
                     )}
-                    <td>{getDisplayDateString(item)}</td>
-                    <td>
-                      <button
-                        className="edit-btn"
-                        onClick={() => {
-                          const plIDs = (item.programming_languages || []).map(l => l.progLangID);
-                          setItemData({
-                            itemID: item.itemID,
-                            itemName: item.itemName,
-                            itemDesc: item.itemDesc,
-                            itemDifficulty: item.itemDifficulty,
-                            progLangIDs: plIDs,
-                            testCases: (item.test_cases || []).map(tc => ({
-                              expectedOutput: tc.expectedOutput,
-                              testCasePoints: tc.testCasePoints ?? "",
-                              isHidden: tc.isHidden ?? false
-                            })),
-                            itemPoints: item.itemPoints || 0
-                          });
-                          setTerminalLines([]);
-                          setTerminalPartialLine("");
-                          setTerminalUserInput("");
-                          setTestLangID(plIDs.length > 0 ? plIDs[0] : null);
-                          setShowEditModal(true);
-                        }}
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => {
-                          const plIDs = (item.programming_languages || []).map(l => l.progLangID);
-                          setItemData({
-                            itemID: item.itemID,
-                            itemName: item.itemName,
-                            itemDesc: item.itemDesc,
-                            itemDifficulty: item.itemDifficulty,
-                            progLangIDs: plIDs,
-                            testCases: (item.test_cases || []).map(tc => ({
-                              expectedOutput: tc.expectedOutput,
-                              testCasePoints: tc.testCasePoints ?? "",
-                              isHidden: tc.isHidden ?? false
-                            })),
-                            itemPoints: item.itemPoints || 0
-                          });
-                          setDeletePassword("");
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        🗑️ Delete
-                      </button>
+                    <td data-label="Created Date">{getDisplayDateString(item)}</td>
+                    <td data-label="Actions" className="action-cell">
+                      <div className="actions-button">
+                        <button
+                          className="edit-btn"
+                          onClick={() => {
+                            const plIDs = (item.programming_languages || []).map(l => l.progLangID);
+                            setItemData({
+                              itemID: item.itemID,
+                              itemName: item.itemName,
+                              itemDesc: item.itemDesc,
+                              itemDifficulty: item.itemDifficulty,
+                              progLangIDs: plIDs,
+                              testCases: (item.test_cases || []).map(tc => ({
+                                expectedOutput: tc.expectedOutput,
+                                testCasePoints: tc.testCasePoints ?? "",
+                                isHidden: tc.isHidden ?? false
+                              })),
+                              itemPoints: item.itemPoints || 0
+                            });
+                            setTerminalLines([]);
+                            setTerminalPartialLine("");
+                            setTerminalUserInput("");
+                            setTestLangID(plIDs.length > 0 ? plIDs[0] : null);
+                            setShowEditModal(true);
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                  
+                      
+                        <button
+                          className="delete-btn"
+                          onClick={() => {
+                            const plIDs = (item.programming_languages || []).map(l => l.progLangID);
+                            setItemData({
+                              itemID: item.itemID,
+                              itemName: item.itemName,
+                              itemDesc: item.itemDesc,
+                              itemDifficulty: item.itemDifficulty,
+                              progLangIDs: plIDs,
+                              testCases: (item.test_cases || []).map(tc => ({
+                                expectedOutput: tc.expectedOutput,
+                                testCasePoints: tc.testCasePoints ?? "",
+                                isHidden: tc.isHidden ?? false
+                              })),
+                              itemPoints: item.itemPoints || 0
+                            });
+                            setDeletePassword("");
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
