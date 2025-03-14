@@ -233,13 +233,12 @@ export const StudentBulletinComponent = () => {
               >
                 <Modal.Header closeButton>
                   <div className='modal-activity-header'>
-                    <h3>Post Your Concern</h3>
+                    <h4>Post Your Concern</h4>
                     <p>To professor {teacherName}</p>
                   </div>
                 </Modal.Header>
                 <Modal.Body>
                   <Form.Group controlId="concernTextArea">
-                    <Form.Label>Your Concern</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={4}
