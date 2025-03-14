@@ -163,7 +163,7 @@ export const TeacherClassManagementBulletinComponent = () => {
 
             <Modal className='modal-post-announcement' show={showPostAnnouncement} onHide={() => setShowPostAnnouncement(false)} backdrop='static' keyboard={false} size='md'>
               <Modal.Header closeButton>
-                <h3>Create a Post</h3>
+                <h4>Create a Post</h4>
               </Modal.Header>
               <Modal.Body>
                 <Form className='create-activity-form'>
@@ -175,15 +175,6 @@ export const TeacherClassManagementBulletinComponent = () => {
                     onChange={(e) => setNewPostTitle(e.target.value)}
                   />
                   <div className='description-section'>
-                    <div className='description-toolbar'>
-                      <FontAwesomeIcon icon={faBold} />
-                      <FontAwesomeIcon icon={faItalic} />
-                      <FontAwesomeIcon icon={faUnderline} />
-                      <FontAwesomeIcon icon={faSuperscript} />
-                      <FontAwesomeIcon icon={faAlignLeft} />
-                      <FontAwesomeIcon icon={faAlignCenter} />
-                      <FontAwesomeIcon icon={faAlignRight} />
-                    </div>
                     <Form.Control 
                       as='textarea' 
                       placeholder='Description...' 
@@ -203,7 +194,7 @@ export const TeacherClassManagementBulletinComponent = () => {
             <Col xs={12} md={12} lg={9}>
               <div className='announcement'>
                 <div className='announcement-header'>
-                  <h5>Teacher's Announcements</h5>
+                  <h5>Teachers Announcements</h5>
                 </div>
                 {posts.length > 0 ? (
                   posts.map((post) =>
