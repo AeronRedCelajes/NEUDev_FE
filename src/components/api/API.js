@@ -82,46 +82,42 @@ function getTabId() {
 
 /**
  * Save session data.
- * @param {Object} data - The session data to store.
- * @param {boolean} useGlobal - If true, store in a common key; otherwise, store per tab.
+ * Stores both per-tab session & per-user global session.
  */
-function setSessionData(data, useGlobal = false) {
-  if (useGlobal) {
-    localStorage.setItem("session_global", JSON.stringify(data));
-  } else {
-    const tabId = getTabId();
-    localStorage.setItem("session_" + tabId, JSON.stringify(data));
-  }
+function setSessionData(data) {
+  const tabId = getTabId();
+  localStorage.setItem(`session_${tabId}`, JSON.stringify(data)); // Per-tab session
+  localStorage.setItem(`session_user_${data.userID}`, JSON.stringify(data)); // Global session for this user
 }
 
 /**
- * Retrieve session data.
- * First, attempt to retrieve the tab-specific session.
- * If not found, fallback to the global session.
- * @returns {Object} The session data.
+ * Retrieve session data for the current tab.
+ * Ideally, each tab should have its own session data.
  */
 function getSessionData() {
   const tabId = getTabId();
-  let sessionData = localStorage.getItem("session_" + tabId);
-  if (!sessionData) {
-    sessionData = localStorage.getItem("session_global");
-  }
+  const sessionData = localStorage.getItem(`session_${tabId}`);
   return sessionData ? JSON.parse(sessionData) : {};
 }
 
 /**
- * Clear session data.
- * @param {boolean} useGlobal - If true, clear the global session; otherwise, clear the tab-specific session.
+ * Get the current logged-in user's ID from the per-tab session.
  */
-function clearSessionData(useGlobal = false) {
-  if (useGlobal) {
-    localStorage.removeItem("session_global");
-  } else {
-    const tabId = getTabId();
-    localStorage.removeItem("session_" + tabId);
-    sessionStorage.removeItem("tabId");
-  }
+function getCurrentUserID() {
+  const session = getSessionData();
+  return session.userID || null;
 }
+
+/**
+ * Clear session data only for the current tab.
+ * (Do not clear global session here to avoid affecting other tabs.)
+ */
+function clearSessionData() {
+  const tabId = getTabId();
+  localStorage.removeItem(`session_${tabId}`);
+  sessionStorage.removeItem("tabId");
+}
+
 
 //////////////////////////////////////////
 // GLOBAL FETCH WRAPPER
@@ -192,21 +188,19 @@ async function login(email, password) {
       body: JSON.stringify({ email, password }),
       headers: { "Content-Type": "application/json" }
     });
-    const data = await response.json();
-    console.log("API Response:", data);
 
+    const data = await response.json();
     if (!response.ok) {
       return { error: data.message || "Login failed" };
     }
 
-    // Save auth data for this tab's session in localStorage
-    // Now include the email in the session data.
     const sessionData = {
       access_token: data.access_token,
       user_type: data.user_type,
       userID: data.user_type === "student" ? data.studentID : data.teacherID,
-      email: data.email  // Email is now stored in session data.
+      email: data.email
     };
+
     setSessionData(sessionData);
     return data;
   } catch (error) {
@@ -215,13 +209,15 @@ async function login(email, password) {
   }
 }
 
-/*
-  Logout: Clears only the session data for the current tab.
-*/
+/**
+ * Logout function - logs out the current tab and broadcasts a logout event.
+ */
 async function logout() {
   const sessionData = getSessionData();
   const token = sessionData.access_token;
-  if (!token) return { error: "No user is logged in." };
+  const userID = sessionData.userID;
+
+  if (!token || !userID) return { error: "No user is logged in." };
 
   const response = await fetch(`${API_LINK}/logout`, {
     method: "POST",
@@ -232,11 +228,15 @@ async function logout() {
   });
 
   if (response.ok) {
-    clearSessionData();
+    // Broadcast logout event for this user
+    localStorage.setItem(`logout_${userID}`, Date.now());
+    clearSessionData(); // Clear only this tab's session
     return { message: "Logout successful" };
   }
+
   return { error: "Logout failed. Try again." };
 }
+
 
 /*
   Verify password using the current tab session token.
@@ -1232,6 +1232,7 @@ export {
   setSessionData,
   getSessionData,
   clearSessionData,
+  getCurrentUserID,
   safeFetch,
   register, 
   login, 

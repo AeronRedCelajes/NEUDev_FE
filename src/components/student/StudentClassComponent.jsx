@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Row, Tabs, Col, Tab, Modal, Button } from 'react-bootstrap';
 import StudentCMNavigationBarComponent from './StudentCMNavigationBarComponent';
 import "../../style/teacher/cmActivities.css";
-import { getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent} from "../api/API";
+import { getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent, getCurrentUserID } from "../api/API";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCaretDown, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
@@ -59,6 +59,9 @@ const Timer = ({ openDate, closeDate }) => {
 export const StudentClassComponent = () => {
   const navigate = useNavigate();
   const { classID } = useParams();
+
+    // Retrieve current user ID from session data.
+    const userID = getCurrentUserID() || 'default';
 
   const [contentKey, setContentKey] = useState('ongoing');
   const [ongoingActivities, setOngoingActivities] = useState([]);
@@ -120,7 +123,8 @@ export const StudentClassComponent = () => {
   const syncProgressFromServer = async (actID) => {
     try {
       const progressResponse = await getActivityProgress(actID);
-      const key = `activityState_${actID}`;
+      // Update the key to include the userID.
+      const key = `activityState_${actID}_${userID}`;
       if (
         progressResponse &&
         progressResponse.progress &&
@@ -190,7 +194,8 @@ export const StudentClassComponent = () => {
 
   // Check local storage for progress info and return a formatted time if available
   const checkLocalStorageForActivity = (actID) => {
-    const key = `activityState_${actID}`;
+    // Include the userID in the key here as well.
+    const key = `activityState_${actID}_${userID}`;
     const saved = localStorage.getItem(key);
     if (!saved) {
       return null;

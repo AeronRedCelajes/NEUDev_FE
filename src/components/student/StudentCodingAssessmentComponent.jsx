@@ -27,7 +27,8 @@ import {
   getActivityItemsByStudent, 
   finalizeSubmission, 
   saveActivityProgress, 
-  clearActivityProgress 
+  clearActivityProgress,
+  getCurrentUserID 
 } from '../api/API';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -50,7 +51,10 @@ function getExtensionFromLanguage(langName) {
 export const StudentCodingAssessmentComponent = () => {
   const { classID, actID } = useParams();
   const navigate = useNavigate();
-  const stateKey = `activityState_${actID}`;
+  
+  // Use the unique user ID from session to avoid conflict between accounts.
+  const userID = getCurrentUserID() || 'default';
+  const stateKey = `activityState_${actID}_${userID}`;
 
   // Activity details
   const [activityName, setActivityName] = useState('');
@@ -91,13 +95,13 @@ export const StudentCodingAssessmentComponent = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasLoadedSavedState, setHasLoadedSavedState] = useState(false);
 
-  // For summary modal
+  // For summary modal (submission results)
   const [showFinishAttempt, setShowFinishAttempt] = useState(false);
   const [showSubmit, setShowSubmit] = useState(false);
   const [finalTitle, setFinalTitle] = useState('Result');
   const [finalTestCases, setFinalTestCases] = useState('0/0');
   const [finalScore, setFinalScore] = useState('0/0');
-  const [finalRank, setFinalRank] = useState('-');
+  // Removed finalRank since rank is no longer displayed.
   const [finalSpeed, setFinalSpeed] = useState('00:00:00');
   const [finalActivityName, setFinalActivityName] = useState('');
 
@@ -108,6 +112,9 @@ export const StudentCodingAssessmentComponent = () => {
   const [showEditFileModal, setShowEditFileModal] = useState(false);
   const [editFileName, setEditFileName] = useState('');
   const [editFileExtension, setEditFileExtension] = useState('');
+
+  // Submission alert modal for other tabs
+  const [showSubmissionAlert, setShowSubmissionAlert] = useState(false);
 
   // Assessment start time
   const [startTime] = useState(Date.now());
@@ -127,6 +134,19 @@ export const StudentCodingAssessmentComponent = () => {
     const s = seconds % 60;
     return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   };
+
+  // --- Listen for submission events from other tabs ---
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'activitySubmitted' && e.newValue) {
+        // Set isSubmitted to true to stop further progress sync and updating.
+        setIsSubmitted(true);
+        setShowSubmissionAlert(true);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // --- Fetch activity data ---
   useEffect(() => {
@@ -152,9 +172,6 @@ export const StudentCodingAssessmentComponent = () => {
               name: first.progLangName,
               imgSrc: languageIconMap[first.progLangName] || '/src/assets/py.png'
             });
-          }
-          if (resp.rank) {
-            setFinalRank(resp.rank);
           }
         }
       } catch (err) {
@@ -562,12 +579,10 @@ export const StudentCodingAssessmentComponent = () => {
                 bestOutput: ''
               };
 
-              // Always update latest to reflect this new attempt
               existing.latestPass = pass;
               existing.latestPoints = pass ? testCase.testCasePoints : 0;
               existing.latestOutput = fullOutput;
 
-              // Update best if this attempt is better than before
               if (existing.latestPoints > (existing.bestPoints || 0)) {
                 existing.bestPass = existing.latestPass;
                 existing.bestPoints = existing.latestPoints;
@@ -645,8 +660,7 @@ export const StudentCodingAssessmentComponent = () => {
     setTypedInput('');
   };
 
-  // --- Compute per-item score ---
-  // Uses bestPoints if finalScorePolicy is 'highest_score', otherwise latestPoints.
+  // --- Compute per-item score (current attempt only) ---
   const computeItemScore = (itemID) => {
     const item = items.find(it => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
@@ -655,11 +669,7 @@ export const StudentCodingAssessmentComponent = () => {
     let sum = 0;
     item.testCases.forEach(tc => {
       const r = itemResults[tc.testCaseID] || {};
-      if (finalScorePolicy === 'highest_score') {
-        sum += r.bestPoints || 0;
-      } else {
-        sum += r.latestPoints || 0;
-      }
+      sum += r.latestPoints || 0;
     });
     return sum;
   };
@@ -717,9 +727,9 @@ export const StudentCodingAssessmentComponent = () => {
     }
     setItemTimes(updatedTimes);
   
-    // Build the submission payload, including overallTimeSpent.
+    // Build submission payload.
     const submissionData = {
-      overallTimeSpent, // overall elapsed time (actDuration - timeLeft)
+      overallTimeSpent,
       submissions: items.map(item => {
         const timeData = updatedTimes[item.itemID] || { accumulated: 0 };
         const secondsSpent = timeData.accumulated;
@@ -730,7 +740,7 @@ export const StudentCodingAssessmentComponent = () => {
           itemID: item.itemID,
           codeSubmission: JSON.stringify(files),
           score: computeItemScore(item.itemID),
-          itemTimeSpent: secondsSpent, // key matches backend field
+          itemTimeSpent: secondsSpent,
         };
       })
     };
@@ -740,15 +750,9 @@ export const StudentCodingAssessmentComponent = () => {
     if (result.error) {
       console.error("Submission failed:", result.error, result.details);
     } else {
-      if (result.finalScore !== undefined) {
-        setFinalScore(`${result.finalScore}/${maxPoints}`);
-      } else {
-        setFinalScore(`${computeTotalScore()}/${maxPoints}`);
-      }
-      if (result.rank !== undefined) {
-        setFinalRank(result.rank);
-      }
+      setFinalScore(`${computeTotalScore()}/${maxPoints}`);
       setIsSubmitted(true);
+      localStorage.setItem('activitySubmitted', Date.now());
       await clearActivityProgress(actID);
       localStorage.removeItem(stateKey);
       console.log("Submission successful, cleared progress.");
@@ -779,13 +783,12 @@ export const StudentCodingAssessmentComponent = () => {
     setFinalActivityName(activityName);
     setFinalScore(`${totalScore}/${mp}`);
   
-    // Compute overallTimeSpent as (actDuration in seconds) - timeLeft
+    // If timer expires, overallTimeSpent equals total act duration.
     const [hh, mm, ss] = actDuration.split(':').map(Number);
     const totalActSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
     const overallTimeSpent = totalActSeconds - timeLeft;
     setFinalSpeed(formatTimeLeft(overallTimeSpent));
   
-    // Pass overallTimeSpent in your submission payload:
     await finalizeSubmissionHandler(overallTimeSpent);
     setShowFinishAttempt(false);
     setShowSubmit(true);
@@ -1034,10 +1037,6 @@ export const StudentCodingAssessmentComponent = () => {
                     <div className='activity-standing'>
                       <Row className='g-0'>
                         <Col className='activity-standing-button'>
-                          <p>Rank</p>
-                          <button disabled>{finalRank}</button>
-                        </Col>
-                        <Col className='activity-standing-button'>
                           <p>Overall Score</p>
                           <button disabled>{finalScore}</button>
                         </Col>
@@ -1130,6 +1129,7 @@ export const StudentCodingAssessmentComponent = () => {
         </Row>
       </div>
 
+      {/* Terminal Modal */}
       <Modal show={showTerminal} onHide={handleCloseTerminal} size='lg' backdrop='static' keyboard={false} centered>
         <Modal.Header closeButton>
           <Modal.Title>NEUDev Terminal</Modal.Title>
@@ -1166,6 +1166,7 @@ export const StudentCodingAssessmentComponent = () => {
         </Modal.Body>
       </Modal>
 
+      {/* Add File Modal */}
       <Modal show={showAddFileModal} onHide={() => setShowAddFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Add File</Modal.Title>
@@ -1186,6 +1187,7 @@ export const StudentCodingAssessmentComponent = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Edit File Modal */}
       <Modal show={showEditFileModal} onHide={() => setShowEditFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit File</Modal.Title>
@@ -1203,6 +1205,33 @@ export const StudentCodingAssessmentComponent = () => {
         <Modal.Footer>
           <Button variant='secondary' onClick={() => setShowEditFileModal(false)}>Cancel</Button>
           <Button variant='primary' onClick={handleEditFile}>Save Changes</Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Submission Alert Modal for Other Tabs */}
+      <Modal
+        show={showSubmissionAlert}
+        onHide={() => {
+          setShowSubmissionAlert(false);
+          navigate(`/student/class/${classID}/activity`);
+        }}
+        backdrop='static'
+        keyboard={false}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Activity Submitted</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>This activity has already been submitted in another tab.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => {
+            setShowSubmissionAlert(false);
+            navigate(`/student/class/${classID}/activity`);
+          }}>
+            OK
+          </Button>
         </Modal.Footer>
       </Modal>
     </>

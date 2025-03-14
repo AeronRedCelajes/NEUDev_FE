@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import ProtectedRoute from "./ProtectedRoute.jsx"; // Import fixed component
+import LogoutListener from "./LogoutListener";
 
 import { HomeComponents } from "./components/HomeComponent";
 import { SignInComponent } from "./components/SignInComponent";
@@ -45,6 +47,7 @@ import { TeacherCodingAssessmentComponent } from "./components/teacher/TeacherCo
 function App() {
     return (
         <Router>
+            <LogoutListener />
             <Routes>
 
                 {/* Public Routes */}
