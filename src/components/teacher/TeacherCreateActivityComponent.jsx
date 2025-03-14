@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faBold, faItalic, faUnderline, faSuperscript, 
@@ -306,15 +306,6 @@ export const TeacherCreateActivityComponent = () => {
 
             {/* Description */}
             <div className='description-section'>
-              <div className='description-toolbar'>
-                <FontAwesomeIcon icon={faBold} />
-                <FontAwesomeIcon icon={faItalic} />
-                <FontAwesomeIcon icon={faUnderline} />
-                <FontAwesomeIcon icon={faSuperscript} />
-                <FontAwesomeIcon icon={faAlignLeft} />
-                <FontAwesomeIcon icon={faAlignCenter} />
-                <FontAwesomeIcon icon={faAlignRight} />
-              </div>
               <Form.Control 
                 as='textarea' 
                 placeholder='Description...' 
@@ -326,7 +317,7 @@ export const TeacherCreateActivityComponent = () => {
 
             {/* 3 Item Slots */}
             <div className='question-section'>
-              <h4>Set Items (Maximum of 3)</h4>
+              <h5>Set Items (Maximum of 3)</h5>
               {selectedItems.map((item, index) => (
                 <div 
                   key={index} 
@@ -375,7 +366,7 @@ export const TeacherCreateActivityComponent = () => {
 
             {/* Difficulty + Date/Time */}
             <div className='difficulty-section'>
-              <Form.Control 
+              <Form.Select 
                 as='select' 
                 value={actDifficulty} 
                 onChange={(e) => setDifficulty(e.target.value)} 
@@ -385,7 +376,7 @@ export const TeacherCreateActivityComponent = () => {
                 <option value='Beginner'>Beginner</option>
                 <option value='Intermediate'>Intermediate</option>
                 <option value='Advanced'>Advanced</option>
-              </Form.Control>
+              </Form.Select>
 
               <DateTimeItem 
                 icon="bi bi-calendar-check" 
@@ -404,7 +395,7 @@ export const TeacherCreateActivityComponent = () => {
             </div>
 
             {/* Activity Duration Input (in minutes) */}
-            <Form.Group className="mt-3">
+            <Form.Group className="activity mt-3">
               <Form.Label>Activity Duration (in minutes)</Form.Label>
               <Form.Control
                 type="number"
@@ -414,13 +405,13 @@ export const TeacherCreateActivityComponent = () => {
                 placeholder="Enter total minutes"
                 required
               />
-              <Form.Text className="text-muted">
+              <Form.Text>
                 e.g., 90 → 1 hour 30 minutes
               </Form.Text>
             </Form.Group>
 
             {/* NEW: Activity Attempts Input */}
-            <Form.Group className="mt-3">
+            <Form.Group className="activity mt-3">
               <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
               <Form.Control
                 type="number"
@@ -430,15 +421,15 @@ export const TeacherCreateActivityComponent = () => {
                 placeholder="Enter maximum attempts"
                 required
               />
-              <Form.Text className="text-muted">
+              <Form.Text>
                 Enter 0 for unlimited attempts; otherwise, enter a positive number.
               </Form.Text>
             </Form.Group>
 
             {/* NEW: Final Score Policy */}
-            <Form.Group className="mt-3">
+            <Form.Group className="activity mt-3">
               <Form.Label>Final Score Policy</Form.Label>
-              <Form.Control
+              <Form.Select
                 as="select"
                 value={finalScorePolicy}
                 onChange={(e) => setFinalScorePolicy(e.target.value)}
@@ -446,14 +437,14 @@ export const TeacherCreateActivityComponent = () => {
               >
                 <option value="last_attempt">Last Attempt</option>
                 <option value="highest_score">Highest Score</option>
-              </Form.Control>
-              <Form.Text className="text-muted">
-                Choose whether the final score is determined by the student's last submission or their highest score.
+              </Form.Select>
+              <Form.Text>
+                Choose whether the final score is determined by the students last submission or their highest score.
               </Form.Text>
             </Form.Group>
 
             {/* Programming Languages (Checkboxes) */}
-            <Form.Group className="mt-3">
+            <Form.Group className="activity mt-3">
               <Form.Label>Select all languages that can be used to solve this item.</Form.Label>
               <div style={{ marginBottom: "0.5rem" }}>
                 <Form.Check 
@@ -478,22 +469,27 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             {/* Display computed Total Points */}
-            <Form.Group className="mt-3">
+            <Form.Group className="activity mt-3">
               <Form.Label>Total Points (automatically computed)</Form.Label>
               <Form.Control 
+                className='bg-light'
                 type="number" 
                 value={
                   selectedItems
                     .filter(item => item !== null)
                     .reduce((sum, item) => sum + (item.itemPoints || 0), 0)
                 }
-                readOnly
+                disabled
               />
             </Form.Group>
 
-            <Button className='custom-create-class-btn mt-3' type="submit">
-              <i className="bi bi-pencil-square"></i> Create Activity
-            </Button>
+            <div className='d-flex justify-content-center align-items-center'>
+              {/* Submit Button */}
+              <Button className='create-activity-btn mt-3' type="submit">
+                <i className="bi bi-pencil-square"></i> Create Activity
+              </Button>
+            </div>
+            
           </Form>
         </div>
 
@@ -503,32 +499,28 @@ export const TeacherCreateActivityComponent = () => {
           onHide={() => setShowModal(false)}
           dialogClassName="custom-modal"
           backdropClassName="custom-modal-backdrop"
-          centered={false}
         >
           <div className="custom-modal-content">
             <Modal.Header closeButton>
               <Modal.Title>Choose an Item</Modal.Title>
             </Modal.Header>
-            <Modal.Body>
-              <h5>Item Type:</h5>
-              <Button variant="light" onClick={() => setShowItemTypeDropdown(!showItemTypeDropdown)}>
-                {itemTypeName} <FontAwesomeIcon icon={faCaretDown} />
-              </Button>
-              {showItemTypeDropdown && (
-                <div className="item-type-dropdown">
-                  {itemTypes.map(type => (
-                    <Button
-                      key={type.itemTypeID}
-                      className="dropdown-item"
-                      onClick={() => handleItemTypeSelect(type)}
-                    >
+            <Modal.Body className='item-modal-body'>
+              <div className="item-creator d-flex flex-column">
+                <label>Item Type:</label>
+                <select
+                  value={selectedItemType}
+                  onChange={(e) => handleItemTypeSelect(e.target.value)}
+                >
+                  {itemTypes.map((type) => (
+                    <option key={type.itemTypeID} value={type.itemTypeID}>
                       {type.itemTypeName}
-                    </Button>
+                    </option>
                   ))}
-                </div>
-              )}
+                </select>
+              </div>
+              
               {/* NEW: Item Creator Selector */}
-              <div className="filter-section" style={{ marginBottom: "10px" }}>
+              <div className="item-creator d-flex flex-column">
                 <label>Item Creator:</label>
                 <select
                   value={itemBankScope}
@@ -543,17 +535,7 @@ export const TeacherCreateActivityComponent = () => {
               </div>
 
               {/* Sorting Controls for preset items */}
-              <div
-                style={{
-                  margin: "10px 0",
-                  display: "flex",
-                  alignItems: "center",
-                  border: "1px solid red",
-                  padding: "5px",
-                  borderRadius: "4px",
-                  backgroundColor: "#f8f9fa"
-                }}
-              >
+              <div className='sort-section'>
                 <span style={{ marginRight: "8px" }}>Sort by:</span>
                 <Button variant="link" onClick={() => toggleItemSortOrder("itemName")}>
                   Name {itemSortField === "itemName" && (itemSortOrder === "asc" ? "↑" : "↓")}
@@ -582,7 +564,7 @@ export const TeacherCreateActivityComponent = () => {
                     <div>
                       <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
                     </div>
-                    <div style={{ marginTop: "5px" }}>
+                    <div style={{ marginTop: "5px", display: "flex", alignItems: "center"}}>
                       {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
                         const plName = langObj.progLangName;
                         const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
@@ -606,7 +588,7 @@ export const TeacherCreateActivityComponent = () => {
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-              <Button variant="primary" onClick={handleSaveItem}>Save Item</Button>
+              <Button className='save-item' onClick={handleSaveItem}>Save Item</Button>
             </Modal.Footer>
           </div>
         </Modal>
