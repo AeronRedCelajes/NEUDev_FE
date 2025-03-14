@@ -256,6 +256,7 @@ body {
   border: 1px solid #cecece;
   border-radius: 10px;
   cursor: pointer;
+  margin-bottom: 5px;
 }
 
 .action-cell .edit-btn:hover{
@@ -274,6 +275,67 @@ body {
 
 .action-cell .delete-btn:hover{
   background-color: rgb(202, 14, 14);
+  transition: ease-in-out 0.3s;
+}
+
+.item-modal .modal-header{
+  color: #B84C20;
+  background-color: #F5DAD0;
+  border-bottom: 2px solid #B84C20;
+}
+
+.item-modal .modal-title{
+  font-weight: 700;
+}
+
+.item-modal .modal-body{
+  background-color: #FFF5F1;
+}
+
+.item-modal .modal-body .form-label{
+  color: #2e2e2e;
+  font-weight: 600;
+}
+
+.item-modal .modal-body .form-control,
+.item-modal .modal-body .form-select{
+  border-color: #B84C20;
+  font-size: 0.9rem;
+}
+
+.item-modal .modal-body .form-check-input:checked{
+  background-color: #B84C20;
+  border-color: #B84C20;
+}
+
+.item-modal .modal-body .run-code-button{
+  background-color: #19cdca;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.item-modal .modal-footer{
+  background-color: #F5DAD0;
+  border-top: 2px solid #9196A1;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #B84C20;
+}
+
+.item-modal .modal-footer button{
+  border: none;
+  border-radius: 20px;
+  padding-inline: 30px;
+  font-weight: 700;
+}
+
+.item-modal .modal-footer .add-button{
+  background-color: #20c997;
+}
+
+.item-modal .modal-footer .add-button:hover{
+  background-color: #1dba8b;
   transition: ease-in-out 0.3s;
 }
 
@@ -334,6 +396,25 @@ body {
     padding-block: 5px;
   }
   
+  .item-modal .modal-title{
+    font-size: 1.2rem;
+  }
   
+  .item-modal .modal-body .form-label{
+    font-size: 0.9rem;
+  }
   
+  .item-modal .modal-body .form-control,
+  .item-modal .modal-body .form-select{
+    padding-block: 2px;
+    font-size: .85rem;
+  }
+  
+  .item-modal .modal-body .run-code-button{
+    font-size: 0.9rem;
+  }
+  
+  .item-modal .modal-footer button{
+    font-size: 0.9rem;
+  }
 }

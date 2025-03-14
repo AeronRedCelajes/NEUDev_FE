@@ -11,23 +11,26 @@
     background-color: #f3f3f3;
     margin: 20px;
     padding: 0;
-    height: 550px;
+    height: auto;
     width: 100%;
     border: solid 2px #9196A1;
     border-radius: 15px;
+}
+
+.playground-header{
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
-    position: relative;
+    align-items: center;
 }
 
 /* Header */
 .left-corner {
     display: flex;
-    justify-content: baseline;
+    justify-content: space-between;
     align-items: center;
-    font-size: smaller;
+    font-size: 0.85rem;
     font-weight: bold;
+    gap: 3px;
 }
 
 .left-corner .nav-tabs .nav-link {
@@ -36,6 +39,18 @@
     border-bottom: 2px solid transparent;
     font-weight: normal;
     transition: color 0.3s ease, border-color 0.3s ease;
+    padding-bottom: 0;
+    gap: 20px;
+    margin-right: -3px;
+}
+
+.left-corner .nav-tabs .tab-close-button{
+    margin-right: -20px;
+}
+
+.left-corner .plus-sqaure-icon{
+    text-decoration: none;
+    color: #B84C20;
 }
 
 .left-corner .nav-tabs .nav-link.active {
@@ -50,7 +65,7 @@
 
 .left-corner .nav-tabs .nav-link:hover {
     color: #B84C20;
-    border-bottom: 2px solid #b84b2086;
+    border-bottom: none;
 }
 
 .right-corner {
@@ -60,6 +75,11 @@
     margin-left: auto;
     margin-right: 10px;
 }
+
+.right-corner button{
+    color: #B84C20;
+}
+
 
 /* Language Dropdown */
 .playground-dropdown .dropdown-toggle {
@@ -99,7 +119,6 @@
 .playground-editor {
     display: flex;
     flex-direction: column;
-    margin: 15px;
     gap: 10px;
 }
 
@@ -131,17 +150,19 @@
     padding: 10px;
     border-top: 2px solid #9196A1;
     position: relative;
-    background-color: rgba(184, 76, 32, 0.13);
+    background-color: rgba(197, 118, 87, 0.13);
     display: flex;
     justify-content: flex-end;
+    border-radius: 0 0 15px 15px;
 }
 
 .playground-bottom .btn {
-    background-color: #76C7C5;
-    border: 1px solid #76C7C5;
+    background-color: #67a6a5;
+    border: 1px solid #67a6a5;
     border-radius: 20px;
     color: #EFF0F5;
-    font-size: larger;
+    font-size: 1rem;
+    font-weight: bold;
     padding: 8px 20px;
 }
 

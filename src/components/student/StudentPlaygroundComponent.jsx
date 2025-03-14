@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Editor } from "@monaco-editor/react";
 import {
   Row,
   Col,
@@ -13,7 +14,7 @@ import {
   Form
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faDownload, faPlusSquare } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faDownload, faPlusSquare, faAdjust } from '@fortawesome/free-solid-svg-icons';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -28,8 +29,8 @@ import XtermTerminal from '../XtermTerminal';
 // Mapping of known programming language IDs to names and images
 const programmingLanguageMap = {
   1: { name: 'Java',   image: '/src/assets/java2.png' },
-  2: { name: 'C#',     image: '/src/assets/c.png'     },
-  3: { name: 'Python', image: '/src/assets/py.png'    }
+  2: { name: 'C#',     image: '/src/assets/c.png' },
+  3: { name: 'Python', image: '/src/assets/py.png' }
 };
 
 // Helper: fallback file extension from language name
@@ -70,6 +71,15 @@ export const StudentPlaygroundComponent = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const wsRef = useRef(null);
+
+  // ----------------------------
+  // Editor Theme State
+  // ----------------------------
+  const [editorTheme, setEditorTheme] = useState("vs-dark");
+
+  const toggleTheme = () => {
+    setEditorTheme(prevTheme => (prevTheme === "vs-dark" ? "light" : "vs-dark"));
+  };
 
   // ----------------------------
   // 1) Fetch dynamic languages
@@ -255,117 +265,123 @@ export const StudentPlaygroundComponent = () => {
   return (
     <>
       <ProfilePlaygroundNavbarComponent />
-
       <div className="playground">
         <div className="playground-container">
           <div className="playground-header">
-            <Row>
-              <Col sm={10} className="left-corner">
-                <Tabs
-                  activeKey={activeFileId}
-                  id="dynamic-file-tabs"
-                  onSelect={(k) => handleTabSelect(Number(k))}
-                  fill
-                >
-                  {files.map((file) => (
-                    <Tab
-                      key={file.id}
-                      eventKey={file.id}
-                      title={
-                        <div className="d-flex align-items-center">
-                          <span>{`${file.fileName}.${file.extension}`}</span>
-                          {files.length > 1 && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteFile(file.id);
-                              }}
-                              title="Delete file"
-                            >
-                              <FontAwesomeIcon icon={faTimes} color="red" />
-                            </Button>
-                          )}
-                        </div>
-                      }
-                    />
-                  ))}
-                </Tabs>
-                <Button variant="link" style={{ textDecoration: 'none' }} onClick={openAddFileModal}>
-                  <FontAwesomeIcon icon={faPlusSquare} size="lg" />
-                </Button>
-              </Col>
-
-              <Col sm={2} className="right-corner d-flex justify-content-end align-items-center">
-                <Button variant="link" onClick={handleDownloadFiles} title="Download Files">
-                  <FontAwesomeIcon icon={faDownload} size="lg" />
-                </Button>
-                <DropdownButton
-                  className="playground-dropdown"
-                  id="language-dropdown"
-                  size="sm"
-                  title={
-                    selectedLanguage ? (
-                      <>
-                        {selectedLanguage.progLangImage ||
-                        (programmingLanguageMap[selectedLanguage.progLangID] &&
-                          programmingLanguageMap[selectedLanguage.progLangID].image) ? (
-                          <img
-                            src={
-                              selectedLanguage.progLangImage ||
-                              programmingLanguageMap[selectedLanguage.progLangID]?.image
-                            }
-                            style={{ width: '20px', marginRight: '8px' }}
-                            alt="language-icon"
-                          />
-                        ) : null}
-                        {selectedLanguage.progLangName ||
-                          programmingLanguageMap[selectedLanguage.progLangID]?.name ||
-                          'Select Language'}
-                      </>
-                    ) : (
-                      'Loading...'
-                    )
-                  }
-                >
-                  {programmingLanguages.map((lang) => {
-                    const imageSrc =
-                      lang.progLangImage ||
-                      programmingLanguageMap[lang.progLangID]?.image;
-                    const languageName =
-                      lang.progLangName ||
-                      programmingLanguageMap[lang.progLangID]?.name;
-                    return (
-                      <Dropdown.Item
-                        key={lang.progLangID}
-                        onClick={() => handleSelectLanguage(lang)}
-                      >
-                        {imageSrc && (
-                          <img
-                            src={imageSrc}
-                            alt={`${languageName}-icon`}
-                            style={{ width: '20px', marginRight: '8px' }}
-                          />
+            <div className="left-corner">
+              <Tabs
+                activeKey={activeFileId}
+                id="dynamic-file-tabs"
+                onSelect={(k) => handleTabSelect(Number(k))}
+                fill
+              >
+                {files.map((file) => (
+                  <Tab
+                    key={file.id}
+                    eventKey={file.id}
+                    title={
+                      <div className="d-flex align-items-center">
+                        <span>{`${file.fileName}.${file.extension}`}</span>
+                        {files.length > 1 && (
+                          <Button
+                            className='tab-close-button'
+                            variant="link"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteFile(file.id);
+                            }}
+                            title="Delete file"
+                          >
+                            <FontAwesomeIcon icon={faTimes} color="gray" />
+                          </Button>
                         )}
-                        {languageName}
-                      </Dropdown.Item>
-                    );
-                  })}
-                </DropdownButton>
-              </Col>
-            </Row>
+                      </div>
+                    }
+                  />
+                ))}
+              </Tabs>
+              <Button className='plus-sqaure-icon' variant='light' onClick={openAddFileModal}>
+                <FontAwesomeIcon icon={faPlusSquare} size="lg" />
+              </Button>
+            </div>
+
+            <div className="right-corner">
+              <Button variant="link" onClick={handleDownloadFiles} title="Download Files">
+                <FontAwesomeIcon icon={faDownload} size="lg" />
+              </Button>
+              <DropdownButton
+                className="playground-dropdown"
+                id="language-dropdown"
+                size="sm"
+                title={
+                  selectedLanguage ? (
+                    <>
+                      {selectedLanguage.progLangImage ||
+                      (programmingLanguageMap[selectedLanguage.progLangID] &&
+                        programmingLanguageMap[selectedLanguage.progLangID].image) ? (
+                        <img
+                          src={
+                            selectedLanguage.progLangImage ||
+                            programmingLanguageMap[selectedLanguage.progLangID]?.image
+                          }
+                          style={{ width: '20px', marginRight: '8px' }}
+                          alt="language-icon"
+                        />
+                      ) : null}
+                      {selectedLanguage.progLangName ||
+                        programmingLanguageMap[selectedLanguage.progLangID]?.name ||
+                        'Select Language'}
+                    </>
+                  ) : (
+                    'Loading...'
+                  )
+                }
+              >
+                {programmingLanguages.map((lang) => {
+                  const imageSrc =
+                    lang.progLangImage ||
+                    programmingLanguageMap[lang.progLangID]?.image;
+                  const languageName =
+                    lang.progLangName ||
+                    programmingLanguageMap[lang.progLangID]?.name;
+                  return (
+                    <Dropdown.Item
+                      key={lang.progLangID}
+                      onClick={() => handleSelectLanguage(lang)}
+                    >
+                      {imageSrc && (
+                        <img
+                          src={imageSrc}
+                          alt={`${languageName}-icon`}
+                          style={{ width: '20px', marginRight: '8px' }}
+                        />
+                      )}
+                      {languageName}
+                    </Dropdown.Item>
+                  );
+                })}
+              </DropdownButton>
+              <Button variant="link" onClick={toggleTheme} title="Toggle Theme">
+                <FontAwesomeIcon icon={faAdjust} size="lg" />
+              </Button>
+            </div>
             <div className="header-border"></div>
           </div>
 
           {/* Code Editor */}
           <div className="playground-editor">
-            <textarea
-              className="code-editor"
-              value={activeFile?.content || ''}
-              onChange={(e) => handleFileChange(e.target.value)}
-              rows={15}
-              placeholder="Write your code here..."
+            <Editor
+              height="70vh" // Adjust height
+              language={selectedLanguage?.progLangName.toLowerCase()} // Set language
+              value={activeFile?.content || ""}
+              onChange={(newValue) => handleFileChange(newValue)}
+              theme={editorTheme}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: true },
+                automaticLayout: true,
+              }}
             />
           </div>
 

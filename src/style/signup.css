@@ -39,6 +39,7 @@
 .st-signup-form input,
 .st-signup-form select{
     font-size: 0.8rem;
+
 }
 
 @media (max-width: 1440px) {
@@ -133,7 +134,7 @@
     }
 
     .signup-form-container{
-        background-color: rgba(255, 255, 255, 0.88);
+        background-color: rgba(255, 255, 255, 0.9);
     }
     
     .form-container h3{

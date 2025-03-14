@@ -741,6 +741,7 @@ export default function TeacherItemBankComponent() {
       
       {/* -------------------- Create/Edit Modal -------------------- */}
       <Modal
+        className="item-modal"
         show={showCreateModal || showEditModal}
         onHide={() => {
           setShowCreateModal(false);
@@ -802,6 +803,7 @@ export default function TeacherItemBankComponent() {
               <Form.Group className="mb-3">
                 <Form.Label>Total Item Points (auto-calculated from test cases)</Form.Label>
                 <Form.Control
+                  className='bg-light'
                   type="number"
                   value={
                     itemData.testCases.reduce(
@@ -809,7 +811,7 @@ export default function TeacherItemBankComponent() {
                       0
                     )
                   }
-                  readOnly
+                  disabled
                 />
               </Form.Group>
             ) : (
@@ -952,8 +954,8 @@ export default function TeacherItemBankComponent() {
                   />
                 </Form.Group>
 
-                <div style={{ marginBottom: "1rem" }}>
-                  <Button variant="info" onClick={handleRunCode} disabled={compiling}>
+                <div>
+                  <Button className="run-code-button" onClick={handleRunCode} disabled={compiling}>
                     {compiling ? <Spinner animation="border" size="sm" /> : "Run Code"}
                   </Button>
                 </div>
@@ -971,7 +973,7 @@ export default function TeacherItemBankComponent() {
           >
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleCreateOrUpdate}>
+          <Button className="add-button" onClick={handleCreateOrUpdate}>
             {showCreateModal ? "Add" : "Save"}
           </Button>
         </Modal.Footer>

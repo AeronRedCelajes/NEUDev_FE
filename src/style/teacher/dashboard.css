@@ -257,4 +257,9 @@
         width: 80%;
     }
 
+    .classes-container .create-class{
+        width: 80%;
+        height: auto;
+    }
+
 }

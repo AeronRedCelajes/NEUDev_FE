@@ -403,11 +403,11 @@
     }
 
     .sidebar.open {
-        width: 150px;
+        width: 155px;
     }
 
     .sidebar .nav-link {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
     
     .sidebar .sidebar-icon{
@@ -451,19 +451,20 @@
     }
 }
 
-@media (max-width: 710px) {
+@media (max-width: 680px) {
     .classes-container .class-card{
         width: 90%;
     }
+
+    .classes-container .join-class{
+        width: 100%;
+    }
+    
 }
 
 @media (max-width: 576px) {
     .navbar-top {
         padding: 5px 0 !important;
-    }
-    
-    .profile-dropdown {
-        margin-right: -20px;
     }
 
     .student-badge {
@@ -496,11 +497,11 @@
     }
 
     .sidebar .nav-link {
-        font-size: 0.75rem;
+        font-size: 0.9rem;
     }
     
     .sidebar .sidebar-icon{
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 
     .no-classes-container .join-class{
@@ -510,6 +511,10 @@
 }
 
 @media (max-width: 425px) {
+    .profile-dropdown {
+        margin-right: -20px;
+    }
+    
     .student-badge {
         padding: 5px 11px;
         font-size: 0.7rem;
