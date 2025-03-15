@@ -81,18 +81,27 @@ function getTabId() {
 }
 
 /**
+ * Create a composite key using user_type and userID.
+ */
+function createUserKey(user_type, userID) {
+  return `${user_type}_${userID}`;
+}
+
+/**
  * Save session data.
  * Stores both per-tab session & per-user global session.
  */
 function setSessionData(data) {
   const tabId = getTabId();
+  // Use a composite key for per-user global session:
+  const userKey = createUserKey(data.user_type, data.userID);
   localStorage.setItem(`session_${tabId}`, JSON.stringify(data)); // Per-tab session
-  localStorage.setItem(`session_user_${data.userID}`, JSON.stringify(data)); // Global session for this user
+  localStorage.setItem(`session_user_${userKey}`, JSON.stringify(data)); // Global session for this user
 }
 
 /**
  * Retrieve session data for the current tab.
- * Ideally, each tab should have its own session data.
+ * No global fallback: each tab must have its own session.
  */
 function getSessionData() {
   const tabId = getTabId();
@@ -101,16 +110,26 @@ function getSessionData() {
 }
 
 /**
- * Get the current logged-in user's ID from the per-tab session.
+ * Get the current logged-in user's composite ID (user_type and userID).
  */
-function getCurrentUserID() {
+function getCurrentUserKey() {
   const session = getSessionData();
-  return session.userID || null;
+  if (session.user_type && session.userID) {
+    return createUserKey(session.user_type, session.userID);
+  }
+  return null;
 }
 
+// /**
+//  * Get the current logged-in user's ID from the per-tab session.
+//  */
+// function getCurrentUserID() {
+//   const session = getSessionData();
+//   return session.userID || null;
+// }
+
 /**
- * Clear session data only for the current tab.
- * (Do not clear global session here to avoid affecting other tabs.)
+ * Clear session data for the current tab.
  */
 function clearSessionData() {
   const tabId = getTabId();
@@ -203,11 +222,13 @@ async function login(email, password) {
 
     setSessionData(sessionData);
     return data;
+
   } catch (error) {
     console.error("Login Error:", error.message);
     return { error: "Something went wrong during login." };
   }
 }
+
 
 /**
  * Logout function - logs out the current tab and broadcasts a logout event.
@@ -215,9 +236,9 @@ async function login(email, password) {
 async function logout() {
   const sessionData = getSessionData();
   const token = sessionData.access_token;
+  const user_type = sessionData.user_type;
   const userID = sessionData.userID;
-
-  if (!token || !userID) return { error: "No user is logged in." };
+  if (!token || !user_type || !userID) return { error: "No user is logged in." };
 
   const response = await fetch(`${API_LINK}/logout`, {
     method: "POST",
@@ -228,12 +249,12 @@ async function logout() {
   });
 
   if (response.ok) {
-    // Broadcast logout event for this user
-    localStorage.setItem(`logout_${userID}`, Date.now());
-    clearSessionData(); // Clear only this tab's session
+    // Broadcast logout event using a composite key.
+    const userKey = createUserKey(user_type, userID);
+    localStorage.setItem(`logout_${userKey}`, Date.now());
+    clearSessionData();
     return { message: "Logout successful" };
   }
-
   return { error: "Logout failed. Try again." };
 }
 
@@ -646,6 +667,34 @@ async function unenrollStudent(classID, studentID) {
   });
   return data;
 }
+
+
+// Example new endpoint function
+async function getClassStudentsWithOverallScores(classID) {
+  const sessionData = getSessionData();
+  const token = sessionData.access_token;
+  if (!token) {
+    return { error: "Unauthorized access: No token found" };
+  }
+
+  // Build your URL with the classID and call your new route
+  const url = `${API_LINK}/teacher/class/${classID}/studentsWithScores`;
+
+  try {
+    // safeFetch should handle the usual JSON parse + error checking
+    const data = await safeFetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return data; // data is either { error, ... } or the list of students + scores
+  } catch (err) {
+    console.error("getClassStudentsWithOverallScores error:", err);
+    return { error: "Network error" };
+  }
+}
+
 
 //////////////////////////////////////////
 // BULLETIN FUNCTIONS (Teachers & Concerns)
@@ -1212,11 +1261,24 @@ async function clearActivityProgress(actID) {
 // ACTIVITY SUBMISSIONS FUNCTIONS
 //////////////////////////////////////////
 
-async function reviewSubmissions(actID) {
+async function getActivitySubmissionByTeacher(actID) {
   const sessionData = getSessionData();
   const token = sessionData.access_token;
   if (!token) return { error: "Unauthorized access: No token found" };
   return await safeFetch(`${API_LINK}/teacher/activities/${actID}/review`, {
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+}
+
+async function getSubmissionDetail(actID, studentID, attemptNo) {
+  const sessionData = getSessionData();
+  const token = sessionData.access_token;
+  if (!token) return { error: "Unauthorized access: No token found" };
+
+  const url = `${API_LINK}/teacher/activities/${actID}/submissionReview?studentID=${studentID}&attemptNo=${attemptNo}`;
+
+  return await safeFetch(url, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
   });
@@ -1232,7 +1294,7 @@ export {
   setSessionData,
   getSessionData,
   clearSessionData,
-  getCurrentUserID,
+  getCurrentUserKey,
   safeFetch,
   register, 
   login, 
@@ -1254,6 +1316,7 @@ export {
   getClassInfo,
   getClassStudents,
   unenrollStudent,
+  getClassStudentsWithOverallScores,
   getBulletinPosts,
   createBulletinPost,
   deleteBulletinPost,
@@ -1283,6 +1346,7 @@ export {
   getActivityProgress,
   saveActivityProgress,
   clearActivityProgress,
-  reviewSubmissions,
+  getActivitySubmissionByTeacher,
+  getSubmissionDetail,
   getArchivedClasses
 };

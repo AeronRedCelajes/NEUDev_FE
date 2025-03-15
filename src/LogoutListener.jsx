@@ -1,17 +1,17 @@
 import { useEffect } from "react";
-import { getCurrentUserID, clearSessionData } from "./components/api/API";
+import { clearSessionData, getSessionData } from "./components/api/API";
 
 const LogoutListener = () => {
     useEffect(() => {
         const handleStorageChange = (event) => {
             if (event.key && event.key.startsWith("logout_")) {
-                const loggedOutUserID = event.key.replace("logout_", ""); // Extract userID
-                const currentUserID = String(getCurrentUserID());
-                // Only log out if the current tab's user matches the logout event
-                if (loggedOutUserID === currentUserID) {
-                    console.log(`🚨 Logout detected for user ${currentUserID}. Clearing session...`);
+                const loggedOutKey = event.key.replace("logout_", ""); // e.g., "student_2" or "teacher_1"
+                const session = getSessionData();
+                const currentKey = session.user_type && session.userID ? `${session.user_type}_${session.userID}` : null;
+                if (loggedOutKey === currentKey) {
+                    console.log(`🚨 Logout detected for ${currentKey}. Clearing session...`);
                     clearSessionData();
-                    window.location.href = "/signin"; // Redirect to sign-in page
+                    window.location.href = "/signin";
                 }
             }
         };

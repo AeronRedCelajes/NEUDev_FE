@@ -40,8 +40,9 @@ import TeacherActivitySettingsComponent from "./components/teacher/TeacherActivi
 import TeacherActivityItemsComponent from "./components/teacher/TeacherActivityItemsComponent.jsx";
 import TeacherActivityLeaderboardComponent from "./components/teacher/TeacherActivityLeaderboardComponent.jsx";
 import TeacherActivitySubmissionComponent from "./components/teacher/TeacherActivitySubmissionComponent.jsx";
+import  TeacherCodingAssessmentComponent from "./components/teacher/TeacherCodingAssessmentComponent.jsx";
 
-import { TeacherCodingAssessmentComponent } from "./components/teacher/TeacherCodingAssessmentComponent.jsx";
+import  TeacherReviewComponent from "./components/teacher/TeacherReviewComponent.jsx";
 
 
 function App() {
@@ -92,6 +93,7 @@ function App() {
                     <Route path="/teacher/class/:classID/activity/:actID/items" element={<TeacherActivityItemsComponent />} />
                     <Route path="/teacher/class/:classID/activity/:actID/settings" element={<TeacherActivitySettingsComponent />} />
                     <Route path="/teacher/class/:classID/activity/:actID/submissions" element={<TeacherActivitySubmissionComponent />} />
+                    <Route path="/teacher/class/:classID/activity/:actID/review" element={<TeacherReviewComponent />} />
 
                     <Route path="/teacher/class/:classID/activity/:actID/assessment" element={<TeacherCodingAssessmentComponent />} />
                 </Route>
