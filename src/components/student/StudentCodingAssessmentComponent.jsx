@@ -27,7 +27,8 @@ import {
   getActivityItemsByStudent, 
   finalizeSubmission, 
   saveActivityProgress, 
-  clearActivityProgress 
+  clearActivityProgress,
+  getCurrentUserKey 
 } from '../api/API';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -50,7 +51,10 @@ function getExtensionFromLanguage(langName) {
 export const StudentCodingAssessmentComponent = () => {
   const { classID, actID } = useParams();
   const navigate = useNavigate();
-  const stateKey = `activityState_${actID}`;
+  
+  // Use the unique user ID from session to avoid conflict between accounts.
+  const userID = getCurrentUserKey() || 'default';
+  const stateKey = `activityState_${actID}_${userID}`;
 
   // Activity details
   const [activityName, setActivityName] = useState('');
@@ -91,13 +95,12 @@ export const StudentCodingAssessmentComponent = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasLoadedSavedState, setHasLoadedSavedState] = useState(false);
 
-  // For summary modal
+  // For summary modal (submission results)
   const [showFinishAttempt, setShowFinishAttempt] = useState(false);
   const [showSubmit, setShowSubmit] = useState(false);
   const [finalTitle, setFinalTitle] = useState('Result');
   const [finalTestCases, setFinalTestCases] = useState('0/0');
   const [finalScore, setFinalScore] = useState('0/0');
-  const [finalRank, setFinalRank] = useState('-');
   const [finalSpeed, setFinalSpeed] = useState('00:00:00');
   const [finalActivityName, setFinalActivityName] = useState('');
 
@@ -108,6 +111,9 @@ export const StudentCodingAssessmentComponent = () => {
   const [showEditFileModal, setShowEditFileModal] = useState(false);
   const [editFileName, setEditFileName] = useState('');
   const [editFileExtension, setEditFileExtension] = useState('');
+
+  // Submission alert modal for other tabs
+  const [showSubmissionAlert, setShowSubmissionAlert] = useState(false);
 
   // Assessment start time
   const [startTime] = useState(Date.now());
@@ -127,6 +133,19 @@ export const StudentCodingAssessmentComponent = () => {
     const s = seconds % 60;
     return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   };
+
+  // --- Listen for submission events from other tabs ---
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      const expectedKey = `activitySubmitted_${actID}_${userID}`;
+      if (e.key === expectedKey && e.newValue) {
+        setIsSubmitted(true);
+        setShowSubmissionAlert(true);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [actID, userID]);
 
   // --- Fetch activity data ---
   useEffect(() => {
@@ -152,9 +171,6 @@ export const StudentCodingAssessmentComponent = () => {
               name: first.progLangName,
               imgSrc: languageIconMap[first.progLangName] || '/src/assets/py.png'
             });
-          }
-          if (resp.rank) {
-            setFinalRank(resp.rank);
           }
         }
       } catch (err) {
@@ -238,8 +254,8 @@ export const StudentCodingAssessmentComponent = () => {
         if (parsed.activeFileId !== undefined) setActiveFileId(parsed.activeFileId);
         if (parsed.testCaseResults) setTestCaseResults(parsed.testCaseResults);
         if (parsed.selectedItem) setSelectedItem(parsed.selectedItem);
-        if (parsed.itemTimes) {
-          setItemTimes(parsed.itemTimes);
+        if (parsed.draftItemTimes) {
+          setItemTimes(parsed.draftItemTimes);
         }
       } else {
         setTimeLeft(0);
@@ -252,6 +268,7 @@ export const StudentCodingAssessmentComponent = () => {
       const totalSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
       initialTimeLeft = totalSeconds;
       endTime = Date.now() + totalSeconds * 1000;
+      // Changed keys: now using draftItemTimes, draftSelectedLanguage, and draftTimeRemaining
       const newState = {
         startTime,
         endTime,
@@ -262,7 +279,9 @@ export const StudentCodingAssessmentComponent = () => {
         testCaseResults,
         selectedItem,
         draftScore: computeTotalScore(),
-        itemTimes
+        draftItemTimes: itemTimes, 
+        draftSelectedLanguage: selectedLanguage.name,
+        draftTimeRemaining: timeLeft
       };
       localStorage.setItem(stateKey, JSON.stringify(newState));
     }
@@ -300,27 +319,25 @@ export const StudentCodingAssessmentComponent = () => {
     parsed.files = files;
     parsed.activeFileId = activeFileId;
     parsed.testCaseResults = testCaseResults;
-    parsed.itemTimes = itemTimes;
-
+    parsed.draftItemTimes = itemTimes; // renamed key
+    parsed.draftSelectedLanguage = selectedLanguage.name; // renamed key
+    parsed.draftTimeRemaining = timeLeft; // renamed key
+    parsed.draftScore = computeTotalScore();
+    parsed.selectedItem = selectedItem;
     if (originalEndTime) {
       parsed.endTime = originalEndTime;
     }
     parsed.draftScore = computeTotalScore();
-    console.log("Syncing progress: ", {
-      draftScore: parsed.draftScore,
-      files,
-      testCaseResults,
-      itemTimes
-    });
     localStorage.setItem(stateKey, JSON.stringify(parsed));
     
     const progressData = {
       draftFiles: JSON.stringify(files),
-      draftTestCaseResults: JSON.stringify(testCaseResults),
-      timeRemaining: timeLeft,
-      selectedLanguage: selectedLanguage.name,
+      draftTestCaseResults: JSON.stringify(testCaseResults || {}),
+      draftTimeRemaining: timeLeft, // renamed key
+      draftSelectedLanguage: selectedLanguage.name, // renamed key
       draftScore: computeTotalScore(),
-      itemTimes: JSON.stringify(itemTimes)
+      draftItemTimes: JSON.stringify(itemTimes) // renamed key
+      // Removed draftTimeSpent since it's no longer needed.
     };
     saveActivityProgress(actID, progressData)
       .then(res => console.log("Progress saved to server:", res))
@@ -334,9 +351,10 @@ export const StudentCodingAssessmentComponent = () => {
         const progressData = {
           draftFiles: JSON.stringify(files),
           draftTestCaseResults: JSON.stringify(testCaseResults),
-          timeRemaining: timeLeft,
-          selectedLanguage: selectedLanguage.name,
-          draftScore: computeTotalScore()
+          draftTimeRemaining: timeLeft, // renamed key
+          draftSelectedLanguage: selectedLanguage.name, // renamed key
+          draftScore: computeTotalScore(),
+          draftItemTimes: JSON.stringify(itemTimes) // renamed key
         };
         saveActivityProgress(actID, progressData)
           .then(res => console.log("Periodic progress sync:", res))
@@ -533,6 +551,7 @@ export const StudentCodingAssessmentComponent = () => {
       setPrompt('');
       setTypedInput('');
       setShowTerminal(true);
+
       const ws = wsRef.current;
       if (ws && ws.readyState === WebSocket.OPEN) {
         let outputBuffer = [];
@@ -545,43 +564,67 @@ export const StudentCodingAssessmentComponent = () => {
           } else if (data.type === 'exit') {
             ws.removeEventListener('message', handleMessage);
             setLoading(false);
+
             let fullOutput = outputBuffer.join('');
             fullOutput = fullOutput.replace(/\n\n>>> Program Terminated\s*$/, '').trim();
-            console.log("TestCase Output:", fullOutput, "Expected:", testCase.expectedOutput);
             const pass = fullOutput.trim() === testCase.expectedOutput.trim();
-            console.log("TestCase Pass:", pass, "Points:", pass ? testCase.testCasePoints : 0);
-            // Update test case results: store both latest and best values
-            setTestCaseResults(prev => {
-              const itemResults = prev[selectedItem] || {};
-              const existing = itemResults[testCase.testCaseID] || {
-                latestPass: null,
-                latestPoints: 0,
-                latestOutput: '',
-                bestPass: null,
-                bestPoints: 0,
-                bestOutput: ''
-              };
 
-              // Always update latest to reflect this new attempt
-              existing.latestPass = pass;
-              existing.latestPoints = pass ? testCase.testCasePoints : 0;
-              existing.latestOutput = fullOutput;
+            console.log("TestCase Output:", fullOutput, "Expected:", testCase.expectedOutput, "Pass:", pass);
 
-              // Update best if this attempt is better than before
-              if (existing.latestPoints > (existing.bestPoints || 0)) {
-                existing.bestPass = existing.latestPass;
-                existing.bestPoints = existing.latestPoints;
-                existing.bestOutput = existing.latestOutput;
-              }
+            if (scoreUpdate) {
+              setTestCaseResults(prev => {
+                const itemResults = prev[selectedItem] || {};
+                const existing = itemResults[testCase.testCaseID] || {
+                  latestPass: null,
+                  latestPoints: 0,
+                  latestOutput: '',
+                  bestPass: null,
+                  bestPoints: 0,
+                  bestOutput: ''
+                };
 
-              return {
-                ...prev,
-                [selectedItem]: {
-                  ...itemResults,
-                  [testCase.testCaseID]: existing
+                existing.latestPass = pass;
+                existing.latestPoints = pass ? testCase.testCasePoints : 0;
+                existing.latestOutput = fullOutput;
+
+                if (existing.latestPoints > (existing.bestPoints || 0)) {
+                  existing.bestPass = existing.latestPass;
+                  existing.bestPoints = existing.latestPoints;
+                  existing.bestOutput = existing.latestOutput;
                 }
-              };
-            });
+
+                return {
+                  ...prev,
+                  [selectedItem]: {
+                    ...itemResults,
+                    [testCase.testCaseID]: existing
+                  }
+                };
+              });
+            } else {
+              setTestCaseResults(prev => {
+                const itemResults = prev[selectedItem] || {};
+                const existing = itemResults[testCase.testCaseID] || {
+                  latestPass: null,
+                  latestPoints: 0,
+                  latestOutput: '',
+                  bestPass: null,
+                  bestPoints: 0,
+                  bestOutput: ''
+                };
+
+                existing.latestPass = pass;
+                existing.latestOutput = fullOutput;
+
+                return {
+                  ...prev,
+                  [selectedItem]: {
+                    ...itemResults,
+                    [testCase.testCaseID]: existing
+                  }
+                };
+              });
+            }
             resolve();
           }
         };
@@ -645,8 +688,7 @@ export const StudentCodingAssessmentComponent = () => {
     setTypedInput('');
   };
 
-  // --- Compute per-item score ---
-  // Uses bestPoints if finalScorePolicy is 'highest_score', otherwise latestPoints.
+  // --- Compute per-item score (current attempt only) ---
   const computeItemScore = (itemID) => {
     const item = items.find(it => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
@@ -655,11 +697,7 @@ export const StudentCodingAssessmentComponent = () => {
     let sum = 0;
     item.testCases.forEach(tc => {
       const r = itemResults[tc.testCaseID] || {};
-      if (finalScorePolicy === 'highest_score') {
-        sum += r.bestPoints || 0;
-      } else {
-        sum += r.latestPoints || 0;
-      }
+      sum += r.latestPoints || 0;
     });
     return sum;
   };
@@ -670,7 +708,6 @@ export const StudentCodingAssessmentComponent = () => {
     items.forEach(item => {
       total += computeItemScore(item.itemID);
     });
-    console.log("Total computed score: ", total);
     return total;
   };
 
@@ -692,7 +729,6 @@ export const StudentCodingAssessmentComponent = () => {
     setShowFinishAttempt(true);
   };
 
-  // --- Finalize submission handler with per-item times ---
   function formatSecondsToHMS(seconds) {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -717,20 +753,22 @@ export const StudentCodingAssessmentComponent = () => {
     }
     setItemTimes(updatedTimes);
   
-    // Build the submission payload, including overallTimeSpent.
+    // Build submission payload.
+    // For each item, only include its specific testCaseResults.
     const submissionData = {
-      overallTimeSpent, // overall elapsed time (actDuration - timeLeft)
+      overallTimeSpent,
       submissions: items.map(item => {
         const timeData = updatedTimes[item.itemID] || { accumulated: 0 };
         const secondsSpent = timeData.accumulated;
-        console.log(
-          `[finalizeSubmissionHandler] itemID=${item.itemID}, rawTimeSpent=${secondsSpent}, formattedTimeSpent=${formatSecondsToHMS(secondsSpent)}`
-        );
         return {
           itemID: item.itemID,
           codeSubmission: JSON.stringify(files),
           score: computeItemScore(item.itemID),
-          itemTimeSpent: secondsSpent, // key matches backend field
+          itemTimeSpent: secondsSpent,
+          timeSpent: overallTimeSpent,
+          testCaseResults: JSON.stringify(testCaseResults[item.itemID] || {}),
+          timeRemaining: timeLeft,
+          selectedLanguage: selectedLanguage.name
         };
       })
     };
@@ -740,22 +778,16 @@ export const StudentCodingAssessmentComponent = () => {
     if (result.error) {
       console.error("Submission failed:", result.error, result.details);
     } else {
-      if (result.finalScore !== undefined) {
-        setFinalScore(`${result.finalScore}/${maxPoints}`);
-      } else {
-        setFinalScore(`${computeTotalScore()}/${maxPoints}`);
-      }
-      if (result.rank !== undefined) {
-        setFinalRank(result.rank);
-      }
+      setFinalScore(`${computeTotalScore()}/${maxPoints}`);
       setIsSubmitted(true);
+      const submissionKey = `activitySubmitted_${actID}_${userID}`;
+      localStorage.setItem(submissionKey, Date.now());
       await clearActivityProgress(actID);
       localStorage.removeItem(stateKey);
       console.log("Submission successful, cleared progress.");
     }
   };
-
-  // --- Handle submission and final modal ---
+  
   const handleSubmitAllAndFinish = async () => {
     if (isSubmitted) return;
     let totalTC = 0;
@@ -779,13 +811,11 @@ export const StudentCodingAssessmentComponent = () => {
     setFinalActivityName(activityName);
     setFinalScore(`${totalScore}/${mp}`);
   
-    // Compute overallTimeSpent as (actDuration in seconds) - timeLeft
     const [hh, mm, ss] = actDuration.split(':').map(Number);
     const totalActSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
-    const overallTimeSpent = totalActSeconds - timeLeft;
+    const overallTimeSpent = timeExpired ? totalActSeconds : totalActSeconds - timeLeft;
     setFinalSpeed(formatTimeLeft(overallTimeSpent));
   
-    // Pass overallTimeSpent in your submission payload:
     await finalizeSubmissionHandler(overallTimeSpent);
     setShowFinishAttempt(false);
     setShowSubmit(true);
@@ -1034,10 +1064,6 @@ export const StudentCodingAssessmentComponent = () => {
                     <div className='activity-standing'>
                       <Row className='g-0'>
                         <Col className='activity-standing-button'>
-                          <p>Rank</p>
-                          <button disabled>{finalRank}</button>
-                        </Col>
-                        <Col className='activity-standing-button'>
                           <p>Overall Score</p>
                           <button disabled>{finalScore}</button>
                         </Col>
@@ -1078,7 +1104,7 @@ export const StudentCodingAssessmentComponent = () => {
                           setExpandedTestCases(prev => ({ 
                             ...prev, 
                             [tc.testCaseID]: !prev[tc.testCaseID] 
-                          }))}
+                          }))} 
                           style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                           <Button style={{
                             width: '25px',
@@ -1130,6 +1156,7 @@ export const StudentCodingAssessmentComponent = () => {
         </Row>
       </div>
 
+      {/* Terminal Modal */}
       <Modal show={showTerminal} onHide={handleCloseTerminal} size='lg' backdrop='static' keyboard={false} centered>
         <Modal.Header closeButton>
           <Modal.Title>NEUDev Terminal</Modal.Title>
@@ -1166,6 +1193,7 @@ export const StudentCodingAssessmentComponent = () => {
         </Modal.Body>
       </Modal>
 
+      {/* Add File Modal */}
       <Modal show={showAddFileModal} onHide={() => setShowAddFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Add File</Modal.Title>
@@ -1186,6 +1214,7 @@ export const StudentCodingAssessmentComponent = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Edit File Modal */}
       <Modal show={showEditFileModal} onHide={() => setShowEditFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit File</Modal.Title>
@@ -1203,6 +1232,33 @@ export const StudentCodingAssessmentComponent = () => {
         <Modal.Footer>
           <Button variant='secondary' onClick={() => setShowEditFileModal(false)}>Cancel</Button>
           <Button variant='primary' onClick={handleEditFile}>Save Changes</Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Submission Alert Modal for Other Tabs */}
+      <Modal
+        show={showSubmissionAlert}
+        onHide={() => {
+          setShowSubmissionAlert(false);
+          navigate(`/student/class/${classID}/activity`);
+        }}
+        backdrop='static'
+        keyboard={false}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Activity Submitted</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>This activity has already been submitted in another tab.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => {
+            setShowSubmissionAlert(false);
+            navigate(`/student/class/${classID}/activity`);
+          }}>
+            OK
+          </Button>
         </Modal.Footer>
       </Modal>
     </>

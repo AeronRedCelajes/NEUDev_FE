@@ -3,7 +3,7 @@ import { ProfilePlaygroundNavbarComponent } from '../ProfilePlaygroundNavbarComp
 import { Modal, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { getProfile, updateProfile, deleteProfile, verifyPassword } from '../api/API.js';
+import { getProfile, updateProfile, deleteProfile, verifyPassword, getSessionData } from '../api/API.js';
 import '/src/style/student/profile.css';
 
 export const TeacherProfileComponent = () => {
@@ -116,7 +116,8 @@ export const TeacherProfileComponent = () => {
 
   // Confirm deletion: verify password then delete profile
   const handleConfirmDeleteProfile = async () => {
-    const userEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const userEmail = sessionData.email;
     if (!userEmail) {
       alert("No user email found. Please log in again.");
       return;

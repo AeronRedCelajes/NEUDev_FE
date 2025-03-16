@@ -127,6 +127,15 @@
     font-weight: bold;
   }
 
+  .submission-title {
+    padding: 20px;
+    color: #B84C20;
+    margin-bottom: 20px;
+    background-color: #F5DAD0;
+    font-weight: bold;
+    text-align: center;
+  }
+
 table {
     width: 100%;
     padding: 20px;

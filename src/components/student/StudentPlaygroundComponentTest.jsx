@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Editor } from "@monaco-editor/react";
 import {
   Row,
   Col,
@@ -14,7 +13,7 @@ import {
   Form
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faDownload, faPlusSquare, faAdjust } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faDownload, faPlusSquare } from '@fortawesome/free-solid-svg-icons';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -29,8 +28,8 @@ import XtermTerminal from '../XtermTerminal';
 // Mapping of known programming language IDs to names and images
 const programmingLanguageMap = {
   1: { name: 'Java',   image: '/src/assets/java2.png' },
-  2: { name: 'C#',     image: '/src/assets/c.png' },
-  3: { name: 'Python', image: '/src/assets/py.png' }
+  2: { name: 'C#',     image: '/src/assets/c.png'     },
+  3: { name: 'Python', image: '/src/assets/py.png'    }
 };
 
 // Helper: fallback file extension from language name
@@ -71,15 +70,6 @@ export const StudentPlaygroundComponentTest = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const wsRef = useRef(null);
-
-  // ----------------------------
-  // Editor Theme State
-  // ----------------------------
-  const [editorTheme, setEditorTheme] = useState("vs-dark");
-
-  const toggleTheme = () => {
-    setEditorTheme(prevTheme => (prevTheme === "vs-dark" ? "light" : "vs-dark"));
-  };
 
   // ----------------------------
   // 1) Fetch dynamic languages
@@ -180,7 +170,7 @@ export const StudentPlaygroundComponentTest = () => {
   // ----------------------------
   useEffect(() => {
     // Replace 'wss://' if your server is secure, or 'ws://' otherwise
-    const ws = new WebSocket('wss://neudevcompiler-production.up.railway.app');
+    const ws = new WebSocket('https://neudevcompiler-production.up.railway.app');
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -270,7 +260,7 @@ export const StudentPlaygroundComponentTest = () => {
         <div className="playground-container">
           <div className="playground-header">
             <Row>
-              <Col sm={8} className="left-corner">
+              <Col sm={10} className="left-corner">
                 <Tabs
                   activeKey={activeFileId}
                   id="dynamic-file-tabs"
@@ -307,12 +297,12 @@ export const StudentPlaygroundComponentTest = () => {
                 </Button>
               </Col>
 
-              <Col sm={4} className="right-corner d-flex justify-content-end align-items-center">
+              <Col sm={2} className="right-corner d-flex justify-content-end align-items-center">
                 <Button variant="link" onClick={handleDownloadFiles} title="Download Files">
                   <FontAwesomeIcon icon={faDownload} size="lg" />
                 </Button>
                 <DropdownButton
-                  className="playground-dropdown me-2"
+                  className="playground-dropdown"
                   id="language-dropdown"
                   size="sm"
                   title={
@@ -363,9 +353,6 @@ export const StudentPlaygroundComponentTest = () => {
                     );
                   })}
                 </DropdownButton>
-                <Button variant="link" onClick={toggleTheme} title="Toggle Theme">
-                  <FontAwesomeIcon icon={faAdjust} size="lg" />
-                </Button>
               </Col>
             </Row>
             <div className="header-border"></div>
@@ -373,17 +360,12 @@ export const StudentPlaygroundComponentTest = () => {
 
           {/* Code Editor */}
           <div className="playground-editor">
-            <Editor
-              height="60vh" // Adjust height
-              language={selectedLanguage?.progLangName.toLowerCase()} // Set language
-              value={activeFile?.content || ""}
-              onChange={(newValue) => handleFileChange(newValue)}
-              theme={editorTheme}
-              options={{
-                fontSize: 14,
-                minimap: { enabled: true },
-                automaticLayout: true,
-              }}
+            <textarea
+              className="code-editor"
+              value={activeFile?.content || ''}
+              onChange={(e) => handleFileChange(e.target.value)}
+              rows={15}
+              placeholder="Write your code here..."
             />
           </div>
 

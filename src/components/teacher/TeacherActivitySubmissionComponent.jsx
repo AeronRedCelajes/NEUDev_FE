@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import "../../style/teacher/leaderboard.css";
+import { useParams, useNavigate } from "react-router-dom";
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
-import { getActivityLeaderboardByTeacher } from "../api/API";
+import "../../style/teacher/leaderboard.css";
+import { getActivitySubmissionByTeacher } from "../api/API";
 
 // Helper function to convert seconds to HH:MM:SS format
 const convertSecondsToHMS = (seconds) => {
@@ -11,72 +11,72 @@ const convertSecondsToHMS = (seconds) => {
   const mins = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
   return [hrs, mins, secs]
-    .map(unit => String(unit).padStart(2, "0"))
+    .map((unit) => String(unit).padStart(2, "0"))
     .join(":");
 };
 
 const TeacherActivitySubmissionComponent = () => {
-  const { actID } = useParams();
-  const [leaderboard, setLeaderboard] = useState([]);
+  // Retrieve both classID and actID from the URL parameters.
+  const { classID, actID } = useParams();
+  const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLeaderboard();
+    fetchSubmissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchLeaderboard = async () => {
+  const fetchSubmissions = async () => {
     try {
-      const response = await getActivityLeaderboardByTeacher(actID);
+      const response = await getActivitySubmissionByTeacher(actID);
       if (!response.error) {
-        // Expecting each item to include:
-        // { studentName, program, score, timeSpent (in seconds), rank, profileImage }
-        setLeaderboard(response.leaderboard);
+        // Ensure submissions is an array.
+        setSubmissions(response.submissions || []);
       } else {
-        console.error("❌ Error fetching leaderboard:", response.error);
+        console.error("Error fetching submissions:", response.error);
+        setSubmissions([]);
       }
     } catch (error) {
-      console.error("❌ Network error:", error);
+      console.error("Network error:", error);
+      setSubmissions([]);
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
-    <div className="leaderboard-body">
+    <div className="submission-body">
       <TeacherAMNavigationBarComponent />
-      <div className="leaderboard-container">
-        <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Activity Submissions</h1>
+      <div className="submission-container">
+        <div className="submission-header">
+          <h1 className="submission-title">Activity Submissions</h1>
           {loading ? (
-            <p>Loading students...</p>
+            <p>Loading submissions...</p>
           ) : (
             <table>
               <thead>
                 <tr>
                   <th className="leaderboard-column-titles">Student Name</th>
                   <th className="leaderboard-column-titles">Program</th>
-                  <th className="leaderboard-column-titles">Score</th>
+                  <th className="leaderboard-column-titles">Final Score</th>
                   <th className="leaderboard-column-titles">Time Spent</th>
-                  <th className="leaderboard-column-titles">Rank</th>
+                  <th className="leaderboard-column-titles">Attempts</th>
                 </tr>
               </thead>
               <tbody className="leaderboard-students">
-                {leaderboard.length > 0 ? (
-                  leaderboard.map((student, index) => (
-                    <LeaderboardItem
+                {submissions.length > 0 ? (
+                  submissions.map((submission, index) => (
+                    <SubmissionItem
                       key={index}
-                      name={student.studentName}
-                      program={student.program}
-                      score={student.score}
-                      timeSpent={convertSecondsToHMS(student.timeSpent)}
-                      rank={student.rank}
-                      profileImage={student.profileImage}
+                      submission={submission}
+                      actID={actID}
+                      classID={classID}
                     />
                   ))
                 ) : (
                   <tr>
                     <td colSpan="5" className="no-data">
-                      No students available
+                      No submissions available
                     </td>
                   </tr>
                 )}
@@ -89,30 +89,91 @@ const TeacherActivitySubmissionComponent = () => {
   );
 };
 
-const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }) => {
-  const defaultProfileImage = "/src/assets/noy.png";
-  const imageToShow =
-    profileImage && profileImage.trim() !== "" ? profileImage : defaultProfileImage;
+const SubmissionItem = ({ submission, actID, classID }) => {
+  const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpanded = (e) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
 
   return (
-    <tr>
-      <td>
-        <div className="avatar-name">
-          <div className="avatar">
-            <img src={imageToShow} alt="Avatar" className="avatar-image" />
+    <>
+      <tr className="submission-summary" onClick={toggleExpanded}>
+        <td>
+          <div className="avatar-name">
+            <div className="avatar">
+              <img
+                src={
+                  submission.profileImage &&
+                  submission.profileImage.trim() !== ""
+                    ? submission.profileImage
+                    : "/src/assets/noy.png"
+                }
+                alt="Avatar"
+                className="avatar-image"
+              />
+            </div>
+            <span className="student-name">{submission.studentName}</span>
           </div>
-          <span className="student-name">{name}</span>
-        </div>
-      </td>
-      <td>{program}</td>
-      <td>
-        <div className="score-circle">{score}</div>
-      </td>
-      <td>{timeSpent}</td>
-      <td>
-        <div className="score-circle">{rank}</div>
-      </td>
-    </tr>
+        </td>
+        <td>{submission.program}</td>
+        <td>{submission.overallScore}</td>
+        <td>{convertSecondsToHMS(submission.overallTimeSpent)}</td>
+        <td>
+          <button
+            className="expand-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
+          >
+            {expanded ? "Hide Attempts" : "Show Attempts"}
+          </button>
+        </td>
+      </tr>
+      {expanded && submission.attempts && (
+        <tr className="submission-details">
+          <td colSpan="5">
+            <table className="attempts-table">
+              <thead>
+                <tr>
+                  <th>Attempt #</th>
+                  <th>Score</th>
+                  <th>Time Spent</th>
+                  <th>Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submission.attempts.map((attempt, idx) => (
+                  <tr key={idx}>
+                    <td>{attempt.attemptNo}</td>
+                    <td>{attempt.totalScore}</td>
+                    <td>{convertSecondsToHMS(attempt.totalTimeSpent)}</td>
+                    <td>
+                      <button
+                        className="review-btn"
+                        onClick={() => {
+                          // Navigate to the review page route:
+                          // /teacher/class/:classID/activity/:actID/review
+                          // Passing studentID and attemptNo as query parameters.
+                          navigate(
+                            `/teacher/class/${classID}/activity/${actID}/review?studentID=${submission.studentID}&attemptNo=${attempt.attemptNo}`
+                          );
+                        }}
+                      >
+                        Review
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      )}
+    </>
   );
 };
 

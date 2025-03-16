@@ -14,7 +14,8 @@ import {
   deleteItem,
   getItemTypes,
   getProgrammingLanguages,
-  verifyPassword
+  verifyPassword,
+  getSessionData
 } from "../api/API.js";
 
 /**
@@ -223,7 +224,8 @@ export default function TeacherItemBankComponent() {
   async function fetchItems(itemTypeID) {
     setLoading(true);
     try {
-      const teacherID = sessionStorage.getItem("userID");
+      const sessionData = getSessionData();
+      const teacherID = sessionData.userID;
       // Passing both scope and teacherID in the query object
       const response = await getItems(itemTypeID, { scope: itemScope, teacherID });
       if (!response || response.error || !Array.isArray(response)) {
@@ -240,7 +242,9 @@ export default function TeacherItemBankComponent() {
 
   async function handleDelete() {
     if (!itemData.itemID) return;
-    const teacherEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const teacherEmail = sessionData.email;
+
     if (!teacherEmail) {
       alert("Teacher email not found. Please log in again.");
       return;
@@ -304,7 +308,8 @@ export default function TeacherItemBankComponent() {
         : []
     };
     if (showCreateModal && itemScope === "personal") {
-      payload.teacherID = sessionStorage.getItem("userID");
+      const sessionData = getSessionData();
+      payload.teacherID = sessionData.userID;
     }
     let resp;
     if (showCreateModal) {

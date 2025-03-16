@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navbar } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import '/src/style/ProfilePlaygroundNavbar.css';
+import { getSessionData } from "./api/API.js"; 
 
 export const ProfilePlaygroundNavbarComponent = () => {
     const navigate = useNavigate();
@@ -9,7 +10,8 @@ export const ProfilePlaygroundNavbarComponent = () => {
 
     useEffect(() => {
         // Get user type from sessionStorage (or localStorage if you prefer)
-        const storedUserType = sessionStorage.getItem("user_type"); 
+        const sessionData = getSessionData();
+        const storedUserType = sessionData.user_type;
         setUserType(storedUserType);
     }, []);
 

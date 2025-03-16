@@ -40,36 +40,6 @@ console.log("🔍 API_URL:", API_LINK);
 //   return response;
 // }
 
-// // Generate or retrieve a unique ID for the current tab
-// function getTabId() {
-//   let tabId = sessionStorage.getItem("tabId");
-//   if (!tabId) {
-//     tabId = '_' + Math.random().toString(36).substr(2, 9);
-//     sessionStorage.setItem("tabId", tabId);
-//   }
-//   return tabId;
-// }
-
-// // Save session data for the current tab in localStorage
-// function setSessionData(data) {
-//   const tabId = getTabId();
-//   localStorage.setItem("session_" + tabId, JSON.stringify(data));
-// }
-
-// // Retrieve session data for the current tab from localStorage
-// function getSessionData() {
-//   const tabId = getTabId();
-//   const sessionData = localStorage.getItem("session_" + tabId);
-//   return sessionData ? JSON.parse(sessionData) : {};
-// }
-
-// // Clear session data for the current tab
-// function clearSessionData() {
-//   const tabId = getTabId();
-//   localStorage.removeItem("session_" + tabId);
-//   sessionStorage.removeItem("tabId");
-// }
-
 // Generate or retrieve a unique ID for the current tab
 function getTabId() {
   let tabId = sessionStorage.getItem("tabId");
@@ -80,67 +50,25 @@ function getTabId() {
   return tabId;
 }
 
-/**
- * Create a composite key using user_type and userID.
- */
-function createUserKey(user_type, userID) {
-  return `${user_type}_${userID}`;
-}
-
-/**
- * Save session data.
- * Stores both per-tab session & per-user global session.
- */
+// Save session data for the current tab in localStorage
 function setSessionData(data) {
   const tabId = getTabId();
-  // Use a composite key for per-user global session:
-  const userKey = createUserKey(data.user_type, data.userID);
-  localStorage.setItem(`session_${tabId}`, JSON.stringify(data)); // Per-tab session
-  localStorage.setItem(`session_user_${userKey}`, JSON.stringify(data)); // Global session for this user
+  localStorage.setItem("session_" + tabId, JSON.stringify(data));
 }
 
-/**
- * Retrieve session data for the current tab.
- * No global fallback: each tab must have its own session.
- */
+// Retrieve session data for the current tab from localStorage
 function getSessionData() {
   const tabId = getTabId();
-  const sessionData = localStorage.getItem(`session_${tabId}`);
+  const sessionData = localStorage.getItem("session_" + tabId);
   return sessionData ? JSON.parse(sessionData) : {};
 }
 
-/**
- * Get the current logged-in user's composite ID (user_type and userID).
- */
-function getCurrentUserKey() {
-  const session = getSessionData();
-  if (session.user_type && session.userID) {
-    return createUserKey(session.user_type, session.userID);
-  }
-  return null;
-}
-
-// /**
-//  * Get the current logged-in user's ID from the per-tab session.
-//  */
-// function getCurrentUserID() {
-//   const session = getSessionData();
-//   return session.userID || null;
-// }
-
-/**
- * Clear session data for the current tab.
- */
+// Clear session data for the current tab
 function clearSessionData() {
   const tabId = getTabId();
-  localStorage.removeItem(`session_${tabId}`);
+  localStorage.removeItem("session_" + tabId);
   sessionStorage.removeItem("tabId");
 }
-
-
-//////////////////////////////////////////
-// GLOBAL FETCH WRAPPER
-//////////////////////////////////////////
 
 async function safeFetch(url, options = {}) {
   try {
@@ -157,10 +85,6 @@ async function safeFetch(url, options = {}) {
     return { error: "Network error or invalid response." };
   }
 }
-
-//////////////////////////////////////////
-// LOGIN/SIGNUP/LOGOUT FUNCTIONS
-//////////////////////////////////////////
 
 // Function to register a user (student or teacher)
 // (Public endpoint: token not needed)
@@ -207,38 +131,35 @@ async function login(email, password) {
       body: JSON.stringify({ email, password }),
       headers: { "Content-Type": "application/json" }
     });
-
     const data = await response.json();
+    console.log("API Response:", data);
+
     if (!response.ok) {
       return { error: data.message || "Login failed" };
     }
 
+    // Save auth data for this tab's session in localStorage
+    // Note: We no longer store user_email since it can be fetched from the DB later.
     const sessionData = {
       access_token: data.access_token,
       user_type: data.user_type,
-      userID: data.user_type === "student" ? data.studentID : data.teacherID,
-      email: data.email
+      userID: data.user_type === "student" ? data.studentID : data.teacherID
     };
-
     setSessionData(sessionData);
     return data;
-
   } catch (error) {
     console.error("Login Error:", error.message);
     return { error: "Something went wrong during login." };
   }
 }
 
-
-/**
- * Logout function - logs out the current tab and broadcasts a logout event.
- */
+/*
+  Logout: Clears only the session data for the current tab.
+*/
 async function logout() {
   const sessionData = getSessionData();
   const token = sessionData.access_token;
-  const user_type = sessionData.user_type;
-  const userID = sessionData.userID;
-  if (!token || !user_type || !userID) return { error: "No user is logged in." };
+  if (!token) return { error: "No user is logged in." };
 
   const response = await fetch(`${API_LINK}/logout`, {
     method: "POST",
@@ -249,15 +170,11 @@ async function logout() {
   });
 
   if (response.ok) {
-    // Broadcast logout event using a composite key.
-    const userKey = createUserKey(user_type, userID);
-    localStorage.setItem(`logout_${userKey}`, Date.now());
     clearSessionData();
     return { message: "Logout successful" };
   }
   return { error: "Logout failed. Try again." };
 }
-
 
 /*
   Verify password using the current tab session token.
@@ -289,11 +206,14 @@ async function verifyPassword(email, password) {
 /*
   Utility functions to check authentication status using the current tab session.
 */
+
+// Function to check if user is logged in
 function hasAccessToken() {
   const sessionData = getSessionData();
   return sessionData.access_token !== undefined;
 }
 
+// Function to get the stored user role
 function getUserRole() {
   const sessionData = getSessionData();
   return sessionData.user_type || null;
@@ -306,26 +226,25 @@ function getUserRole() {
 /*
   getUserInfo:
   Retrieves fresh user data from the backend and updates the current tab's session data.
-  This updates fields such as email, userID, and user_type.
+  This can update fields such as user_email if needed.
 */
 async function getUserInfo() {
   const sessionData = getSessionData();
   const token = sessionData.access_token;
   if (!token) return { error: "Unauthorized access: No token found" };
 
-  const data = await safeFetch(`${API_LINK}/user`, {
-    method: "GET",
-    headers: { "Authorization": `Bearer ${token}` }
-});
-
+  const response = await safeFetch(`${API_LINK}/user`, {
+    method: "GET"
+  });
+  const data = await response.json();
   console.log("🔍 User Info Response:", data);
   if (!data.error) {
-    // Merge fresh data into the session. Now also update the email.
+    // Merge fresh data into the session. For example, if the backend returns an email:
     const updatedData = {
       ...sessionData,
       user_type: data.user_type,
       userID: data.user_type === "student" ? data.studentID : data.teacherID,
-      email: data.email  // Update email in session data.
+      // Optionally: email: data.email
     };
     setSessionData(updatedData);
   }
@@ -346,19 +265,14 @@ async function getProfile() {
   }
 
   const endpoint = role === "student" ? `student/profile/${userID}` : `teacher/profile/${userID}`;
-  const data = await safeFetch(`${API_LINK}/${endpoint}`, {
-    method: "GET",
-    headers: { "Authorization": `Bearer ${token}` }
-});
-
+  const response = await safeFetch(`${API_LINK}/${endpoint}`, {
+    method: "GET"
+  });
+  const data = await response.json();
   if (!data.error) {
     const instructorName = `${data.firstname} ${data.lastname}`;
-    // Optionally update the session with instructor name.
+    // Optionally update the session with instructor name
     const updatedData = { ...sessionData, instructor_name: instructorName };
-    // Optionally, update email if returned.
-    if (data.email) {
-      updatedData.email = data.email;
-    }
     setSessionData(updatedData);
   }
   return data;
@@ -423,14 +337,14 @@ async function deleteProfile() {
   if (!token || !role || !userID) return { error: "Unauthorized access" };
 
   const endpoint = role === "student" ? `student/profile/${userID}` : `teacher/profile/${userID}`;
-  // Using safeFetch here already returns parsed JSON.
-  const data = await safeFetch(`${API_LINK}/${endpoint}`, {
+  const response = await safeFetch(`${API_LINK}/${endpoint}`, {
     method: "DELETE",
     headers: {
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     }
   });
+  const data = await response.json();
   if (!data.error) {
     clearSessionData();
     return { message: "Profile deleted successfully" };
@@ -443,56 +357,49 @@ async function deleteProfile() {
 //////////////////////////////////////////
 
 async function enrollInClass(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  const studentID = sessionData.userID;
-  if (!token || !studentID) {
-    return { error: "Unauthorized access: No token or student ID found" };
-  }
+  const token = localStorage.getItem("access_token");
+  const studentID = localStorage.getItem("userID");
+  if (!token || !studentID) return { error: "Unauthorized access: No token or student ID found" };
 
-  const data = await safeFetch(`${API_LINK}/student/class/${classID}/enroll`, {
+  return await safeFetch(`${API_LINK}/student/class/${classID}/enroll`, {
     method: "POST",
     headers: { 
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ studentID })
-  });
-  return data;
+  }).then(res => res.json());
 }
 
 async function unenrollFromClass(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  const studentID = sessionData.userID;
-  if (!token || !studentID) {
-    return { error: "Unauthorized access: No token or student ID found" };
-  }
+  const token = localStorage.getItem("access_token");
+  const studentID = localStorage.getItem("userID");
+  if (!token || !studentID) return { error: "Unauthorized access: No token or student ID found" };
 
-  const data = await safeFetch(`${API_LINK}/class/${classID}/unenroll`, {
+  return await safeFetch(`${API_LINK}/class/${classID}/unenroll`, {
     method: "DELETE",
     headers: { 
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     }
-  });
-  return data;
+  }).then(res => res.json());
 }
 
 async function getStudentClasses() {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  const studentID = sessionData.userID;
-  if (!token || !studentID) {
-    return { error: "Unauthorized access: No token or student ID found" };
-  }
+  const token = localStorage.getItem("access_token");
+  const studentID = localStorage.getItem("userID");
+  if (!token || !studentID) return { error: "Unauthorized access: No token or student ID found" };
 
-  const data = await safeFetch(`${API_LINK}/student/classes`, {
+  return await safeFetch(`${API_LINK}/student/classes`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
+  }).then(async response => {
+    const data = await response.json();
+    if (!data.error) {
+      return data; // Return all fields for each class object
+    }
+    return data;
   });
-  // Assuming the returned data is already parsed JSON containing the classes.
-  return data;
 }
 
 
@@ -501,53 +408,48 @@ async function getStudentClasses() {
 //////////////////////////////////////////
 
 async function getClasses() {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  const teacherID = sessionData.userID;
-  if (!token || !teacherID) {
-    return { error: "Unauthorized access: No token or teacher ID found" };
-  }
+  const token = localStorage.getItem("access_token");
+  const teacherID = localStorage.getItem("userID");
+  if (!token || !teacherID) return { error: "Unauthorized access: No token or teacher ID found" };
 
-  const data = await safeFetch(`${API_LINK}/teacher/classes`, { 
+  return await safeFetch(`${API_LINK}/teacher/classes`, { 
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
+  }).then(async response => {
+    const data = await response.json();
+    if (!data.error) {
+      // Filter out classes that are not active (activeClass false)
+      return data.filter(cls => cls.teacherID == teacherID && cls.activeClass);
+    }
+    return data;
   });
-  if (!data.error && Array.isArray(data)) {
-    // Filter out classes that are not active (activeClass false)
-    return data.filter(cls => cls.teacherID == teacherID && cls.activeClass);
-  }
-  return data;
 }
 
 async function getArchivedClasses() {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  const teacherID = sessionData.userID;
-  if (!token || !teacherID) {
-    return { error: "Unauthorized access: No token or teacher ID found" };
-  }
+  const token = localStorage.getItem("access_token");
+  const teacherID = localStorage.getItem("userID");
+  if (!token || !teacherID) return { error: "Unauthorized access: No token or teacher ID found" };
 
   // Append the query parameter "archived=1" so that the backend returns archived classes.
-  const data = await safeFetch(`${API_LINK}/teacher/classes?archived=1`, { 
+  return await safeFetch(`${API_LINK}/teacher/classes?archived=1`, { 
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
+  }).then(async response => {
+    const data = await response.json();
+    if (!data.error) {
+      // Although the server should now return only inactive classes,
+      // you can further filter if needed:
+      return data.filter(cls => cls.teacherID == teacherID && !cls.activeClass);
+    }
+    return data;
   });
-  if (!data.error && Array.isArray(data)) {
-    // Although the server should return only inactive classes,
-    // you can further filter if needed:
-    return data.filter(cls => cls.teacherID == teacherID && !cls.activeClass);
-  }
-  return data;
 }
 
 async function createClass(classData) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) {
-    return { error: "Unauthorized access: No token found" };
-  }
+  const token = localStorage.getItem("access_token");
+  if (!token) return { error: "Unauthorized access: No token found" };
 
-  const data = await safeFetch(`${API_LINK}/teacher/class`, {
+  return await safeFetch(`${API_LINK}/teacher/class`, {
     method: "POST",
     headers: { 
       "Authorization": `Bearer ${token}`,
@@ -558,34 +460,26 @@ async function createClass(classData) {
       className: classData.className.trim(),
       classSection: classData.classSection.trim()
     })
-  });
-  return data;
+  }).then(res => res.json());
 }
 
 async function deleteClass(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) {
-    return { error: "Unauthorized access: No token found" };
-  }
+  const token = localStorage.getItem("access_token");
+  if (!token) return { error: "Unauthorized access: No token found" };
 
-  const data = await safeFetch(`${API_LINK}/teacher/class/${classID}`, {
+  return await safeFetch(`${API_LINK}/teacher/class/${classID}`, {
     method: "DELETE",
     headers: {
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json",
       "Accept": "application/json"
     }
-  });
-  return data;
+  }).then(res => res.json());
 }
 
 async function updateClass(classID, updatedData) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) {
-    return { error: "Unauthorized access: No token found" };
-  }
+  const token = localStorage.getItem("access_token");
+  if (!token) return { error: "Unauthorized access: No token found" };
 
   const formData = new FormData();
   formData.append("_method", "PUT");
@@ -611,7 +505,7 @@ async function updateClass(classID, updatedData) {
   }
 
   const response = await fetch(`${API_LINK}/teacher/class/${classID}`, {
-    method: "POST", // Using POST with _method override for PUT
+    method: "POST", // Use POST with _method override for PUT
     headers: {
       "Authorization": `Bearer ${token}`,
       "Accept": "application/json"
@@ -623,97 +517,56 @@ async function updateClass(classID, updatedData) {
   return response.ok ? data : { error: data.message || "Request failed", details: data };
 }
 
-async function getClassInfo(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) {
-    return { error: "Unauthorized access: No token found" };
-  }
 
-  const data = await safeFetch(`${API_LINK}/teacher/class-info/${classID}`, {
+async function getClassInfo(classID) {
+  const token = localStorage.getItem("access_token");
+  if (!token) return { error: "Unauthorized access: No token found" };
+
+  return await safeFetch(`${API_LINK}/teacher/class-info/${classID}`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
-  return data;
+  }).then(res => res.json());
 }
 
 async function getClassStudents(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) {
-    return { error: "Unauthorized access: No token found" };
-  }
+  const token = localStorage.getItem("access_token");
+  if (!token) return { error: "Unauthorized access: No token found" };
 
-  const data = await safeFetch(`${API_LINK}/teacher/class/${classID}/students`, {
+  return await safeFetch(`${API_LINK}/teacher/class/${classID}/students`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
-  return data;
+  }).then(res => res.json());
 }
 
 async function unenrollStudent(classID, studentID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) {
-    return { error: "Unauthorized access: No token found" };
-  }
+  const token = localStorage.getItem("access_token");
+  if (!token) return { error: "Unauthorized access: No token found" };
 
-  const data = await safeFetch(`${API_LINK}/teacher/class/${classID}/unenroll/${studentID}`, {
+  return await safeFetch(`${API_LINK}/teacher/class/${classID}/unenroll/${studentID}`, {
     method: "DELETE",
     headers: { 
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     }
-  });
-  return data;
+  }).then(res => res.json());
 }
-
-
-// Example new endpoint function
-async function getClassStudentsWithOverallScores(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) {
-    return { error: "Unauthorized access: No token found" };
-  }
-
-  // Build your URL with the classID and call your new route
-  const url = `${API_LINK}/teacher/class/${classID}/studentsWithScores`;
-
-  try {
-    // safeFetch should handle the usual JSON parse + error checking
-    const data = await safeFetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    return data; // data is either { error, ... } or the list of students + scores
-  } catch (err) {
-    console.error("getClassStudentsWithOverallScores error:", err);
-    return { error: "Network error" };
-  }
-}
-
 
 //////////////////////////////////////////
 // BULLETIN FUNCTIONS (Teachers & Concerns)
 //////////////////////////////////////////
 
 async function getBulletinPosts(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access" };
 
   return await safeFetch(`${API_LINK}/teacher/class/${classID}/bulletin`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function createBulletinPost(classID, title, message) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access" };
 
   return await safeFetch(`${API_LINK}/teacher/bulletin`, {
@@ -723,18 +576,17 @@ async function createBulletinPost(classID, title, message) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ classID, title, message })
-  });
+  }).then(res => res.json());
 }
 
 async function deleteBulletinPost(postID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access" };
 
   return await safeFetch(`${API_LINK}/teacher/bulletin/${postID}`, {
     method: "DELETE",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 //////////////////////////////////////////
@@ -743,15 +595,15 @@ async function deleteBulletinPost(postID) {
 
 export const getConcerns = async (classID) => {
   try {
-    const sessionData = getSessionData();
-    const token = sessionData.access_token;
-    return await safeFetch(`${API_LINK}/concerns/${classID}`, {
+    const token = localStorage.getItem("access_token");
+    const response = await safeFetch(`${API_LINK}/concerns/${classID}`, {
       method: "GET",
       headers: { 
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       }
     });
+    return await response.json();
   } catch (error) {
     return { error: error.message };
   }
@@ -759,15 +611,15 @@ export const getConcerns = async (classID) => {
 
 export const getConcernDetail = async (concernID) => {
   try {
-    const sessionData = getSessionData();
-    const token = sessionData.access_token;
-    return await safeFetch(`${API_LINK}/concerns/detail/${concernID}`, {
+    const token = localStorage.getItem("access_token");
+    const response = await safeFetch(`${API_LINK}/concerns/detail/${concernID}`, {
       method: "GET",
       headers: { 
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       }
     });
+    return await response.json();
   } catch (error) {
     return { error: error.message };
   }
@@ -775,9 +627,8 @@ export const getConcernDetail = async (concernID) => {
 
 export const createConcern = async (concernData) => {
   try {
-    const sessionData = getSessionData();
-    const token = sessionData.access_token;
-    return await safeFetch(`${API_LINK}/concerns`, {
+    const token = localStorage.getItem("access_token");
+    const response = await safeFetch(`${API_LINK}/concerns`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -785,6 +636,7 @@ export const createConcern = async (concernData) => {
       },
       body: JSON.stringify(concernData)
     });
+    return await response.json();
   } catch (error) {
     return { error: error.message };
   }
@@ -792,9 +644,8 @@ export const createConcern = async (concernData) => {
 
 export const updateConcern = async (concernID, updateData) => {
   try {
-    const sessionData = getSessionData();
-    const token = sessionData.access_token;
-    return await safeFetch(`${API_LINK}/concerns/${concernID}`, {
+    const token = localStorage.getItem("access_token");
+    const response = await safeFetch(`${API_LINK}/concerns/${concernID}`, {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json",
@@ -802,6 +653,7 @@ export const updateConcern = async (concernID, updateData) => {
       },
       body: JSON.stringify(updateData)
     });
+    return await response.json();
   } catch (error) {
     return { error: error.message };
   }
@@ -809,15 +661,17 @@ export const updateConcern = async (concernID, updateData) => {
 
 export const deleteConcern = async (concernID) => {
   try {
-    const sessionData = getSessionData();
-    const token = sessionData.access_token;
-    return await safeFetch(`${API_LINK}/concerns/${concernID}`, {
+    const token = localStorage.getItem("access_token");
+    const response = await safeFetch(`${API_LINK}/concerns/${concernID}`, {
       method: "DELETE",
       headers: { 
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       }
     });
+    const data = await response.json();
+    console.log("Delete response:", data);
+    return data;
   } catch (error) {
     console.error("Error in deleteConcern:", error);
     return { error: error.message };
@@ -829,19 +683,17 @@ export const deleteConcern = async (concernID) => {
 //////////////////////////////////////////
 
 async function getStudentActivities() {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token"); 
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/student/activities`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function createActivity(activityData) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
     
   return await safeFetch(`${API_LINK}/teacher/activities`, {
@@ -852,16 +704,15 @@ async function createActivity(activityData) {
       "Accept": "application/json"
     },
     body: JSON.stringify(activityData)
-  });
+  }).then(res => res.json());
 }
 
 async function editActivity(actID, updatedData) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   try {
-    const result = await safeFetch(`${API_LINK}/teacher/activities/${actID}`, {
+    const response = await safeFetch(`${API_LINK}/teacher/activities/${actID}`, {
       method: "PUT",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -869,11 +720,8 @@ async function editActivity(actID, updatedData) {
       },
       body: JSON.stringify(updatedData)
     });
-    // Use the result directly since it's already parsed
-    if (result.error) {
-      return { error: result.message || "Failed to update activity", details: result };
-    }
-    return result;
+    const data = await response.json();
+    return response.ok ? data : { error: data.message || "Failed to update activity", details: data };
   } catch (error) {
     console.error("❌ API Error (Edit Activity):", error);
     return { error: "Something went wrong while updating the activity." };
@@ -881,12 +729,11 @@ async function editActivity(actID, updatedData) {
 }
 
 async function deleteActivity(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   try {
-    const result = await safeFetch(`${API_LINK}/teacher/activities/${actID}`, {
+    const response = await safeFetch(`${API_LINK}/teacher/activities/${actID}`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -894,39 +741,35 @@ async function deleteActivity(actID) {
         "Accept": "application/json"
       }
     });
-    // Use the parsed result directly
-    if (result.error) {
-      return { error: result.message || "Failed to delete activity" };
-    }
-    return { message: "Activity deleted successfully" };
+    const data = await response.json();
+    return response.ok ? { message: "Activity deleted successfully" } : { error: data.message || "Failed to delete activity" };
   } catch (error) {
     console.error("❌ API Error (Delete Activity):", error);
     return { error: "Something went wrong while deleting the activity." };
   }
 }
 
+
 async function getClassActivities(classID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
-  const result = await safeFetch(`${API_LINK}/teacher/class/${classID}/activities`, {
+  const response = await safeFetch(`${API_LINK}/teacher/class/${classID}/activities`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
   });
-  console.log("🟢 API Response from getClassActivities:", result);
-  return result;
+  console.log("🟢 API Response from getClassActivities:", response);
+  return await response.json();
 }
 
 async function getActivityDetails(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token; 
+  const token = localStorage.getItem("access_token"); 
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/activities/${actID}`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 //////////////////////////////////////////
@@ -934,25 +777,23 @@ async function getActivityDetails(actID) {
 //////////////////////////////////////////
 
 async function getActivityItemsByStudent(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token; 
+  const token = localStorage.getItem("access_token"); 
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/student/activities/${actID}/items`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function getActivityLeaderboardByStudent(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token; 
+  const token = localStorage.getItem("access_token"); 
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/student/activities/${actID}/leaderboard`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 //////////////////////////////////////////
@@ -960,41 +801,37 @@ async function getActivityLeaderboardByStudent(actID) {
 //////////////////////////////////////////
 
 async function getActivityItemsByTeacher(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/activities/${actID}/items`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function getActivityLeaderboardByTeacher(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/activities/${actID}/leaderboard`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function getActivitySettingsTeacher(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/activities/${actID}/settings`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function updateActivitySettingsTeacher(actID, settings) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/activities/${actID}/settings`, {
@@ -1004,7 +841,7 @@ async function updateActivitySettingsTeacher(actID, settings) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(settings)
-  });
+  }).then(res => res.json());
 }
 
 //////////////////////////////////////////
@@ -1012,22 +849,20 @@ async function updateActivitySettingsTeacher(actID, settings) {
 //////////////////////////////////////////
 
 async function getItemTypes() {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/itemTypes`, { 
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 /**
  * Fetch items by itemTypeID, optionally including query parameters.
  */
 async function getItems(itemTypeID, query = {}) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   let url = `${API_LINK}/teacher/items/itemType/${itemTypeID}`;
@@ -1039,34 +874,31 @@ async function getItems(itemTypeID, query = {}) {
   return await safeFetch(url, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function getItemsByItemType(itemTypeID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/items/itemType/${itemTypeID}`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function getItemDetails(itemID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/items/${itemID}`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function createItem(itemData) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/items`, {
@@ -1077,12 +909,11 @@ async function createItem(itemData) {
       "Accept": "application/json"
     },
     body: JSON.stringify(itemData)
-  });
+  }).then(res => res.json());
 }
 
 async function updateItem(itemID, itemData) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/items/${itemID}`, {
@@ -1092,29 +923,27 @@ async function updateItem(itemID, itemData) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(itemData)
-  });
+  }).then(res => res.json());
 }
 
 async function deleteItem(itemID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/items/${itemID}`, {
     method: "DELETE",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function getProgrammingLanguages() {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   return await safeFetch(`${API_LINK}/teacher/programmingLanguages`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 //////////////////////////////////////////
@@ -1123,12 +952,11 @@ async function getProgrammingLanguages() {
 
 async function finalizeSubmission(actID, submissionData) {
   console.log("Submitting Data:", submissionData);
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   try {
-    const result = await safeFetch(`${API_LINK}/student/activities/${actID}/submission`, {
+    const response = await safeFetch(`${API_LINK}/student/activities/${actID}/submission`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -1137,11 +965,9 @@ async function finalizeSubmission(actID, submissionData) {
       },
       body: JSON.stringify(submissionData)
     });
-    console.log("Submission Response:", result);
-    if (result.error) {
-      return { error: result.message || "Failed to finalize submission", details: result };
-    }
-    return result;
+    const data = await response.json();
+    console.log("Submission Response:", data);
+    return response.ok ? data : { error: data.message || "Failed to finalize submission", details: data };
   } catch (error) {
     console.error("Finalize Submission Error:", error);
     return { error: "Something went wrong while finalizing submission." };
@@ -1150,12 +976,11 @@ async function finalizeSubmission(actID, submissionData) {
 
 async function updateSubmission(actID, submissionID, submissionData) {
   console.log("Updating Submission:", submissionData);
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   try {
-    const result = await safeFetch(`${API_LINK}/student/activities/${actID}/submission/${submissionID}`, {
+    const response = await safeFetch(`${API_LINK}/student/activities/${actID}/submission/${submissionID}`, {
       method: "PUT",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -1164,11 +989,9 @@ async function updateSubmission(actID, submissionID, submissionData) {
       },
       body: JSON.stringify(submissionData)
     });
-    console.log("Update Submission Response:", result);
-    if (result.error) {
-      return { error: result.message || "Failed to update submission", details: result };
-    }
-    return result;
+    const data = await response.json();
+    console.log("Update Submission Response:", data);
+    return response.ok ? data : { error: data.message || "Failed to update submission", details: data };
   } catch (error) {
     console.error("Update Submission Error:", error);
     return { error: "Something went wrong while updating submission." };
@@ -1177,12 +1000,11 @@ async function updateSubmission(actID, submissionID, submissionData) {
 
 async function deleteSubmission(actID, submissionID) {
   console.log("Deleting Submission ID:", submissionID);
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
 
   try {
-    const result = await safeFetch(`${API_LINK}/student/activities/${actID}/submission/${submissionID}`, {
+    const response = await safeFetch(`${API_LINK}/student/activities/${actID}/submission/${submissionID}`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -1190,11 +1012,9 @@ async function deleteSubmission(actID, submissionID) {
         "Accept": "application/json"
       }
     });
-    console.log("Delete Submission Response:", result);
-    if (result.error) {
-      return { error: result.message || "Failed to delete submission", details: result };
-    }
-    return result;
+    const data = await response.json();
+    console.log("Delete Submission Response:", data);
+    return response.ok ? data : { error: data.message || "Failed to delete submission", details: data };
   } catch (error) {
     console.error("Delete Submission Error:", error);
     return { error: "Something went wrong while deleting submission." };
@@ -1207,8 +1027,7 @@ async function deleteSubmission(actID, submissionID) {
 
 // Helper function to determine the correct progress endpoint based on user role.
 function getProgressEndpoint(actID) {
-  const sessionData = getSessionData();
-  const role = sessionData.user_type;
+  const role = localStorage.getItem("user_type");
   if (role === "teacher") {
     return `${API_LINK}/teacher/activities/${actID}/progress`;
   }
@@ -1216,19 +1035,17 @@ function getProgressEndpoint(actID) {
 }
 
 async function getActivityProgress(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
   const endpoint = getProgressEndpoint(actID);
   return await safeFetch(endpoint, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
 
 async function saveActivityProgress(actID, progressData) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
   const endpoint = getProgressEndpoint(actID);
   return await safeFetch(endpoint, {
@@ -1239,12 +1056,11 @@ async function saveActivityProgress(actID, progressData) {
       "Accept": "application/json"
     },
     body: JSON.stringify(progressData)
-  });
+  }).then(res => res.json());
 }
 
 async function clearActivityProgress(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
   const endpoint = getProgressEndpoint(actID);
   return await safeFetch(endpoint, {
@@ -1254,101 +1070,27 @@ async function clearActivityProgress(actID) {
       "Content-Type": "application/json",
       "Accept": "application/json"
     }
-  });
+  }).then(res => res.json());
 }
 
 //////////////////////////////////////////
 // ACTIVITY SUBMISSIONS FUNCTIONS
 //////////////////////////////////////////
 
-async function getActivitySubmissionByTeacher(actID) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
+async function reviewSubmissions(actID) {
+  const token = localStorage.getItem("access_token");
   if (!token) return { error: "Unauthorized access: No token found" };
   return await safeFetch(`${API_LINK}/teacher/activities/${actID}/review`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}` }
-  });
+  }).then(res => res.json());
 }
-
-async function getSubmissionDetail(actID, studentID, attemptNo) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) return { error: "Unauthorized access: No token found" };
-
-  const url = `${API_LINK}/teacher/activities/${actID}/submissionReview?studentID=${studentID}&attemptNo=${attemptNo}`;
-
-  return await safeFetch(url, {
-    method: "GET",
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-}
-
-//////////////////////////////////////////
-// NOTIFICATION FUNCTIONS
-//////////////////////////////////////////
-
-// Function to fetch notifications for the current user.
-async function getNotifications() {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) return { error: "Unauthorized access: No token found" };
-
-  return await safeFetch(`${API_LINK}/notifications`, {
-    method: "GET",
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-}
-
-// Function to mark a specific notification as read.
-async function markNotificationAsRead(notificationId) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) return { error: "Unauthorized access: No token found" };
-
-  return await safeFetch(`${API_LINK}/notifications/${notificationId}/read`, {
-    method: "PATCH",
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-}
-
-async function deleteNotification(notificationId) {
-  const sessionData = getSessionData();
-  const token = sessionData.access_token;
-  if (!token) return { error: "Unauthorized access: No token found" };
-
-  return await safeFetch(`${API_LINK}/notifications/${notificationId}`, {
-    method: "DELETE",
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-}
-
-async function handleNotificationClick(notificationId) {
-  // Mark the notification as read on the server
-  const result = await safeFetch(`/notifications/${notificationId}/read`, {
-    method: 'PATCH',
-    headers: { 'Authorization': `Bearer ${token}` },
-  });
-  
-  if (!result.error) {
-    // Optimistically update in the front end
-    setNotifications(notifs => 
-      notifs.map(n => n.id === notificationId ? {...n, is_read: true} : n)
-    );
-  }
-}
-
 
 //////////////////////////////////////////
 // EXPORT FUNCTIONS
 //////////////////////////////////////////
 
 export { 
-  getTabId,
-  setSessionData,
-  getSessionData,
-  clearSessionData,
-  getCurrentUserKey,
   safeFetch,
   register, 
   login, 
@@ -1370,7 +1112,6 @@ export {
   getClassInfo,
   getClassStudents,
   unenrollStudent,
-  getClassStudentsWithOverallScores,
   getBulletinPosts,
   createBulletinPost,
   deleteBulletinPost,
@@ -1400,11 +1141,6 @@ export {
   getActivityProgress,
   saveActivityProgress,
   clearActivityProgress,
-  getActivitySubmissionByTeacher,
-  getSubmissionDetail,
-  getArchivedClasses,
-  getNotifications,
-  markNotificationAsRead,
-  deleteNotification,
-  handleNotificationClick
+  reviewSubmissions,
+  getArchivedClasses
 };
