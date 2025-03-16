@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Modal, Button, Form } from 'react-bootstrap';
 import "../../style/teacher/cmActivities.css"; 
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
-import { getActivityItemsByTeacher, getCurrentUserKey } from "../api/API";
+import { getActivityItemsByTeacher, getCurrentUserKey, getActivityProgress  } from "../api/API";
 
 // Mapping of known programming languages to images
 const programmingLanguageMap = {
@@ -62,7 +62,10 @@ const TeacherActivityItemsComponent = () => {
   useEffect(() => {
     fetchActivityData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    // Also try to sync localStorage with any progress from the server
+    syncTeacherProgressFromServer(actID);
+  }, [actID]);
 
   const fetchActivityData = async () => {
     setLoading(true);
@@ -81,6 +84,44 @@ const TeacherActivityItemsComponent = () => {
       console.error("❌ Error fetching activity data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // fetch teacher’s progress from DB
+  const syncTeacherProgressFromServer = async (activityId) => {
+    try {
+      // You might have a teacher-specific endpoint or reuse the same getActivityProgress
+      // For demonstration, we’ll pretend getActivityProgress also works for teacher progress
+      const progressResponse = await getActivityProgress(activityId);
+
+      // progressResponse might look like { progress: [ ... ] } just like in the student code
+      if (progressResponse && progressResponse.progress && progressResponse.progress.length > 0) {
+        const serverProgress = progressResponse.progress[0];
+        const localData = localStorage.getItem(stateKey);
+        let mergedProgress = {};
+
+        if (localData) {
+          const parsedLocal = JSON.parse(localData);
+          // Merge: prefer local endTime, but override with server’s data
+          mergedProgress = {
+            ...parsedLocal,
+            ...serverProgress,
+            endTime: parsedLocal.endTime, 
+          };
+        } else {
+          mergedProgress = serverProgress;
+        }
+
+        // Save merged result back to local storage
+        localStorage.setItem(stateKey, JSON.stringify(mergedProgress));
+        console.log("[syncTeacherProgressFromServer] Merged progress:", mergedProgress);
+      } else {
+        // If no progress found in DB, remove local
+        localStorage.removeItem(stateKey);
+        console.log("[syncTeacherProgressFromServer] No teacher progress found. Local storage cleared.");
+      }
+    } catch (error) {
+      console.error("[syncTeacherProgressFromServer] Error:", error);
     }
   };
 
