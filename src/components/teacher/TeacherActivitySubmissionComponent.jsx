@@ -30,19 +30,20 @@ const TeacherActivitySubmissionComponent = () => {
     try {
       const response = await getActivitySubmissionByTeacher(actID);
       if (!response.error) {
-        // Expected response structure:
-        // { activityID, submissions: [ { studentID, studentName, profileImage, program, overallScore, overallTimeSpent, attempts: [ { attemptNo, totalScore, totalTimeSpent } ] }, ... ] }
-        setSubmissions(response.submissions);
+        // Ensure submissions is an array.
+        setSubmissions(response.submissions || []);
       } else {
         console.error("Error fetching submissions:", response.error);
+        setSubmissions([]);
       }
     } catch (error) {
       console.error("Network error:", error);
+      setSubmissions([]);
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="submission-body">
       <TeacherAMNavigationBarComponent />
