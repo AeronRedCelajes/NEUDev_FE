@@ -325,7 +325,7 @@ export const StudentPlaygroundComponent = () => {
                             selectedLanguage.progLangImage ||
                             programmingLanguageMap[selectedLanguage.progLangID]?.image
                           }
-                          style={{ width: '20px', marginRight: '8px' }}
+                          style={{ width: '25%', marginRight: '8px' }}
                           alt="language-icon"
                         />
                       ) : null}
@@ -354,7 +354,7 @@ export const StudentPlaygroundComponent = () => {
                         <img
                           src={imageSrc}
                           alt={`${languageName}-icon`}
-                          style={{ width: '20px', marginRight: '8px' }}
+                          style={{ width: '14%', marginRight: '8px' }}
                         />
                       )}
                       {languageName}
@@ -366,7 +366,6 @@ export const StudentPlaygroundComponent = () => {
                 <FontAwesomeIcon icon={faAdjust} size="lg" />
               </Button>
             </div>
-            <div className="header-border"></div>
           </div>
 
           {/* Code Editor */}
