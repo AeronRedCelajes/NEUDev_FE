@@ -29,6 +29,7 @@ import { TeacherDashboardComponent } from "./components/teacher/TeacherDashboard
 import { TeacherDashboardArchivedComponent } from "./components/teacher/TeacherDashboardArchivedComponent";
 import { TeacherProfileComponent } from "./components/teacher/TeacherProfileComponent";
 import { TeacherPlaygroundComponent } from "./components/teacher/TeacherPlaygroundComponent.jsx";
+import { TeacherPlaygroundComponentTest } from "./components/teacher/TeacherPlaygroundComponentTest.jsx";
 
 import TeacherClassManagementClassRecordComponent from "./components/teacher/TeacherClassManagementClassRecordComponent.jsx";
 import { TeacherClassManagementComponent } from "./components/teacher/TeacherClassManagementComponent.jsx";
@@ -81,6 +82,7 @@ function App() {
                     <Route path="/teacher/archived" element={<TeacherDashboardArchivedComponent />} />
                     <Route path="/teacher/profile" element={<TeacherProfileComponent />} />
                     <Route path="/teacher/sandbox" element={<TeacherPlaygroundComponent />} />
+                    <Route path="/teacher/sandbox2" element={<TeacherPlaygroundComponentTest />} />
 
                     <Route path="/teacher/class/:classID/activity" element={<TeacherClassManagementComponent />} />
                     <Route path="/teacher/item" element={<TeacherItemBankComponent />} />

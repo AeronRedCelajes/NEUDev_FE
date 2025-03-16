@@ -1284,6 +1284,60 @@ async function getSubmissionDetail(actID, studentID, attemptNo) {
   });
 }
 
+//////////////////////////////////////////
+// NOTIFICATION FUNCTIONS
+//////////////////////////////////////////
+
+// Function to fetch notifications for the current user.
+async function getNotifications() {
+  const sessionData = getSessionData();
+  const token = sessionData.access_token;
+  if (!token) return { error: "Unauthorized access: No token found" };
+
+  return await safeFetch(`${API_LINK}/notifications`, {
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+}
+
+// Function to mark a specific notification as read.
+async function markNotificationAsRead(notificationId) {
+  const sessionData = getSessionData();
+  const token = sessionData.access_token;
+  if (!token) return { error: "Unauthorized access: No token found" };
+
+  return await safeFetch(`${API_LINK}/notifications/${notificationId}/read`, {
+    method: "PATCH",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+}
+
+async function deleteNotification(notificationId) {
+  const sessionData = getSessionData();
+  const token = sessionData.access_token;
+  if (!token) return { error: "Unauthorized access: No token found" };
+
+  return await safeFetch(`${API_LINK}/notifications/${notificationId}`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+}
+
+async function handleNotificationClick(notificationId) {
+  // Mark the notification as read on the server
+  const result = await safeFetch(`/notifications/${notificationId}/read`, {
+    method: 'PATCH',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  
+  if (!result.error) {
+    // Optimistically update in the front end
+    setNotifications(notifs => 
+      notifs.map(n => n.id === notificationId ? {...n, is_read: true} : n)
+    );
+  }
+}
+
 
 //////////////////////////////////////////
 // EXPORT FUNCTIONS
@@ -1348,5 +1402,9 @@ export {
   clearActivityProgress,
   getActivitySubmissionByTeacher,
   getSubmissionDetail,
-  getArchivedClasses
+  getArchivedClasses,
+  getNotifications,
+  markNotificationAsRead,
+  deleteNotification,
+  handleNotificationClick
 };

@@ -5,7 +5,7 @@
     font-family: 'Poppins', sans-serif;
     background-color: #eaeaea;
     min-height: 100vh; /* Use min-height instead of fixed height */
-    padding: 20px;
+    padding: 90px;
   }
 
   .playground-container {
