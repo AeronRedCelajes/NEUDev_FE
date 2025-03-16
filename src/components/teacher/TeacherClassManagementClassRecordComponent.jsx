@@ -1,32 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; 
-import TeacherCMNavigationBarComponent from "./TeacherCMNavigationBarComponent";
-import {
-  // Instead of getClassStudents, we call the new function below:
-  getClassStudentsWithOverallScores,
-  getClassInfo,
-  unenrollStudent,
-  verifyPassword,
-  getSessionData
-} from "../api/API";
-import "../../style/teacher/leaderboard.css";
-import { Modal, Button, Form } from "react-bootstrap";
+import { getClassStudents, getClassInfo, unenrollStudent, verifyPassword } from "../api/API";
+import "../../style/teacher/cmClassRecord.css";
+import TeacherAMNavigationBarComponent from "./TeacherCMNavigationBarComponent";
+import { Modal, Button, Form } from "react-bootstrap"; // Bootstrap components
 
-const LeaderboardItem = ({
-  index,
-  name,
-  studentNumber,
-  sumOfScores,
-  sumOfMaxPoints,
-  avatarUrl,
-  onUnenrollClick
-}) => {
-  // If totalMaxPoints is 0, we avoid dividing by zero
-  let scoreString = "0/0";
-  if (sumOfMaxPoints > 0) {
-    scoreString = `${sumOfScores}/${sumOfMaxPoints}`;
-  }
-
+const LeaderboardItem = ({ index, name, studentNumber, score, avatarUrl, onUnenrollClick }) => {
   return (
     <tr>
       <td>{index}</td> {/* Numbering Column */}
@@ -34,7 +13,7 @@ const LeaderboardItem = ({
         <div className="avatar-name">
           <div className="avatar">
             <img
-              src={avatarUrl || "/src/assets/profile_default.png"}
+              src={avatarUrl || "/src/assests/profile_default.png"}
               alt="Avatar"
               className="avatar-image"
             />
@@ -44,8 +23,7 @@ const LeaderboardItem = ({
       </td>
       <td>{studentNumber}</td>
       <td>
-        {/* Show "21/60" style instead of a percentage */}
-        <div className="score-circle">{scoreString}</div>
+        <div className="score-circle">{score}%</div>
       </td>
       <td className="unenroll-cell">
         <Button variant="danger" size="sm" onClick={onUnenrollClick}>
@@ -57,19 +35,17 @@ const LeaderboardItem = ({
 };
 
 const ClassRecord = () => {
-  const { classID } = useParams();
+  const { classID } = useParams(); 
   const [className, setClassName] = useState("");
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [showUnenrollModal, setShowUnenrollModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const [sortCriteria, setSortCriteria] = useState("lastname"); 
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortCriteria, setSortCriteria] = useState("lastname"); // Default sorting by last name
+  const [sortOrder, setSortOrder] = useState("asc"); // Default order: ascending
 
   useEffect(() => {
     if (!classID) return;
@@ -87,13 +63,10 @@ const ClassRecord = () => {
       }
     };
 
-    const fetchStudentsWithScores = async () => {
+    const fetchStudents = async () => {
       try {
-        // Updated to call the new endpoint
-        const response = await getClassStudentsWithOverallScores(classID);
+        const response = await getClassStudents(classID);
         if (!response.error) {
-          // The response is an array of students, each with
-          // { studentID, firstname, lastname, studentNumber, profileImage, sumOfScores, sumOfMaxPoints }
           setStudents(response);
         } else {
           console.error("Error fetching students:", response.error);
@@ -106,10 +79,9 @@ const ClassRecord = () => {
     };
 
     fetchClassInfo();
-    fetchStudentsWithScores();
+    fetchStudents();
   }, [classID]);
 
-  // Called when user clicks "Unenroll"
   const handleUnenrollClick = (student) => {
     setSelectedStudent(student);
     setShowUnenrollModal(true);
@@ -128,15 +100,9 @@ const ClassRecord = () => {
     }
 
     try {
-      const sessionData = getSessionData();
-      const teacherEmail = sessionData.email;
-      if (!teacherEmail) {
-        setErrorMessage("No teacher email found. Please log in again.");
-        setIsProcessing(false);
-        return;
-      }
-
+      const teacherEmail = sessionStorage.getItem("user_email");
       const verifyResponse = await verifyPassword(teacherEmail, password);
+
       if (verifyResponse.error) {
         setErrorMessage("Incorrect password. Please try again.");
         setIsProcessing(false);
@@ -144,14 +110,14 @@ const ClassRecord = () => {
       }
 
       const unenrollResponse = await unenrollStudent(classID, selectedStudent.studentID);
+
       if (unenrollResponse.error) {
         setErrorMessage(unenrollResponse.error);
         setIsProcessing(false);
         return;
       }
 
-      // Filter out the unenrolled student
-      setStudents(students.filter((s) => s.studentID !== selectedStudent.studentID));
+      setStudents(students.filter((student) => student.studentID !== selectedStudent.studentID));
 
       setShowUnenrollModal(false);
       setSelectedStudent(null);
@@ -163,51 +129,41 @@ const ClassRecord = () => {
     }
   };
 
-  // Sorting
   const sortStudents = (criteria) => {
-    let sorted = [...students];
+    let sortedStudents = [...students];
 
     if (criteria === "lastname") {
-      // Because we have firstname/lastname, we can do sorted by e.g. "lastname"
-      sorted.sort((a, b) => {
-        const aLast = a.lastname.toLowerCase();
-        const bLast = b.lastname.toLowerCase();
-        if (sortOrder === "asc") {
-          return aLast.localeCompare(bLast);
-        } else {
-          return bLast.localeCompare(aLast);
-        }
-      });
+      sortedStudents.sort((a, b) =>
+        sortOrder === "asc"
+          ? a.lastname.localeCompare(b.lastname)
+          : b.lastname.localeCompare(a.lastname)
+      );
     } else if (criteria === "averageScore") {
-      // We'll interpret averageScore as sumOfScores
-      sorted.sort((a, b) => {
-        const aScore = a.sumOfScores || 0;
-        const bScore = b.sumOfScores || 0;
-        return sortOrder === "asc" ? aScore - bScore : bScore - aScore;
-      });
+      sortedStudents.sort((a, b) =>
+        sortOrder === "asc" ? a.averageScore - b.averageScore : b.averageScore - a.averageScore
+      );
     }
 
-    setStudents(sorted);
+    setStudents(sortedStudents);
     setSortCriteria(criteria);
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc"); // Toggle sorting order
   };
 
   return (
     <div className="leaderboard-body">
-      <TeacherCMNavigationBarComponent />
+      <TeacherAMNavigationBarComponent />
+      <div className="class-wrapper"></div>
       <div className="leaderboard-container">
         <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Students in {className || "Loading..."}</h1>
-
+          <h2 className="leaderboard-title">Students in {className || "Loading..."}</h2>
+          
           {/* Sorting Buttons */}
           <div className="sorting-buttons">
             <Button variant="primary" onClick={() => sortStudents("lastname")}>
-              Sort by Last Name{" "}
-              {sortCriteria === "lastname" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+              Sort by Last Name {sortCriteria === "lastname" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
             <Button variant="success" className="ms-2" onClick={() => sortStudents("averageScore")}>
-              Sort by Score{" "}
-              {sortCriteria === "averageScore" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+              Sort by Score {sortCriteria === "averageScore" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
           </div>
 
@@ -220,7 +176,7 @@ const ClassRecord = () => {
                   <th>#</th> {/* Numbering Column Header */}
                   <th>Student Name</th>
                   <th>Student Number</th>
-                  <th>Overall Score</th> {/* Now “21/60” */}
+                  <th>Average Score</th>
                   <th>Unenroll</th>
                 </tr>
               </thead>
@@ -232,9 +188,8 @@ const ClassRecord = () => {
                       index={index + 1}
                       name={`${student.lastname}, ${student.firstname}`}
                       studentNumber={student.studentNumber}
+                      score={student.averageScore}
                       avatarUrl={student.profileImage}
-                      sumOfScores={student.sumOfScores}
-                      sumOfMaxPoints={student.sumOfMaxPoints}
                       onUnenrollClick={() => handleUnenrollClick(student)}
                     />
                   ))
@@ -252,41 +207,20 @@ const ClassRecord = () => {
       </div>
 
       {/* Unenroll Confirmation Modal */}
-      <Modal
-        show={showUnenrollModal}
-        onHide={() => setShowUnenrollModal(false)}
-        backdrop="static"
-        keyboard={false}
-        size="lg"
-      >
+      <Modal show={showUnenrollModal} onHide={() => setShowUnenrollModal(false)} backdrop="static" keyboard={false} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Unenroll Student</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>
-            Are you sure you want to unenroll{" "}
-            <strong>
-              {selectedStudent?.firstname} {selectedStudent?.lastname}
-            </strong>
-            ?
-          </p>
+          <p>Are you sure you want to unenroll <strong>{selectedStudent?.firstname} {selectedStudent?.lastname}</strong>?</p>
           <Form onSubmit={handleConfirmUnenroll}>
             <Form.Group>
               <Form.Label>Enter your password</Form.Label>
-              <Form.Control
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </Form.Group>
             {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
-            <Button variant="danger" type="submit" disabled={isProcessing}>
-              {isProcessing ? "Processing..." : "Unenroll"}
-            </Button>
-            <Button variant="secondary" onClick={() => setShowUnenrollModal(false)}>
-              Cancel
-            </Button>
+            <Button variant="danger" type="submit" disabled={isProcessing}>{isProcessing ? "Processing..." : "Unenroll"}</Button>
+            <Button variant="secondary" onClick={() => setShowUnenrollModal(false)}>Cancel</Button>
           </Form>
         </Modal.Body>
       </Modal>

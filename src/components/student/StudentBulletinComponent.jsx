@@ -8,17 +8,16 @@ import {
   getConcerns, 
   createConcern, 
   deleteConcern,
-  getClassInfo,
-  getSessionData 
+  getClassInfo
 } from '../api/API.js';
 
 export const StudentBulletinComponent = () => {
   // Get classID from URL parameters.
   const { classID } = useParams();
 
-  // Retrieve session data for the current tab
-  const sessionData = getSessionData();
-  const studentID = sessionData.userID ? parseInt(sessionData.userID) : 0;
+  // Get the logged-in student's ID from sessionStorage.
+  const storedUserID = sessionStorage.getItem("userID");
+  const studentID = storedUserID ? parseInt(storedUserID) : 0;
 
   // Teacher details will be fetched from class info.
   const [teacherID, setTeacherID] = useState(null);
@@ -180,6 +179,7 @@ export const StudentBulletinComponent = () => {
   return (
     <>
       <StudentCMNavigationBarComponent />
+      <div className="class-wrapper"></div>
       <div className='bulletin-content'>
         <div className='container-fluid bulletin-header'>
           <div className='bulletin-search'>
@@ -191,9 +191,8 @@ export const StudentBulletinComponent = () => {
           </div>
         </div>
 
-        <Row>
-          <Col></Col>
-          <Col xs={7}>
+        <Row className='announcement-container'>
+          <Col xs={12} md={12} lg={9}>
             <div className='announcement'>
               <div className='announcement-header'>
                 <h5>Teacher's Announcements</h5>
@@ -216,7 +215,7 @@ export const StudentBulletinComponent = () => {
               )}
             </div>
           </Col>
-          <Col xs={3}>
+          <Col xs={12} md={7} lg={3}>
             <div className='concern'>
               <div className='concern-header'>
                 <h5>Your Concerns</h5>
@@ -234,13 +233,12 @@ export const StudentBulletinComponent = () => {
               >
                 <Modal.Header closeButton>
                   <div className='modal-activity-header'>
-                    <h3>Post Your Concern</h3>
+                    <h4>Post Your Concern</h4>
                     <p>To professor {teacherName}</p>
                   </div>
                 </Modal.Header>
                 <Modal.Body>
                   <Form.Group controlId="concernTextArea">
-                    <Form.Label>Your Concern</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={4}

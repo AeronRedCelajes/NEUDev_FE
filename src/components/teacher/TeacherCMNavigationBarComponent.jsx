@@ -46,20 +46,37 @@ const TeacherCMNavigationBarComponent = () => {
   };
 
   return (
-    <Navbar expand="lg" className="class-navbar-top">
-    <i
-      className="bi bi-arrow-left-circle"
-      onClick={() => {
-        if (location.pathname.includes("create-activity")) {
-          navigate(`/teacher/class/${classID}/activity`); // Back to Class Management
-        } else {
-          navigate("/teacher/dashboard"); // Back to Dashboard
-        }
-      }}
-    ></i>
-    <p>{location.pathname.includes("create-activity") ? "Back" : "Dashboard"}</p>
+    <>
+      <Navbar className="class-navbar-top">
+        <div className="navbar-left">
+          <i className="bi bi-arrow-left-circle" onClick={() => {
+              if (location.pathname.includes("create-activity")) {
+                navigate(`/teacher/class/${classID}/activity`); // Back to Class Management
+              } else {
+                navigate("/teacher/dashboard"); // Back to Dashboard
+              }
+            }}
+          ></i>
+          <p>{location.pathname.includes("create-activity") ? "Back" : "Dashboard"}</p>
+        </div>
 
-      {/* ✅ Navigation Tabs */}
+        {/* ✅ Profile & Logout */}
+        <div className="dashboard-navbar">
+          <span className="ping">20 ms</span>
+          <a href="#"><i className="bi bi-moon"></i></a>
+          <span className="student-badge">Teacher</span>
+          <Dropdown align="end">
+            <Dropdown.Toggle variant="transparent" className="profile-dropdown">
+              <img src={profileImage} className="profile-image" alt="Profile" />
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => navigate("/teacher/profile")}>Profile</Dropdown.Item>
+              <Dropdown.Item onClick={handleLogout}>Log Out</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      </Navbar>
+        
       <div className="navbar-center">
         <Tabs activeKey={getActiveTab()} onSelect={handleSelect} id="cm-tabs" fill>
           <Tab eventKey="activity" title="Activities"></Tab>
@@ -67,23 +84,7 @@ const TeacherCMNavigationBarComponent = () => {
           <Tab eventKey="teacher-bulletin" title="Bulletin"></Tab>
         </Tabs>
       </div>
-
-      {/* ✅ Profile & Logout */}
-      <div className="dashboard-navbar">
-        <span className="ping">20 ms</span>
-        <a href="#"><i className="bi bi-moon"></i></a>
-        <span className="student-badge">Teacher</span>
-        <Dropdown align="end">
-          <Dropdown.Toggle variant="transparent" className="profile-dropdown">
-            <img src={profileImage} className="profile-image" alt="Profile" />
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => navigate("/teacher/profile")}>Profile</Dropdown.Item>
-            <Dropdown.Item onClick={handleLogout}>Log Out</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-      </div>
-    </Navbar>
+    </>
   );
 };
 
