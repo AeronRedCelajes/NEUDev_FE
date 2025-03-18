@@ -5,7 +5,7 @@ import { Button, Card, Dropdown, Form, Modal, Nav, Navbar } from 'react-bootstra
 import { useNavigate } from 'react-router-dom';
 import '/src/style/teacher/dashboard.css';
 
-import { logout, getProfile, createClass, getArchivedClasses, updateClass, deleteClass, verifyPassword } from '../api/API.js';
+import { logout, getProfile, createClass, getArchivedClasses, updateClass, deleteClass, verifyPassword, getSessionData, setSessionData } from '../api/API.js';
 
 export const TeacherDashboardArchivedComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
@@ -134,9 +134,9 @@ export const TeacherDashboardArchivedComponent = () => {
       setIsEditing(false);
       return;
     }
-    const updatedClasses = classes.map(cls => {
+    const updatedClasses = classes.map((cls) => {
       if ((cls.id || cls.classID) === editClassData.id) {
-        return { ...cls, ...editClassData, instructorName };
+        return { ...cls, ...response, instructorName };
       }
       return cls;
     });
@@ -144,7 +144,7 @@ export const TeacherDashboardArchivedComponent = () => {
     alert("✅ Class updated successfully!");
     setShowEditModal(false);
     setIsEditing(false);
-  };
+  };  
 
   // Open the delete modal and set the class to delete
   const handleDeleteClass = (classItem, event) => {
@@ -160,7 +160,9 @@ export const TeacherDashboardArchivedComponent = () => {
       alert("⚠️ Please enter your password to confirm deletion.");
       return;
     }
-    const teacherEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const teacherEmail = sessionData.email;
+
     const verifyResponse = await verifyPassword(teacherEmail, deletePassword);
     if (verifyResponse.error) {
       alert(`❌ Password verification failed: ${verifyResponse.error}`);
@@ -268,9 +270,11 @@ export const TeacherDashboardArchivedComponent = () => {
           <h4>Archived Classes</h4>
           <div className='classes-container'>
             {classes.map((classItem, index) => (
-              <Card className='class-card' key={index}
+              <Card className='class-card-archived' key={index}
                 onClick={() => {
-                  sessionStorage.setItem("selectedClassID", classItem.id || classItem.classID);
+                  const sessionData = getSessionData();
+                  sessionData.selectedClassID = classItem.id || classItem.classID;
+                  setSessionData(sessionData);
                   navigate(`/teacher/class/${classItem.id || classItem.classID}/activity`);
                 }}
                 style={{ position: 'relative', cursor: 'pointer' }}>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Editor } from "@monaco-editor/react";
 import {
   Row,
   Col,
@@ -18,10 +17,10 @@ import { faCaretDown, faEllipsisV, faEye, faEyeSlash, faClock, faDownload, faTim
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-import { TeacherNavbar } from '../TeacherNavbar';
+import { ProfilePlaygroundNavbarComponent } from '../ProfilePlaygroundNavbarComponent';
 import '../../style/student/playground.css';
 import '../../style/DarkTerminalModal.css';
-import { getProgrammingLanguages, getCurrentUserKey } from '../api/API';
+import { getProgrammingLanguages } from '../api/API';
 
 const programmingLanguageMap = {
   1: { name: 'Java', image: '/src/assets/java2.png' },
@@ -42,15 +41,8 @@ const getExtensionFromLanguageName = (name) => {
   }
 };
 
-export const TeacherPlaygroundComponent = () => {
+export const TeacherPlaygroundComponentTest = () => {
   const navigate_dashboard = useNavigate();
-
-  // Create a unique key for the student using getCurrentUserKey
-  const studentKey = getCurrentUserKey() || 'default';
-  const stateKey = `playgroundState_${studentKey}`;
-
-  // Flag to indicate that saved state has been loaded.
-  const [hasLoadedSavedState, setHasLoadedSavedState] = useState(false);
 
   // Dynamic Programming Languages
   const [programmingLanguages, setProgrammingLanguages] = useState([]);
@@ -67,28 +59,17 @@ export const TeacherPlaygroundComponent = () => {
   const [newFileName, setNewFileName] = useState('');
   const [newFileExtension, setNewFileExtension] = useState('txt');
 
-  // "Edit File" Modal State
-  const [showEditFileModal, setShowEditFileModal] = useState(false);
-  const [editFileName, setEditFileName] = useState('');
-  const [editFileExtension, setEditFileExtension] = useState('');
-
   // Terminal & WebSocket States
   const [lines, setLines] = useState([]);
-  const [prompt, setPrompt] = useState('');
-  const [typedInput, setTypedInput] = useState('');
+  const [prompt, setPrompt] = useState(''); // current partial line from the server
+  const [typedInput, setTypedInput] = useState(''); // what the user types in the input area
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const wsRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Editor Theme State
-  const [editorTheme, setEditorTheme] = useState("vs-dark");
-  const toggleTheme = () => {
-    setEditorTheme(prevTheme => (prevTheme === "vs-dark" ? "light" : "vs-dark"));
-  };
-
-  // Helper: place caret at end of a contentEditable element
+  // Helper: place caret at end of contentEditable element
   const placeCaretAtEnd = (el) => {
     if (!el) return;
     const range = document.createRange();
@@ -99,74 +80,39 @@ export const TeacherPlaygroundComponent = () => {
     sel.addRange(range);
   };
 
-  // ----------------------------
-  // Local Storage: Load state on mount using the student-specific key
-  // ----------------------------
-  useEffect(() => {
-    const savedState = localStorage.getItem(stateKey);
-    console.log("[Load] Raw localStorage for", stateKey, ":", savedState);
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
-        console.log("[Load] Parsed state:", state);
-        if (state.files) setFiles(state.files);
-        if (state.activeFileId !== undefined) setActiveFileId(state.activeFileId);
-        if (state.selectedLanguage) setSelectedLanguage(state.selectedLanguage);
-        if (state.editorTheme) setEditorTheme(state.editorTheme);
-      } catch (error) {
-        console.error("Failed to load playground state from local storage", error);
-      }
-    }
-    setHasLoadedSavedState(true);
-  }, [stateKey]);
-
-  // ----------------------------
-  // Local Storage: Save state on change using the student-specific key
-  // ----------------------------
-  useEffect(() => {
-    const state = { files, activeFileId, selectedLanguage, editorTheme };
-    console.log("[Save] Writing to localStorage:", state);
-    localStorage.setItem(stateKey, JSON.stringify(state));
-  }, [files, activeFileId, selectedLanguage, editorTheme, stateKey]);
-
-  // ----------------------------
-  // Fetch dynamic programming languages from your API.
-  // Only set default if no language was loaded from local storage.
-  // ----------------------------
-  useEffect(() => {
-    if (!hasLoadedSavedState) return;
-    const fetchProgrammingLanguages = async () => {
-      try {
-        const response = await getProgrammingLanguages();
-        if (!response.error && Array.isArray(response)) {
-          setProgrammingLanguages(response);
-          if (!selectedLanguage) {
-            setSelectedLanguage(response[0]);
-            setFiles(prev => {
-              const updated = [...prev];
-              updated[0].extension =
-                response[0].progLangExtension ||
-                getExtensionFromLanguageName(response[0].progLangName);
-              return updated;
-            });
-          }
-        } else {
-          console.error("❌ Failed to fetch programming languages:", response.error);
+  // Fetch dynamic programming languages from your API
+  const fetchProgrammingLanguages = async () => {
+    try {
+      const response = await getProgrammingLanguages();
+      if (!response.error && Array.isArray(response)) {
+        setProgrammingLanguages(response);
+        if (response.length > 0) {
+          setSelectedLanguage(response[0]);
+          setFiles((prev) => {
+            const updated = [...prev];
+            updated[0].extension =
+              response[0].progLangExtension ||
+              getExtensionFromLanguageName(response[0].progLangName);
+            return updated;
+          });
         }
-      } catch (err) {
-        console.error("❌ Error fetching programming languages:", err);
+      } else {
+        console.error("❌ Failed to fetch programming languages:", response.error);
       }
-    };
-    fetchProgrammingLanguages();
-  }, [hasLoadedSavedState, selectedLanguage]);
+    } catch (err) {
+      console.error("❌ Error fetching programming languages:", err);
+    }
+  };
 
-  // ----------------------------
+  useEffect(() => {
+    fetchProgrammingLanguages();
+  }, []);
+
   // Handle language selection
-  // ----------------------------
   const handleSelectLanguage = (lang) => {
     setSelectedLanguage(lang);
-    setFiles(prev =>
-      prev.map(f =>
+    setFiles((prev) =>
+      prev.map((f) =>
         f.id === activeFileId
           ? { ...f, extension: lang.progLangExtension || getExtensionFromLanguageName(lang.progLangName) }
           : f
@@ -174,14 +120,12 @@ export const TeacherPlaygroundComponent = () => {
     );
   };
 
-  // ----------------------------
   // File management and tab selection
-  // ----------------------------
-  const activeFile = files.find(f => f.id === activeFileId);
+  const activeFile = files.find((f) => f.id === activeFileId);
   const handleTabSelect = (fileId) => setActiveFileId(fileId);
   const handleFileChange = (newContent) => {
-    setFiles(prev =>
-      prev.map(f => f.id === activeFileId ? { ...f, content: newContent } : f)
+    setFiles((prev) =>
+      prev.map((f) => (f.id === activeFileId ? { ...f, content: newContent } : f))
     );
   };
 
@@ -195,56 +139,30 @@ export const TeacherPlaygroundComponent = () => {
   };
 
   const handleCreateNewFile = () => {
-    const newId = files.length > 0 ? Math.max(...files.map(f => f.id)) + 1 : 0;
+    const newId = files.length > 0 ? Math.max(...files.map((f) => f.id)) + 1 : 0;
     const newFile = {
       id: newId,
       fileName: newFileName || `file${newId}`,
       extension: newFileExtension || 'txt',
       content: ''
     };
-    setFiles(prev => [...prev, newFile]);
+    setFiles((prev) => [...prev, newFile]);
     setActiveFileId(newId);
     setShowAddFileModal(false);
   };
 
-  // Updated delete file handler using the previous state value
   const handleDeleteFile = (fileId) => {
     if (files.length === 1) return;
     if (window.confirm("Are you sure you want to delete this file?")) {
-      setFiles(prev => {
-        const newFiles = prev.filter(f => f.id !== fileId);
-        if (activeFileId === fileId) {
-          setActiveFileId(newFiles[0]?.id || 0);
-        }
-        return newFiles;
-      });
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+      if (activeFileId === fileId) {
+        const remaining = files.filter((f) => f.id !== fileId);
+        setActiveFileId(remaining[0]?.id || 0);
+      }
     }
   };
 
-  // ----------------------------
-  // Edit File Functions
-  // ----------------------------
-  const openEditFileModal = () => {
-    const file = files.find(f => f.id === activeFileId);
-    if (file) {
-      setEditFileName(file.fileName);
-      setEditFileExtension(file.extension);
-      setShowEditFileModal(true);
-    }
-  };
-
-  const handleEditFile = () => {
-    setFiles(prev =>
-      prev.map(f =>
-        f.id === activeFileId ? { ...f, fileName: editFileName, extension: editFileExtension } : f
-      )
-    );
-    setShowEditFileModal(false);
-  };
-
-  // ----------------------------
-  // WebSocket Setup – for running code and terminal output
-  // ----------------------------
+  // WebSocket Setup – assume backend is in canonical mode
   useEffect(() => {
     const ws = new WebSocket('https://neudevcompiler-production.up.railway.app');
     wsRef.current = ws;
@@ -270,9 +188,7 @@ export const TeacherPlaygroundComponent = () => {
     };
   }, []);
 
-  // ----------------------------
   // Handle output from the backend
-  // ----------------------------
   const handleStdout = (newData) => {
     let buffer = prompt + newData;
     const splitLines = buffer.split('\n');
@@ -289,12 +205,10 @@ export const TeacherPlaygroundComponent = () => {
   };
 
   const finalizeLine = (text) => {
-    setLines(prev => [...prev, text]);
+    setLines((prev) => [...prev, text]);
   };
 
-  // ----------------------------
-  // Run Code via WebSocket
-  // ----------------------------
+  // Send code to the backend to run it
   const handleRunCode = () => {
     if (!activeFile) return;
     setLines([]);
@@ -320,9 +234,7 @@ export const TeacherPlaygroundComponent = () => {
     }
   };
 
-  // ----------------------------
-  // User Input Handling for Terminal
-  // ----------------------------
+  // User Input Handling – we now use a separate input textarea
   const handleInputKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -330,6 +242,8 @@ export const TeacherPlaygroundComponent = () => {
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'input', data: typedInput }));
       }
+      // Do not merge the prompt and user input locally.
+      // Clear prompt & typed input for the next line.
       setPrompt('');
       setTypedInput('');
       if (inputRef.current) {
@@ -356,9 +270,6 @@ export const TeacherPlaygroundComponent = () => {
     }
   }, [lines, prompt, typedInput]);
 
-  // ----------------------------
-  // Download Files (Single or ZIP)
-  // ----------------------------
   const handleDownloadFiles = async () => {
     if (files.length === 1) {
       const singleFile = files[0];
@@ -366,7 +277,7 @@ export const TeacherPlaygroundComponent = () => {
       saveAs(blob, `${singleFile.fileName}.${singleFile.extension}`);
     } else {
       const zip = new JSZip();
-      files.forEach(file => {
+      files.forEach((file) => {
         zip.file(`${file.fileName}.${file.extension}`, file.content);
       });
       const content = await zip.generateAsync({ type: 'blob' });
@@ -374,9 +285,6 @@ export const TeacherPlaygroundComponent = () => {
     }
   };
 
-  // ----------------------------
-  // Stop Running Program on Terminal Close
-  // ----------------------------
   const handleCloseTerminal = () => {
     if (loading && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'kill' }));
@@ -390,7 +298,7 @@ export const TeacherPlaygroundComponent = () => {
 
   return (
     <>
-      <TeacherNavbar />
+      <ProfilePlaygroundNavbarComponent />
       <div className="playground">
         <div className="playground-container">
           <div className="playground-header">
@@ -430,9 +338,6 @@ export const TeacherPlaygroundComponent = () => {
                 <Button variant="link" style={{ textDecoration: 'none' }} onClick={openAddFileModal}>
                   <span className="bi bi-plus-square-fill"></span>
                 </Button>
-                <Button variant="link" style={{ textDecoration: 'none' }} onClick={openEditFileModal} title="Edit File">
-                  <i className="bi bi-pencil"></i>
-                </Button>
               </Col>
               <Col sm={2} className="right-corner d-flex justify-content-end align-items-center">
                 <Button variant="link" onClick={handleDownloadFiles} title="Download Files">
@@ -449,8 +354,7 @@ export const TeacherPlaygroundComponent = () => {
                         (programmingLanguageMap[selectedLanguage.progLangID] &&
                           programmingLanguageMap[selectedLanguage.progLangID].image) ? (
                           <img
-                            src={selectedLanguage.progLangImage ||
-                              programmingLanguageMap[selectedLanguage.progLangID]?.image}
+                            src={selectedLanguage.progLangImage || programmingLanguageMap[selectedLanguage.progLangID]?.image}
                             style={{ width: '20px', marginRight: '8px' }}
                             alt="language-icon"
                           />
@@ -459,7 +363,9 @@ export const TeacherPlaygroundComponent = () => {
                           programmingLanguageMap[selectedLanguage.progLangID]?.name ||
                           'Select Language'}
                       </>
-                    ) : 'Loading...'
+                    ) : (
+                      'Loading...'
+                    )
                   }
                 >
                   {programmingLanguages.map((lang) => {
@@ -468,11 +374,7 @@ export const TeacherPlaygroundComponent = () => {
                     return (
                       <Dropdown.Item key={lang.progLangID} onClick={() => handleSelectLanguage(lang)}>
                         {imageSrc && (
-                          <img
-                            src={imageSrc}
-                            alt={`${languageName}-icon`}
-                            style={{ width: '20px', marginRight: '8px' }}
-                          />
+                          <img src={imageSrc} alt={`${languageName}-icon`} style={{ width: '20px', marginRight: '8px' }} />
                         )}
                         {languageName}
                       </Dropdown.Item>
@@ -484,18 +386,12 @@ export const TeacherPlaygroundComponent = () => {
             <div className="header-border"></div>
           </div>
           <div className="playground-editor">
-            {/* Replacing the textarea with the Monaco Editor */}
-            <Editor
-              height="60vh"
-              language={selectedLanguage?.progLangName.toLowerCase()}
-              value={activeFile?.content || ""}
-              onChange={(newValue) => handleFileChange(newValue)}
-              theme={editorTheme}
-              options={{
-                fontSize: 14,
-                minimap: { enabled: true },
-                automaticLayout: true,
-              }}
+            <textarea
+              className="code-editor"
+              value={activeFile?.content || ''}
+              onChange={(e) => handleFileChange(e.target.value)}
+              rows={15}
+              placeholder="Write your code here..."
             />
           </div>
           <div className="playground-bottom">
@@ -587,41 +483,8 @@ export const TeacherPlaygroundComponent = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-      <Modal show={showEditFileModal} onHide={() => setShowEditFileModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit File</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group>
-            <Form.Label>Filename</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter filename (without extension)"
-              value={editFileName}
-              onChange={(e) => setEditFileName(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mt-3">
-            <Form.Label>Extension</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="e.g. py, cs, java..."
-              value={editFileExtension}
-              onChange={(e) => setEditFileExtension(e.target.value)}
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditFileModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleEditFile}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </>
   );
 };
 
-export default TeacherPlaygroundComponent;
+export default TeacherPlaygroundComponentTest;

@@ -27,7 +27,8 @@ import {
   getActivityItemsByStudent, 
   finalizeSubmission, 
   saveActivityProgress, 
-  clearActivityProgress 
+  clearActivityProgress,
+  getCurrentUserKey 
 } from '../api/API';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -50,13 +51,17 @@ function getExtensionFromLanguage(langName) {
 export const StudentCodingAssessmentComponent = () => {
   const { classID, actID } = useParams();
   const navigate = useNavigate();
-  const stateKey = `activityState_${actID}`;
+  
+  // Use the unique user ID from session to avoid conflict between accounts.
+  const userID = getCurrentUserKey() || 'default';
+  const stateKey = `activityState_${actID}_${userID}`;
 
   // Activity details
   const [activityName, setActivityName] = useState('');
   const [actDesc, setActDesc] = useState('');
   const [maxPoints, setMaxPoints] = useState(0);
   const [actDuration, setActDuration] = useState(''); // HH:MM:SS
+  const [finalScorePolicy, setFinalScorePolicy] = useState('last_attempt'); // default
 
   // Items & allowed languages
   const [items, setItems] = useState([]);
@@ -80,6 +85,7 @@ export const StudentCodingAssessmentComponent = () => {
   const [showTerminal, setShowTerminal] = useState(false);
   const wsRef = useRef(null);
   const inputRef = useRef(null);
+  // testCaseResults now holds objects with latest and best fields
   const [testCaseResults, setTestCaseResults] = useState({});
 
   // Timer and submission states
@@ -89,13 +95,12 @@ export const StudentCodingAssessmentComponent = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasLoadedSavedState, setHasLoadedSavedState] = useState(false);
 
-  // For summary modal
+  // For summary modal (submission results)
   const [showFinishAttempt, setShowFinishAttempt] = useState(false);
   const [showSubmit, setShowSubmit] = useState(false);
   const [finalTitle, setFinalTitle] = useState('Result');
   const [finalTestCases, setFinalTestCases] = useState('0/0');
   const [finalScore, setFinalScore] = useState('0/0');
-  const [finalRank, setFinalRank] = useState('-');
   const [finalSpeed, setFinalSpeed] = useState('00:00:00');
   const [finalActivityName, setFinalActivityName] = useState('');
 
@@ -106,6 +111,9 @@ export const StudentCodingAssessmentComponent = () => {
   const [showEditFileModal, setShowEditFileModal] = useState(false);
   const [editFileName, setEditFileName] = useState('');
   const [editFileExtension, setEditFileExtension] = useState('');
+
+  // Submission alert modal for other tabs
+  const [showSubmissionAlert, setShowSubmissionAlert] = useState(false);
 
   // Assessment start time
   const [startTime] = useState(Date.now());
@@ -126,6 +134,19 @@ export const StudentCodingAssessmentComponent = () => {
     return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   };
 
+  // --- Listen for submission events from other tabs ---
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      const expectedKey = `activitySubmitted_${actID}_${userID}`;
+      if (e.key === expectedKey && e.newValue) {
+        setIsSubmitted(true);
+        setShowSubmissionAlert(true);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [actID, userID]);
+
   // --- Fetch activity data ---
   useEffect(() => {
     async function fetchActivityData() {
@@ -136,10 +157,11 @@ export const StudentCodingAssessmentComponent = () => {
           setActDesc(resp.actDesc);
           setMaxPoints(resp.maxPoints);
           setActDuration(resp.actDuration);
+          if (resp.finalScorePolicy) {
+            setFinalScorePolicy(resp.finalScorePolicy);
+          }
           setItems(resp.items || []);
           if (resp.items && resp.items.length > 0) {
-            // setExpandedItem(resp.items[0].itemID);
-            // setSelectedItem(resp.items[0].itemID);
             toggleItem(resp.items[0].itemID);
           }
           if (resp.allowedLanguages && resp.allowedLanguages.length > 0) {
@@ -149,9 +171,6 @@ export const StudentCodingAssessmentComponent = () => {
               name: first.progLangName,
               imgSrc: languageIconMap[first.progLangName] || '/src/assets/py.png'
             });
-          }
-          if (resp.rank) {
-            setFinalRank(resp.rank);
           }
         }
       } catch (err) {
@@ -235,8 +254,8 @@ export const StudentCodingAssessmentComponent = () => {
         if (parsed.activeFileId !== undefined) setActiveFileId(parsed.activeFileId);
         if (parsed.testCaseResults) setTestCaseResults(parsed.testCaseResults);
         if (parsed.selectedItem) setSelectedItem(parsed.selectedItem);
-        if (parsed.itemTimes) {
-          setItemTimes(parsed.itemTimes);
+        if (parsed.draftItemTimes) {
+          setItemTimes(parsed.draftItemTimes);
         }
       } else {
         setTimeLeft(0);
@@ -249,6 +268,7 @@ export const StudentCodingAssessmentComponent = () => {
       const totalSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
       initialTimeLeft = totalSeconds;
       endTime = Date.now() + totalSeconds * 1000;
+      // Changed keys: now using draftItemTimes, draftSelectedLanguage, and draftTimeRemaining
       const newState = {
         startTime,
         endTime,
@@ -259,7 +279,9 @@ export const StudentCodingAssessmentComponent = () => {
         testCaseResults,
         selectedItem,
         draftScore: computeTotalScore(),
-        itemTimes
+        draftItemTimes: itemTimes, 
+        draftSelectedLanguage: selectedLanguage.name,
+        draftTimeRemaining: timeLeft
       };
       localStorage.setItem(stateKey, JSON.stringify(newState));
     }
@@ -297,28 +319,25 @@ export const StudentCodingAssessmentComponent = () => {
     parsed.files = files;
     parsed.activeFileId = activeFileId;
     parsed.testCaseResults = testCaseResults;
-    // Also save the per-item times
-    parsed.itemTimes = itemTimes; // you can store it directly or stringify it
-
+    parsed.draftItemTimes = itemTimes; // renamed key
+    parsed.draftSelectedLanguage = selectedLanguage.name; // renamed key
+    parsed.draftTimeRemaining = timeLeft; // renamed key
+    parsed.draftScore = computeTotalScore();
+    parsed.selectedItem = selectedItem;
     if (originalEndTime) {
       parsed.endTime = originalEndTime;
     }
     parsed.draftScore = computeTotalScore();
-    console.log("Syncing progress: ", {
-      draftScore: parsed.draftScore,
-      files,
-      testCaseResults,
-      itemTimes
-    });
     localStorage.setItem(stateKey, JSON.stringify(parsed));
     
     const progressData = {
       draftFiles: JSON.stringify(files),
-      draftTestCaseResults: JSON.stringify(testCaseResults),
-      timeRemaining: timeLeft,
-      selectedLanguage: selectedLanguage.name,
+      draftTestCaseResults: JSON.stringify(testCaseResults || {}),
+      draftTimeRemaining: timeLeft, // renamed key
+      draftSelectedLanguage: selectedLanguage.name, // renamed key
       draftScore: computeTotalScore(),
-      itemTimes: JSON.stringify(itemTimes)
+      draftItemTimes: JSON.stringify(itemTimes) // renamed key
+      // Removed draftTimeSpent since it's no longer needed.
     };
     saveActivityProgress(actID, progressData)
       .then(res => console.log("Progress saved to server:", res))
@@ -332,9 +351,10 @@ export const StudentCodingAssessmentComponent = () => {
         const progressData = {
           draftFiles: JSON.stringify(files),
           draftTestCaseResults: JSON.stringify(testCaseResults),
-          timeRemaining: timeLeft,
-          selectedLanguage: selectedLanguage.name,
-          draftScore: computeTotalScore()
+          draftTimeRemaining: timeLeft, // renamed key
+          draftSelectedLanguage: selectedLanguage.name, // renamed key
+          draftScore: computeTotalScore(),
+          draftItemTimes: JSON.stringify(itemTimes) // renamed key
         };
         saveActivityProgress(actID, progressData)
           .then(res => console.log("Periodic progress sync:", res))
@@ -397,12 +417,11 @@ export const StudentCodingAssessmentComponent = () => {
   // --- Per-item timer: When toggling items, update times ---
   const toggleItem = (itemID) => {
     const now = Date.now();
-    // If an item was previously selected, update its accumulated time.
     if (selectedItem) {
       setItemTimes((prev) => {
         const prevItem = prev[selectedItem] || { accumulated: 0 };
         const startTimeValue = prev[selectedItem]?.start || now;
-        const elapsed = Math.floor((now - startTimeValue) / 1000); // seconds elapsed
+        const elapsed = Math.floor((now - startTimeValue) / 1000);
         return {
           ...prev,
           [selectedItem]: {
@@ -412,7 +431,6 @@ export const StudentCodingAssessmentComponent = () => {
         };
       });
     }
-    // Set the new selected item and start its timer.
     setSelectedItem(itemID);
     setExpandedItem(itemID);
     setItemTimes((prev) => ({
@@ -533,6 +551,7 @@ export const StudentCodingAssessmentComponent = () => {
       setPrompt('');
       setTypedInput('');
       setShowTerminal(true);
+
       const ws = wsRef.current;
       if (ws && ws.readyState === WebSocket.OPEN) {
         let outputBuffer = [];
@@ -545,36 +564,67 @@ export const StudentCodingAssessmentComponent = () => {
           } else if (data.type === 'exit') {
             ws.removeEventListener('message', handleMessage);
             setLoading(false);
+
             let fullOutput = outputBuffer.join('');
             fullOutput = fullOutput.replace(/\n\n>>> Program Terminated\s*$/, '').trim();
-            console.log("TestCase Output:", fullOutput, "Expected:", testCase.expectedOutput);
             const pass = fullOutput.trim() === testCase.expectedOutput.trim();
-            console.log("TestCase Pass:", pass, "Points:", pass ? testCase.testCasePoints : 0);
-            setTestCaseResults(prev => {
-              const itemResults = prev[selectedItem] || {};
-              const existing = itemResults[testCase.testCaseID] || {
-                lockedPass: null,
-                lockedPoints: 0,
-                lockedOutput: '',
-                latestPass: null,
-                latestOutput: ''
-              };
-              const updated = { ...existing };
-              updated.latestPass = pass;
-              updated.latestOutput = fullOutput;
-              if (scoreUpdate) {
-                updated.lockedPass = pass;
-                updated.lockedOutput = fullOutput;
-                updated.lockedPoints = pass ? testCase.testCasePoints : 0;
-              }
-              return {
-                ...prev,
-                [selectedItem]: {
-                  ...itemResults,
-                  [testCase.testCaseID]: updated
+
+            console.log("TestCase Output:", fullOutput, "Expected:", testCase.expectedOutput, "Pass:", pass);
+
+            if (scoreUpdate) {
+              setTestCaseResults(prev => {
+                const itemResults = prev[selectedItem] || {};
+                const existing = itemResults[testCase.testCaseID] || {
+                  latestPass: null,
+                  latestPoints: 0,
+                  latestOutput: '',
+                  bestPass: null,
+                  bestPoints: 0,
+                  bestOutput: ''
+                };
+
+                existing.latestPass = pass;
+                existing.latestPoints = pass ? testCase.testCasePoints : 0;
+                existing.latestOutput = fullOutput;
+
+                if (existing.latestPoints > (existing.bestPoints || 0)) {
+                  existing.bestPass = existing.latestPass;
+                  existing.bestPoints = existing.latestPoints;
+                  existing.bestOutput = existing.latestOutput;
                 }
-              };
-            });
+
+                return {
+                  ...prev,
+                  [selectedItem]: {
+                    ...itemResults,
+                    [testCase.testCaseID]: existing
+                  }
+                };
+              });
+            } else {
+              setTestCaseResults(prev => {
+                const itemResults = prev[selectedItem] || {};
+                const existing = itemResults[testCase.testCaseID] || {
+                  latestPass: null,
+                  latestPoints: 0,
+                  latestOutput: '',
+                  bestPass: null,
+                  bestPoints: 0,
+                  bestOutput: ''
+                };
+
+                existing.latestPass = pass;
+                existing.latestOutput = fullOutput;
+
+                return {
+                  ...prev,
+                  [selectedItem]: {
+                    ...itemResults,
+                    [testCase.testCaseID]: existing
+                  }
+                };
+              });
+            }
             resolve();
           }
         };
@@ -638,19 +688,17 @@ export const StudentCodingAssessmentComponent = () => {
     setTypedInput('');
   };
 
-  // --- Compute per-item score (unchanged) ---
+  // --- Compute per-item score (current attempt only) ---
   const computeItemScore = (itemID) => {
     const item = items.find(it => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
-    const itemResults = testCaseResults[item.itemID] || {};
+  
+    const itemResults = testCaseResults[itemID] || {};
     let sum = 0;
     item.testCases.forEach(tc => {
-      const r = itemResults[tc.testCaseID];
-      if (r && r.lockedPass !== null) {
-        sum += r.lockedPoints;
-      }
+      const r = itemResults[tc.testCaseID] || {};
+      sum += r.latestPoints || 0;
     });
-    console.log(`Item ${itemID} Score: `, sum);
     return sum;
   };
 
@@ -660,7 +708,6 @@ export const StudentCodingAssessmentComponent = () => {
     items.forEach(item => {
       total += computeItemScore(item.itemID);
     });
-    console.log("Total computed score: ", total);
     return total;
   };
 
@@ -682,83 +729,65 @@ export const StudentCodingAssessmentComponent = () => {
     setShowFinishAttempt(true);
   };
 
-// --- Finalize submission handler with per-item times ---
-// Helper: convert seconds to HH:MM:SS
-function formatSecondsToHMS(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
-}
-
-// In your component:
-const finalizeSubmissionHandler = async () => {
-  if (isSubmitted) return;
-  const now = Date.now();
-
-  // 1) Create a local copy of itemTimes
-  let updatedTimes = { ...itemTimes };
-
-  // 2) If there’s an active item, calculate how many seconds have passed
-  //    since it was last toggled and add that to its accumulated time.
-  if (selectedItem) {
-    const current = updatedTimes[selectedItem] || { accumulated: 0 };
-    const startTimeValue = current.start || now;
-    const elapsed = Math.floor((now - startTimeValue) / 1000);
-
-    updatedTimes[selectedItem] = {
-      start: null,
-      accumulated: (current.accumulated || 0) + elapsed,
-    };
+  function formatSecondsToHMS(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   }
 
-  // 3) Now update the state once with your final local times
-  setItemTimes(updatedTimes);
-
-  // 4) Build the submission payload using updatedTimes (NOT the old itemTimes)
-  const submissionData = {
-    submissions: items.map(item => {
-      const timeData = updatedTimes[item.itemID] || { accumulated: 0 };
-      const secondsSpent = timeData.accumulated;
-
-      console.log(
-        `[finalizeSubmissionHandler] itemID=${item.itemID}, ` +
-        `rawTimeSpent=${secondsSpent}, ` +
-        `formattedTimeSpent=${formatSecondsToHMS(secondsSpent)}`
-      );
-
-      return {
-        itemID: item.itemID,
-        codeSubmission: JSON.stringify(files),
-        score: computeItemScore(item.itemID),
-        timeSpent: secondsSpent, // in seconds
+  const finalizeSubmissionHandler = async (overallTimeSpent) => {
+    if (isSubmitted) return;
+    const now = Date.now();
+  
+    // Update active item's accumulated time if needed.
+    let updatedTimes = { ...itemTimes };
+    if (selectedItem) {
+      const current = updatedTimes[selectedItem] || { accumulated: 0 };
+      const startTimeValue = current.start || now;
+      const elapsed = Math.floor((now - startTimeValue) / 1000);
+      updatedTimes[selectedItem] = {
+        start: null,
+        accumulated: (current.accumulated || 0) + elapsed,
       };
-    })
-  };
-
-  console.log("Submitting final:", submissionData);
-
-  // 5) Proceed with final submission
-  const result = await finalizeSubmission(actID, submissionData);
-  if (result.error) {
-    console.error("Submission failed:", result.error, result.details);
-  } else {
-    if (result.finalScore !== undefined) {
-      setFinalScore(`${result.finalScore}/${maxPoints}`);
+    }
+    setItemTimes(updatedTimes);
+  
+    // Build submission payload.
+    // For each item, only include its specific testCaseResults.
+    const submissionData = {
+      overallTimeSpent,
+      submissions: items.map(item => {
+        const timeData = updatedTimes[item.itemID] || { accumulated: 0 };
+        const secondsSpent = timeData.accumulated;
+        return {
+          itemID: item.itemID,
+          codeSubmission: JSON.stringify(files),
+          score: computeItemScore(item.itemID),
+          itemTimeSpent: secondsSpent,
+          timeSpent: overallTimeSpent,
+          testCaseResults: JSON.stringify(testCaseResults[item.itemID] || {}),
+          timeRemaining: timeLeft,
+          selectedLanguage: selectedLanguage.name
+        };
+      })
+    };
+  
+    console.log("Submitting final:", submissionData);
+    const result = await finalizeSubmission(actID, submissionData);
+    if (result.error) {
+      console.error("Submission failed:", result.error, result.details);
     } else {
       setFinalScore(`${computeTotalScore()}/${maxPoints}`);
+      setIsSubmitted(true);
+      const submissionKey = `activitySubmitted_${actID}_${userID}`;
+      localStorage.setItem(submissionKey, Date.now());
+      await clearActivityProgress(actID);
+      localStorage.removeItem(stateKey);
+      console.log("Submission successful, cleared progress.");
     }
-    if (result.rank !== undefined) {
-      setFinalRank(result.rank);
-    }
-    setIsSubmitted(true);
-    await clearActivityProgress(actID);
-    localStorage.removeItem(stateKey);
-    console.log("Submission successful, cleared progress.");
-  }
-};
-
-
+  };
+  
   const handleSubmitAllAndFinish = async () => {
     if (isSubmitted) return;
     let totalTC = 0;
@@ -774,18 +803,20 @@ const finalizeSubmissionHandler = async () => {
       }
     });
     setFinalTestCases(`${correctTC}/${totalTC}`);
-
+  
     const totalScore = computeTotalScore();
     const mp = maxPoints || 1;
     const percent = (totalScore / mp) * 100;
     setFinalTitle(percent < 60 ? 'Bummer...' : 'You are Awesome!');
     setFinalActivityName(activityName);
     setFinalScore(`${totalScore}/${mp}`);
-
-    const diffInSeconds = Math.floor((Date.now() - startTime) / 1000);
-    setFinalSpeed(formatTimeLeft(diffInSeconds));
-
-    await finalizeSubmissionHandler();
+  
+    const [hh, mm, ss] = actDuration.split(':').map(Number);
+    const totalActSeconds = (hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0);
+    const overallTimeSpent = timeExpired ? totalActSeconds : totalActSeconds - timeLeft;
+    setFinalSpeed(formatTimeLeft(overallTimeSpent));
+  
+    await finalizeSubmissionHandler(overallTimeSpent);
     setShowFinishAttempt(false);
     setShowSubmit(true);
   };
@@ -805,7 +836,6 @@ const finalizeSubmissionHandler = async () => {
     }
   };
 
-  // --- Render ---
   return (
     <>
       <Navbar expand='lg' className='assessment-navbar-top'>
@@ -1034,10 +1064,6 @@ const finalizeSubmissionHandler = async () => {
                     <div className='activity-standing'>
                       <Row className='g-0'>
                         <Col className='activity-standing-button'>
-                          <p>Rank</p>
-                          <button disabled>{finalRank}</button>
-                        </Col>
-                        <Col className='activity-standing-button'>
                           <p>Overall Score</p>
                           <button disabled>{finalScore}</button>
                         </Col>
@@ -1061,11 +1087,12 @@ const finalizeSubmissionHandler = async () => {
                   it.testCases?.map((tc, idx) => {
                     const itemResults = testCaseResults[it.itemID] || {};
                     const r = itemResults[tc.testCaseID] || {
-                      lockedPass: null,
-                      lockedPoints: 0,
-                      lockedOutput: '',
                       latestPass: null,
-                      latestOutput: ''
+                      latestPoints: 0,
+                      latestOutput: '',
+                      bestPass: null,
+                      bestPoints: 0,
+                      bestOutput: ''
                     };
                     let passFail = 'untested';
                     if (r.latestPass === true) passFail = 'pass';
@@ -1077,7 +1104,7 @@ const finalizeSubmissionHandler = async () => {
                           setExpandedTestCases(prev => ({ 
                             ...prev, 
                             [tc.testCaseID]: !prev[tc.testCaseID] 
-                          }))}
+                          }))} 
                           style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                           <Button style={{
                             width: '25px',
@@ -1106,7 +1133,9 @@ const finalizeSubmissionHandler = async () => {
                                 <>
                                   <p>Your Output: {r.latestOutput || '(none)'}</p>
                                   <p>Expected Output: {tc.expectedOutput}</p>
-                                  <p>Points: {r.lockedPoints}/{tc.testCasePoints}</p>
+                                  <p>
+                                    Points: {finalScorePolicy === 'highest_score' ? (r.bestPoints || 0) : (r.latestPoints || 0)}/{tc.testCasePoints}
+                                  </p>
                                 </>
                               )
                             }
@@ -1127,6 +1156,7 @@ const finalizeSubmissionHandler = async () => {
         </Row>
       </div>
 
+      {/* Terminal Modal */}
       <Modal show={showTerminal} onHide={handleCloseTerminal} size='lg' backdrop='static' keyboard={false} centered>
         <Modal.Header closeButton>
           <Modal.Title>NEUDev Terminal</Modal.Title>
@@ -1148,8 +1178,7 @@ const finalizeSubmissionHandler = async () => {
                 sel.removeAllRanges();
                 sel.addRange(range);
               }
-            }}
-          >
+            }}>
             {lines.map((line, idx) => (
               <div key={idx} style={{ whiteSpace: 'pre-wrap' }}>
                 {line}
@@ -1164,6 +1193,7 @@ const finalizeSubmissionHandler = async () => {
         </Modal.Body>
       </Modal>
 
+      {/* Add File Modal */}
       <Modal show={showAddFileModal} onHide={() => setShowAddFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Add File</Modal.Title>
@@ -1184,6 +1214,7 @@ const finalizeSubmissionHandler = async () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Edit File Modal */}
       <Modal show={showEditFileModal} onHide={() => setShowEditFileModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit File</Modal.Title>
@@ -1201,6 +1232,33 @@ const finalizeSubmissionHandler = async () => {
         <Modal.Footer>
           <Button variant='secondary' onClick={() => setShowEditFileModal(false)}>Cancel</Button>
           <Button variant='primary' onClick={handleEditFile}>Save Changes</Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Submission Alert Modal for Other Tabs */}
+      <Modal
+        show={showSubmissionAlert}
+        onHide={() => {
+          setShowSubmissionAlert(false);
+          navigate(`/student/class/${classID}/activity`);
+        }}
+        backdrop='static'
+        keyboard={false}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Activity Submitted</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>This activity has already been submitted in another tab.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => {
+            setShowSubmissionAlert(false);
+            navigate(`/student/class/${classID}/activity`);
+          }}>
+            OK
+          </Button>
         </Modal.Footer>
       </Modal>
     </>

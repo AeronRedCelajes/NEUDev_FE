@@ -14,12 +14,10 @@ import {
   getItems,
   createActivity, 
   getItemTypes, 
-  getProgrammingLanguages 
+  getProgrammingLanguages,
+  getSessionData
 } from '../api/API';
 
-// 1) Use the **name** returned by your backend as keys.
-//    If your backend returns "C#", "Java", and "Python",
-//    your map should be exactly like this:
 const programmingLanguageMap = {
   "C#":     { name: "C#",     image: "/src/assets/c.png" },
   "Java":   { name: "Java",   image: "/src/assets/java2.png" },
@@ -33,14 +31,8 @@ export const TeacherCreateActivityComponent = () => {
   const [activityTitle, setActivityTitle] = useState('');
   const [activityDescription, setActivityDescription] = useState('');
   const [actDifficulty, setDifficulty] = useState('');
-  
-  // Store duration as "HH:MM:SS" (input as minutes)
   const [activityDuration, setActivityDuration] = useState('');
-  
-  // NEW: Activity Attempts (0 for unlimited; otherwise limited attempts)
   const [activityAttempts, setActivityAttempts] = useState("1");
-
-  // NEW: Final Score Policy (last_attempt or highest_score)
   const [finalScorePolicy, setFinalScorePolicy] = useState("last_attempt");
 
   // -------------------- Item Bank State --------------------
@@ -48,7 +40,6 @@ export const TeacherCreateActivityComponent = () => {
   const [presetItems, setPresetItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
-  // New state for item bank scope (personal vs. global)
   const [itemBankScope, setItemBankScope] = useState("personal");
 
   // -------------------- Item Types & Programming Languages --------------------
@@ -67,8 +58,6 @@ export const TeacherCreateActivityComponent = () => {
 
   // -------------------- Programming Languages from Server --------------------
   const [programmingLanguages, setProgrammingLanguages] = useState([]);
-
-  // For actDuration input in minutes
   const [durationInMinutes, setDurationInMinutes] = useState("0");
 
   // -------------------- Sorting Preset Items --------------------
@@ -148,8 +137,9 @@ export const TeacherCreateActivityComponent = () => {
   };
 
   const fetchPresetItems = async () => {
-    const teacherID = sessionStorage.getItem("userID");
-    // Use getItems with query params
+    const sessionData = getSessionData();
+    const teacherID = sessionData.userID;
+
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
       setPresetItems(response);
@@ -169,13 +159,13 @@ export const TeacherCreateActivityComponent = () => {
   };
 
   const handleSelectItem = (item) => {
+    // When a new item is clicked, set it as the selected item.
     setSelectedItem(item);
   };
 
   const handleSaveItem = () => {
     if (!selectedItem || selectedItemIndex === null) return;
 
-    // Check if the same item is already picked in another slot
     const alreadyExists = selectedItems.some(
       (it, i) => i !== selectedItemIndex && it && it.itemID === selectedItem.itemID
     );
@@ -233,9 +223,9 @@ export const TeacherCreateActivityComponent = () => {
       return;
     }
 
-    const classID = sessionStorage.getItem("selectedClassID");
+    const sessionData = getSessionData();
+    const classID = sessionData.selectedClassID;
 
-    // Build final item objects
     const finalItems = selectedItems
       .filter(item => item !== null)
       .map(item => ({
@@ -249,17 +239,13 @@ export const TeacherCreateActivityComponent = () => {
       return;
     }
 
-    // Compute total points from selected items
     const computedPoints = finalItems.reduce((sum, it) => sum + (it.actItemPoints || 0), 0);
-
-    // Convert total minutes to HH:MM:SS
     const total = parseInt(durationInMinutes, 10);
     const hh = String(Math.floor(total / 60)).padStart(2, "0");
     const mm = String(total % 60).padStart(2, "0");
     const ss = "00"; // fixed seconds
     const finalDuration = `${hh}:${mm}:${ss}`;
 
-    // Build new activity object including actAttempts and finalScorePolicy
     const newActivity = {
       classID,
       actTitle: activityTitle,
@@ -272,7 +258,7 @@ export const TeacherCreateActivityComponent = () => {
       maxPoints: computedPoints,
       items: finalItems,
       actAttempts: parseInt(activityAttempts, 10),
-      finalScorePolicy // either "last_attempt" or "highest_score"
+      finalScorePolicy
     };
 
     console.log("📤 Sending Activity Data:", JSON.stringify(newActivity, null, 2));
@@ -411,7 +397,7 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             {/* NEW: Activity Attempts Input */}
-            <Form.Group className="activity mt-3">
+            <Form.Group className="mt-3">
               <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
               <Form.Control
                 type="number"
@@ -427,7 +413,7 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             {/* NEW: Final Score Policy */}
-            <Form.Group className="activity mt-3">
+            <Form.Group className="mt-3">
               <Form.Label>Final Score Policy</Form.Label>
               <Form.Select
                 as="select"
@@ -535,7 +521,17 @@ export const TeacherCreateActivityComponent = () => {
               </div>
 
               {/* Sorting Controls for preset items */}
-              <div className='sort-section'>
+              <div
+                style={{
+                  margin: "10px 0",
+                  display: "flex",
+                  alignItems: "center",
+                  border: "1px solid red",
+                  padding: "5px",
+                  borderRadius: "4px",
+                  backgroundColor: "#f8f9fa"
+                }}
+              >
                 <span style={{ marginRight: "8px" }}>Sort by:</span>
                 <Button variant="link" onClick={() => toggleItemSortOrder("itemName")}>
                   Name {itemSortField === "itemName" && (itemSortOrder === "asc" ? "↑" : "↓")}
@@ -564,7 +560,7 @@ export const TeacherCreateActivityComponent = () => {
                     <div>
                       <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
                     </div>
-                    <div style={{ marginTop: "5px", display: "flex", alignItems: "center"}}>
+                    <div style={{ marginTop: "5px" }}>
                       {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
                         const plName = langObj.progLangName;
                         const mapping = programmingLanguageMap[plName] || { name: plName, image: null };

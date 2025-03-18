@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Modal, Button, Form } from 'react-bootstrap';
 import "../../style/teacher/cmActivities.css"; 
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
-import { getActivityItemsByTeacher } from "../api/API";
+import { getActivityItemsByTeacher, getCurrentUserKey, getActivityProgress  } from "../api/API";
 
 // Mapping of known programming languages to images
 const programmingLanguageMap = {
@@ -49,11 +49,23 @@ const TeacherActivityItemsComponent = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Fetch activity data on mount only.
+  // New confirmation modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmModalTitle, setConfirmModalTitle] = useState("");
+  const [confirmModalMessage, setConfirmModalMessage] = useState("");
+
+  // We'll use a teacher-specific key (replace with real teacher ID if available)
+  const teacherKey = getCurrentUserKey() || 'default';
+  const stateKey = `activityState_${actID}_${teacherKey}`;
+
+  // Fetch activity data on mount.
   useEffect(() => {
     fetchActivityData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    // Also try to sync localStorage with any progress from the server
+    syncTeacherProgressFromServer(actID);
+  }, [actID]);
 
   const fetchActivityData = async () => {
     setLoading(true);
@@ -75,10 +87,99 @@ const TeacherActivityItemsComponent = () => {
     }
   };
 
-  // When a row (item) is clicked, open the modal
+  // fetch teacher’s progress from DB
+  const syncTeacherProgressFromServer = async (activityId) => {
+    try {
+      // You might have a teacher-specific endpoint or reuse the same getActivityProgress
+      // For demonstration, we’ll pretend getActivityProgress also works for teacher progress
+      const progressResponse = await getActivityProgress(activityId);
+
+      // progressResponse might look like { progress: [ ... ] } just like in the student code
+      if (progressResponse && progressResponse.progress && progressResponse.progress.length > 0) {
+        const serverProgress = progressResponse.progress[0];
+        const localData = localStorage.getItem(stateKey);
+        let mergedProgress = {};
+
+        if (localData) {
+          const parsedLocal = JSON.parse(localData);
+          // Merge: prefer local endTime, but override with server’s data
+          mergedProgress = {
+            ...parsedLocal,
+            ...serverProgress,
+            endTime: parsedLocal.endTime, 
+          };
+        } else {
+          mergedProgress = serverProgress;
+        }
+
+        // Save merged result back to local storage
+        localStorage.setItem(stateKey, JSON.stringify(mergedProgress));
+        console.log("[syncTeacherProgressFromServer] Merged progress:", mergedProgress);
+      } else {
+        // If no progress found in DB, remove local
+        localStorage.removeItem(stateKey);
+        console.log("[syncTeacherProgressFromServer] No teacher progress found. Local storage cleared.");
+      }
+    } catch (error) {
+      console.error("[syncTeacherProgressFromServer] Error:", error);
+    }
+  };
+
+  // When a row (item) is clicked, open the modal for details.
   const handleRowClick = (item) => {
     setSelectedItem(item);
     setShowDetailsModal(true);
+  };
+
+  // Helper: Check teacher progress from localStorage.
+  // Returns "in progress" if valid, "expired" if past endTime, or null if none.
+  const checkTeacherProgressStatus = () => {
+    const saved = localStorage.getItem(stateKey);
+    console.log("State for", stateKey, ":", saved);
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      console.log("Parsed state:", parsed);
+      if (parsed.endTime) {
+        return parsed.endTime > Date.now() ? "in progress" : "expired";
+      }
+    } catch (e) {
+      console.error("Error parsing saved state:", e);
+    }
+    return null;
+  };
+
+  // Handler for the "Try Answering the Activity" button.
+  const handleTryTest = () => {
+    const status = checkTeacherProgressStatus();
+    if (!status) {
+      // Fresh start scenario
+      setConfirmModalTitle("Start New Test");
+      setConfirmModalMessage(`Do you want to start testing the activity "${activity?.name}"?`);
+    } else if (status === "in progress") {
+      setConfirmModalTitle("Resume Test");
+      setConfirmModalMessage(`You have an in-progress test for "${activity?.name}". Do you want to resume?`);
+    } else if (status === "expired") {
+      setConfirmModalTitle("Test Completed");
+      setConfirmModalMessage(`Your previous test attempt for "${activity?.name}" has expired. Do you want to start a new test?`);
+    }
+    setShowConfirmModal(true);
+  };
+
+  // Confirmation modal handler.
+  const handleConfirm = () => {
+    const status = checkTeacherProgressStatus();
+    if (status === "expired") {
+      // Clear expired progress so teacher can start afresh.
+      localStorage.removeItem(stateKey);
+    }
+    setShowConfirmModal(false);
+    // Navigate to the teacher assessment page.
+    navigate(`/teacher/class/${classID}/activity/${actID}/assessment`);
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
   };
 
   return (
@@ -102,12 +203,25 @@ const TeacherActivityItemsComponent = () => {
 
       <TableComponent items={items} loading={loading} onRowClick={handleRowClick} />
 
-      <button
-        className="try-answer-button active"
-        onClick={() => navigate(`/teacher/class/${classID}/activity/${actID}/assessment`)}
-      >
-        ✏️ Try Answering the Activity
-      </button>
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <button
+          className="try-answer-button active"
+          onClick={handleTryTest}
+        >
+          ✏️ Try Answering the Activity
+        </button>
+        {/* Optionally, you can show a small indicator if progress exists */}
+        {checkTeacherProgressStatus() === "in progress" && (
+          <span style={{ marginLeft: '10px', color: '#007bff', fontWeight: 'bold' }}>
+            In Progress
+          </span>
+        )}
+        {checkTeacherProgressStatus() === "expired" && (
+          <span style={{ marginLeft: '10px', color: 'red', fontWeight: 'bold' }}>
+            Test Completed
+          </span>
+        )}
+      </div>
 
       {/* Modal to show item details */}
       <Modal
@@ -171,7 +285,7 @@ const TeacherActivityItemsComponent = () => {
                       }}
                     >
                       <strong>Test Case {index + 1}:</strong>
-                      <br></br>
+                      <br />
                       <Form.Label style={{ marginTop: "5px" }}>Expected Output:</Form.Label>
                       <AutoResizeTextarea
                         readOnly
@@ -205,6 +319,28 @@ const TeacherActivityItemsComponent = () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
             Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Confirmation Modal for Test Start / Resume / Expired */}
+      <Modal
+        show={showConfirmModal}
+        onHide={handleCancelConfirm}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{confirmModalTitle}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{confirmModalMessage}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCancelConfirm}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleConfirm}>
+            Yes, proceed
           </Button>
         </Modal.Footer>
       </Modal>

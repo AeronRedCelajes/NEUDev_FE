@@ -482,143 +482,103 @@ Form.Control, select, input[type="date"] {
     background-color: #6ea363;
 }
 
-@media (max-width: 768px) {
-    .create-activity-form {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .create-activity-content {
-        padding: 20px;
-        border-radius: 20px;
-        width: 80%;
-    }
-
-    /*TITLE */
-    .create-activity-container h2, .choose-question-panel h3 {
-        font-size: 1.5rem;
-    }
-
-    /* Title and Description Styling :text: */
-    .create-activity-form .create-activity-title {
-        font-size: 0.9rem;
-    }
-
-    .description-section textarea {
-        font-size: 0.9rem;
-    }
-
-    /* Styling for Select Dropdown (Difficulty Section Styling) */
-    .difficulty-section select,
-    .difficulty-section input[type="date"] {
-        font-size: 0.9rem;
-        width: 45%;
-        margin-top: -50px;
-    }
-
-    /*DATE OPEN AND CLOSE style */
-    .date-time-item input[type="datetime-local"] {
-        font-size: 0.8rem !important;
-    }
-
-    .question-section h5 {
-        font-size: 1rem;
-    }
-
-    .question-section input[type="text"] {
-        font-size: 0.85rem;
-    } 
-
-    .activity .form-label{
-        font-size: 0.9rem;
-    }
-
-    .activity .form-control, 
-    .activity .form-select {
-        padding-left: 10px;
-        border: 2px solid var(--primary-color);
-        border-radius: 10px;
-        background-color: var(--primary-bg);
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        font-size: 0.9rem;
-    }
-
-    .activity .form-text{
-        font-size: 0.8rem;
-    }
-
-    .activity .form-check{ 
-        font-size: 0.9rem;
-    }
+/* Center the button and style it properly */
+.custom-save-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 15px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    gap: 8px;
 }
 
-@media (max-width: 425px) {
-    .create-activity-content {
-        padding: 10px;
-        width: 90%;
-    }
-
-    /*TITLE */
-    .create-activity-container h2, .choose-question-panel h3 {
-        font-size: 1.4rem;
-    }
-
-    .create-activity-container h2{
-        margin-bottom: 5px;
-    }
-
-    .difficulty-section select,
-    .difficulty-section input[type="date"] {
-        font-size: 0.85rem;
-        width: 85%;
-    }
-
-    /*DATE OPEN AND CLOSE style */
-    .date-time-item input[type="datetime-local"] {
-        width: 100% !important;
-    }
-
-    /*modal */
-    .custom-modal-content .modal-title{
-        font-size: 1.1rem;
-    }
-
-    .item-creator label{
-        font-size: 0.9rem;
-    }
-
-    .item-creator select{
-        width: 50%;
-        font-size: 0.85rem;
-    }
-
-    .sort-section span{
-        font-size: 0.9rem;
-    }
-
-    .sort-section button{
-        font-size: 0.9rem;
-        padding-inline: 5px;
-    }
-
-    /* Styling rgb(57, 110, 100)stion buttons in modal */
-    .custom-modal .question-item {
-        font-size: 0.9rem;
-    }
-
-    .custom-modal .modal-footer button {
-        font-size: 0.9rem;
-    }
+.custom-save-btn:hover {
+    background-color: #a8431b;
 }
 
-@media (max-width: 375px) {
-    .sort-section span{
-        font-size: 0.85rem;
+.custom-save-btn i {
+    font-size: 18px;
+    color: white;
+}
+
+.custom-create-class-btn {
+    background-color: #84C776 !important;
+    border: none !important;
+    border-radius: 25px!important;
+    width: 12rem;
+    height: 40px;
+    font-size: 18px!important; /* Adjust this to change the font size */
+    margin-bottom: 20px;
+    margin-left: 40%;
+}
+
+.custom-create-class-btn:hover{
+    background-color: #83c77699 !important;
+}
+
+.custom-create-class-btn i {
+    font-size: 18px; /* Inherits the button's font size */
+    margin-right: 8px; /* Adjust spacing between icon and text */
+}
+
+
+.create-activity-container{
+    background-color: var(--primary-bg);
+}
+
+
+
+
+
+
+
+
+.date-time-item input[type="datetime-local"] {
+    width: 100%;
+    padding: 10px 15px;
+    font-size: 14px;
+    border: 2px solid #B84C20; /* Match border color */
+    border-radius: 25px; /* Fully rounded edges */
+    outline: none;
+    background-color: transparent;
+    text-align: center; /* Center text */
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+.date-time-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the label */
+    gap: 8px;
+}
+
+.label-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.label-with-icon i {
+    font-size: 18px;
+}
+
+.open-date  i {
+color:#84C776;
+}
+
+.due-date  i {
+    color:#B84C20;
     }
 
-    .sort-section button{
-        font-size: 0.85rem;
-        
-    }
-}
+

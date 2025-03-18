@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import ProtectedRoute from "./ProtectedRoute.jsx"; // Import fixed component
+import LogoutListener from "./LogoutListener";
 
 import { HomeComponents } from "./components/HomeComponent";
 import { SignInComponent } from "./components/SignInComponent";
@@ -12,6 +14,7 @@ import NotFound from "./components/NotFound"; // ✅ Import the 404 NotFound com
 import { StudentDashboardComponent } from "./components/student/StudentDashboardComponent";
 import { StudentProfileComponent } from "./components/student/StudentProfileComponent";
 import { StudentPlaygroundComponent } from "./components/student/StudentPlaygroundComponent.jsx";
+import { StudentPlaygroundComponentTest } from "./components/student/StudentPlaygroundComponentTest.jsx";
 
 import { StudentClassComponent } from "./components/student/StudentClassComponent.jsx";
 import { StudentBulletinComponent } from "./components/student/StudentBulletinComponent.jsx";
@@ -26,6 +29,7 @@ import { TeacherDashboardComponent } from "./components/teacher/TeacherDashboard
 import { TeacherDashboardArchivedComponent } from "./components/teacher/TeacherDashboardArchivedComponent";
 import { TeacherProfileComponent } from "./components/teacher/TeacherProfileComponent";
 import { TeacherPlaygroundComponent } from "./components/teacher/TeacherPlaygroundComponent.jsx";
+import { TeacherPlaygroundComponentTest } from "./components/teacher/TeacherPlaygroundComponentTest.jsx";
 
 import TeacherClassManagementClassRecordComponent from "./components/teacher/TeacherClassManagementClassRecordComponent.jsx";
 import { TeacherClassManagementComponent } from "./components/teacher/TeacherClassManagementComponent.jsx";
@@ -36,13 +40,16 @@ import TeacherItemBankComponent from "./components/teacher/TeacherItemBankCompon
 import TeacherActivitySettingsComponent from "./components/teacher/TeacherActivitySettingsComponent.jsx";
 import TeacherActivityItemsComponent from "./components/teacher/TeacherActivityItemsComponent.jsx";
 import TeacherActivityLeaderboardComponent from "./components/teacher/TeacherActivityLeaderboardComponent.jsx";
+import TeacherActivitySubmissionComponent from "./components/teacher/TeacherActivitySubmissionComponent.jsx";
+import  TeacherCodingAssessmentComponent from "./components/teacher/TeacherCodingAssessmentComponent.jsx";
 
-import { TeacherCodingAssessmentComponent } from "./components/teacher/TeacherCodingAssessmentComponent.jsx";
+import  TeacherReviewComponent from "./components/teacher/TeacherReviewComponent.jsx";
 
 
 function App() {
     return (
         <Router>
+            <LogoutListener />
             <Routes>
 
                 {/* Public Routes */}
@@ -58,6 +65,7 @@ function App() {
                     <Route path="/student/dashboard" element={<StudentDashboardComponent />} />
                     <Route path="/student/profile" element={<StudentProfileComponent />} />
                     <Route path="/student/sandbox" element={<StudentPlaygroundComponent />} />
+                    <Route path="/student/sandbox2" element={<StudentPlaygroundComponentTest />} />
 
                     <Route path="/student/class/:classID/activity" element={<StudentClassComponent />} />
                     <Route path="/student/class/:classID/student-bulletin" element={<StudentBulletinComponent />} />
@@ -74,6 +82,7 @@ function App() {
                     <Route path="/teacher/archived" element={<TeacherDashboardArchivedComponent />} />
                     <Route path="/teacher/profile" element={<TeacherProfileComponent />} />
                     <Route path="/teacher/sandbox" element={<TeacherPlaygroundComponent />} />
+                    <Route path="/teacher/sandbox2" element={<TeacherPlaygroundComponentTest />} />
 
                     <Route path="/teacher/class/:classID/activity" element={<TeacherClassManagementComponent />} />
                     <Route path="/teacher/item" element={<TeacherItemBankComponent />} />
@@ -85,6 +94,8 @@ function App() {
                     <Route path="/teacher/class/:classID/activity/:actID/leaderboard" element={<TeacherActivityLeaderboardComponent />} />
                     <Route path="/teacher/class/:classID/activity/:actID/items" element={<TeacherActivityItemsComponent />} />
                     <Route path="/teacher/class/:classID/activity/:actID/settings" element={<TeacherActivitySettingsComponent />} />
+                    <Route path="/teacher/class/:classID/activity/:actID/submissions" element={<TeacherActivitySubmissionComponent />} />
+                    <Route path="/teacher/class/:classID/activity/:actID/review" element={<TeacherReviewComponent />} />
 
                     <Route path="/teacher/class/:classID/activity/:actID/assessment" element={<TeacherCodingAssessmentComponent />} />
                 </Route>
