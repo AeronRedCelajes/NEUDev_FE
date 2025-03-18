@@ -798,7 +798,7 @@ export const StudentCodingAssessmentComponent = () => {
         const itemRes = testCaseResults[it.itemID] || {};
         it.testCases.forEach(tc => {
           const r = itemRes[tc.testCaseID];
-          if (r && r.lockedPass === true) correctTC++;
+          if (r && r.latestPass === true) correctTC++;
         });
       }
     });
