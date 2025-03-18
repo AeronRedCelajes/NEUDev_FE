@@ -20,16 +20,12 @@ const TeacherActivityLeaderboardComponent = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, []);
-
+  // Fetch the leaderboard
   const fetchLeaderboard = async () => {
+    setLoading(true);
     try {
       const response = await getActivityLeaderboardByTeacher(actID);
       if (!response.error) {
-        // Expecting each item to include:
-        // { studentName, program, score, timeSpent (in seconds), rank, profileImage }
         setLeaderboard(response.leaderboard);
       } else {
         console.error("❌ Error fetching leaderboard:", response.error);
@@ -41,12 +37,25 @@ const TeacherActivityLeaderboardComponent = () => {
     }
   };
 
+  // On mount or when actID changes
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [actID]);
+
   return (
     <div className="leaderboard-body">
       <TeacherAMNavigationBarComponent />
       <div className="leaderboard-container">
         <div className="leaderboard-header">
           <h1 className="leaderboard-title">Leaderboard</h1>
+
+          {/* Refresh Button */}
+          <div className="d-flex gap-2 mb-3">
+            <button className="btn btn-info" onClick={fetchLeaderboard}>
+              Refresh
+            </button>
+          </div>
+
           {loading ? (
             <p>Loading students...</p>
           ) : (

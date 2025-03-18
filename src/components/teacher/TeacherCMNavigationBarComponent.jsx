@@ -26,6 +26,7 @@ const TeacherCMNavigationBarComponent = () => {
   const getActiveTab = () => {
     if (location.pathname.includes("activity")) return "activity";
     if (location.pathname.includes("classrecord")) return "classrecord";
+    if (location.pathname.includes("class-participants")) return "class-participants";
     if (location.pathname.includes("teacher-bulletin")) return "teacher-bulletin";
     return "activities"; // Default to activities
   };
@@ -63,6 +64,7 @@ const TeacherCMNavigationBarComponent = () => {
       <div className="navbar-center">
         <Tabs activeKey={getActiveTab()} onSelect={handleSelect} id="cm-tabs" fill>
           <Tab eventKey="activity" title="Activities"></Tab>
+          <Tab eventKey="class-participants" title="Class Participants"></Tab>
           <Tab eventKey="classrecord" title="Class Record"></Tab>
           <Tab eventKey="teacher-bulletin" title="Bulletin"></Tab>
         </Tabs>

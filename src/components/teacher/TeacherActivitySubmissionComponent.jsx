@@ -21,16 +21,18 @@ const TeacherActivitySubmissionComponent = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // On mount or when actID changes, fetch submissions
   useEffect(() => {
     fetchSubmissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSubmissions = async () => {
+    setLoading(true);
     try {
       const response = await getActivitySubmissionByTeacher(actID);
       if (!response.error) {
-        // Ensure submissions is an array.
+        // Ensure submissions is an array
         setSubmissions(response.submissions || []);
       } else {
         console.error("Error fetching submissions:", response.error);
@@ -50,6 +52,14 @@ const TeacherActivitySubmissionComponent = () => {
       <div className="submission-container">
         <div className="submission-header">
           <h1 className="submission-title">Activity Submissions</h1>
+
+          {/* Refresh Button */}
+          <div className="d-flex gap-2 mb-3">
+            <button className="btn btn-info" onClick={fetchSubmissions}>
+              Refresh
+            </button>
+          </div>
+
           {loading ? (
             <p>Loading submissions...</p>
           ) : (

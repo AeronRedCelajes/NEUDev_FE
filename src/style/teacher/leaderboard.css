@@ -212,3 +212,33 @@ table {
   .leaderboard-students tr:last-child {
     border-bottom: none;
   }
+
+  .horizontal-scrollbar {
+    width: 1200px;       /* or 100% with a fixed min-width, if you prefer */
+    max-width: 100%;
+    overflow-x: scroll;  /* 'scroll' ensures a scrollbar is always shown */
+    margin: 0 auto;
+  
+    /* For Firefox specifically */
+    scrollbar-width: thin; 
+    scrollbar-color: #888 #f1f1f1;
+  }
+  
+  /* For Chrome, Safari, Edge (WebKit/Blink) */
+  .horizontal-scrollbar::-webkit-scrollbar {
+    height: 8px;             /* scrollbar thickness */
+  }
+  
+  .horizontal-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;     /* track color */
+  }
+  
+  .horizontal-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #888;  /* thumb color */
+    border-radius: 4px;      
+    border: 2px solid #f1f1f1;
+  }
+  
+  .horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #555;  
+  }

@@ -32,6 +32,7 @@ import { TeacherPlaygroundComponent } from "./components/teacher/TeacherPlaygrou
 import { TeacherPlaygroundComponentTest } from "./components/teacher/TeacherPlaygroundComponentTest.jsx";
 
 import TeacherClassManagementClassRecordComponent from "./components/teacher/TeacherClassManagementClassRecordComponent.jsx";
+import TeacherClassManagementClassParticipantsComponent from "./components/teacher/TeacherClassManagementClassParticipantsComponent.jsx";
 import { TeacherClassManagementComponent } from "./components/teacher/TeacherClassManagementComponent.jsx";
 import { TeacherClassManagementBulletinComponent } from "./components/teacher/TeacherClassManagementBulletinComponent.jsx";
 import { TeacherCreateActivityComponent } from "./components/teacher/TeacherCreateActivityComponent.jsx";
@@ -88,6 +89,7 @@ function App() {
                     <Route path="/teacher/item" element={<TeacherItemBankComponent />} />
                     <Route path="/teacher/class/:classID/create-activity" element={<TeacherCreateActivityComponent />} />
                     <Route path="/teacher/class/:classID/classrecord" element={<TeacherClassManagementClassRecordComponent />} />
+                    <Route path="/teacher/class/:classID/class-participants" element={<TeacherClassManagementClassParticipantsComponent />} />
                     <Route path="/teacher/class/:classID/teacher-bulletin" element={<TeacherClassManagementBulletinComponent />} />
 
                     {/* 🔥 Dynamic Activity Routes for Teachers */}

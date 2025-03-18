@@ -929,6 +929,24 @@ async function getActivityDetails(actID) {
   });
 }
 
+async function getClassRecord(classID) {
+  const sessionData = getSessionData();
+  const token = sessionData.access_token;
+  if (!token) {
+    return { error: "Unauthorized access: No token found" };
+  }
+
+  // Our new route:
+  const url = `${API_LINK}/teacher/class/${classID}/record`;
+  const data = await safeFetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  return data;
+}
+
 //////////////////////////////////////////
 // ACTIVITY MANAGEMENT (STUDENT)
 //////////////////////////////////////////
@@ -1380,6 +1398,7 @@ export {
   deleteActivity,
   getClassActivities, 
   getActivityDetails,
+  getClassRecord,
   getActivityItemsByStudent, 
   getActivityLeaderboardByStudent, 
   getActivityItemsByTeacher, 
