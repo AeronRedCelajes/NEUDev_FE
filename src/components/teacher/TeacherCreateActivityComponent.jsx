@@ -187,6 +187,16 @@ export const TeacherCreateActivityComponent = () => {
     setShowItemTypeDropdown(false);
   };
 
+  // Add a new function to remove the selected question
+  const handleRemoveItem = () => {
+    if (selectedItemIndex === null) return;
+    const updated = [...selectedItems];
+    updated[selectedItemIndex] = null;
+    setSelectedItems(updated);
+    setSelectedItem(null);
+    setShowModal(false);
+  };
+
   // -------------------- Programming Languages Checkboxes --------------------
   const handleProgLangToggle = (langID) => {
     if (selectedProgLangs.includes(langID)) {
@@ -603,6 +613,12 @@ export const TeacherCreateActivityComponent = () => {
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+              {/* Render remove button only if a question exists in this slot */}
+              {selectedItems[selectedItemIndex] && (
+                <Button variant="danger" onClick={handleRemoveItem}>
+                  Remove Question
+                </Button>
+              )}
               <Button variant="primary" onClick={handleSaveItem}>Save Item</Button>
             </Modal.Footer>
           </div>
