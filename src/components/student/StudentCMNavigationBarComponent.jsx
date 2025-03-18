@@ -8,7 +8,7 @@ const StudentCMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID } = useParams(); // ✅ Get classID from URL
-  const [profileImage, setProfileImage] = useState("/src/assets/noy.png"); // Default profile image
+  const [profileImage, setProfileImage] = useState("/src/assets/profile_default.png"); // Default profile image
 
   // ✅ Fetch student profile image on mount
   useEffect(() => {
@@ -18,7 +18,7 @@ const StudentCMNavigationBarComponent = () => {
   const fetchProfile = async () => {
     const response = await getProfile();
     if (!response.error) {
-      setProfileImage(response.profileImage || "/src/assets/noy.png");
+      setProfileImage(response.profileImage || "/src/assets/profile_default.png");
     }
   };
 

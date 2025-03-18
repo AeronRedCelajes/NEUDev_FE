@@ -1,8 +1,6 @@
 import React from 'react'
 import '../style/about.css';
 
-// Testing Branch Commit
-
 export const AboutComponent = () => {
   return (
     <>

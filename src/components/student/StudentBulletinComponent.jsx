@@ -8,16 +8,17 @@ import {
   getConcerns, 
   createConcern, 
   deleteConcern,
-  getClassInfo
+  getClassInfo,
+  getSessionData 
 } from '../api/API.js';
 
 export const StudentBulletinComponent = () => {
   // Get classID from URL parameters.
   const { classID } = useParams();
 
-  // Get the logged-in student's ID from sessionStorage.
-  const storedUserID = sessionStorage.getItem("userID");
-  const studentID = storedUserID ? parseInt(storedUserID) : 0;
+  // Retrieve session data for the current tab
+  const sessionData = getSessionData();
+  const studentID = sessionData.userID ? parseInt(sessionData.userID) : 0;
 
   // Teacher details will be fetched from class info.
   const [teacherID, setTeacherID] = useState(null);
@@ -73,9 +74,7 @@ export const StudentBulletinComponent = () => {
           message: post.message,
           dateCreated: new Date(post.created_at).toLocaleDateString(),
           timeCreated: new Date(post.created_at).toLocaleTimeString(),
-          teacherName: post.teacher
-            ? `${post.teacher.teacherName}` // Adjusted to use teacherName
-            : 'Unknown'
+         teacherName: (post.teacher && post.teacher.teacherName) || teacherName,
         }));
         setPosts(fetchedPosts);
       }
@@ -126,7 +125,7 @@ export const StudentBulletinComponent = () => {
       classID,
       studentID,
       concern: concernText,
-      teacherID, // This field may be ignored if the backend derives teacherID.
+      teacherID, 
       reply: null
     };
 
@@ -204,7 +203,7 @@ export const StudentBulletinComponent = () => {
                   <Card className='post-card' style={{ borderRadius: "20px" }} key={post.id}>
                     <Card.Header>
                       <h2>{post.title}</h2>
-                      <p>{post.teacherName}</p>
+                      <p>{teacherName}</p>
                       <p>{post.dateCreated} {post.timeCreated}</p>
                     </Card.Header>
                     <Card.Body>
@@ -236,7 +235,7 @@ export const StudentBulletinComponent = () => {
                 <Modal.Header closeButton>
                   <div className='modal-activity-header'>
                     <h3>Post Your Concern</h3>
-                    <p>To professor, {teacherName}</p>
+                    <p>To professor {teacherName}</p>
                   </div>
                 </Modal.Header>
                 <Modal.Body>

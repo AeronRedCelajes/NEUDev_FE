@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Row, Tabs, Col, Tab, Modal, Button } from 'react-bootstrap';
 import StudentCMNavigationBarComponent from './StudentCMNavigationBarComponent';
 import "../../style/teacher/cmActivities.css";
-import { getStudentActivities, finalizeSubmission } from "../api/API";
+import { getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent, getCurrentUserKey } from "../api/API";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCaretDown, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
@@ -39,8 +39,7 @@ const Timer = ({ openDate, closeDate }) => {
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        const formatted = `${hours.toString().padStart(2, '0')}:${minutes
-          .toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         setTimeLeft(formatted);
         setIsTimeLow(diff <= 10 * 60 * 1000);
       }
@@ -50,12 +49,7 @@ const Timer = ({ openDate, closeDate }) => {
   }, [openDate, closeDate]);
 
   return (
-    <span 
-      style={{ 
-        color: isTimeLow ? "red" : "inherit", 
-        fontWeight: isTimeLow ? "bold" : "normal" 
-      }}
-    >
+    <span style={{ color: isTimeLow ? "red" : "inherit", fontWeight: isTimeLow ? "bold" : "normal" }}>
       {timeLeft}
     </span>
   );
@@ -64,6 +58,9 @@ const Timer = ({ openDate, closeDate }) => {
 export const StudentClassComponent = () => {
   const navigate = useNavigate();
   const { classID } = useParams();
+
+  // Retrieve current user ID from session data.
+  const userID = getCurrentUserKey() || 'default';
 
   const [contentKey, setContentKey] = useState('ongoing');
   const [ongoingActivities, setOngoingActivities] = useState([]);
@@ -80,11 +77,86 @@ export const StudentClassComponent = () => {
   const [sortField, setSortField] = useState("openDate");
   const [sortOrder, setSortOrder] = useState("asc");
 
+  // Fetch the latest activities every 5 seconds
   useEffect(() => {
     fetchActivities();
     const interval = setInterval(fetchActivities, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // For each ongoing activity, update progress from the DB to show "In Progress" immediately
+  useEffect(() => {
+    ongoingActivities.forEach(activity => {
+      syncProgressFromServer(activity.actID);
+    });
+  }, [ongoingActivities]);
+
+  // Function to fetch activities for the student
+  const fetchActivities = async () => {
+    try {
+      const response = await getStudentActivities();
+      if (!response || response.error) {
+        console.error("Failed to fetch activities:", response?.error);
+        return;
+      }
+      const filteredUpcoming = (response.upcoming || []).filter(
+        act => String(act.classID) === String(classID)
+      );
+      const filteredOngoing = (response.ongoing || []).filter(
+        act => String(act.classID) === String(classID)
+      );
+      const filteredCompleted = (response.completed || []).filter(
+        act => String(act.classID) === String(classID)
+      );
+
+      setUpcomingActivities(filteredUpcoming);
+      setOngoingActivities(filteredOngoing);
+      setCompletedActivities(filteredCompleted);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    }
+  };
+
+  // Merge server progress (from DB) into local storage.
+  // If there is no progress found on the server, clear the local storage.
+  const syncProgressFromServer = async (actID) => {
+    try {
+      const progressResponse = await getActivityProgress(actID);
+      // Update the key to include the userID.
+      const key = `activityState_${actID}_${userID}`;
+      if (
+        progressResponse &&
+        progressResponse.progress &&
+        progressResponse.progress.length > 0
+      ) {
+        const serverProgress = progressResponse.progress[0];
+        const local = localStorage.getItem(key);
+        let mergedProgress = {};
+
+        if (local) {
+          const parsedLocal = JSON.parse(local);
+          // Merge server progress, preserving the local computed endTime if set.
+          mergedProgress = {
+            ...parsedLocal,
+            ...serverProgress,
+            endTime: parsedLocal.endTime, // retain local timer if already set
+            // Merge itemTimes using the new key.
+            draftItemTimes: parsedLocal.draftItemTimes || serverProgress.draftItemTimes
+          };
+        } else {
+          mergedProgress = serverProgress;
+        }
+        localStorage.setItem(key, JSON.stringify(mergedProgress));
+        console.log("[syncProgressFromServer] Merged progress:", mergedProgress);
+      } else {
+        // If there is no progress from the server, clear any existing local storage.
+        localStorage.removeItem(key);
+        console.log("[syncProgressFromServer] No progress found on server. Cleared local storage for key:", key);
+      }
+    } catch (error) {
+      console.error("[syncProgressFromServer] Error fetching progress:", error);
+    }
+  };
 
   const handleSortByOpenDate = () => {
     if (sortField === "openDate") {
@@ -120,157 +192,186 @@ export const StudentClassComponent = () => {
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
-  const fetchActivities = async () => {
-    try {
-      const response = await getStudentActivities();
-      if (!response || response.error) {
-        console.error("Failed to fetch activities:", response?.error);
-        return;
-      }
-      const filteredUpcoming = (response.upcoming || []).filter(
-        act => String(act.classID) === String(classID)
-      );
-      const filteredOngoing = (response.ongoing || []).filter(
-        act => String(act.classID) === String(classID)
-      );
-      const filteredCompleted = (response.completed || []).filter(
-        act => String(act.classID) === String(classID)
-      );
-
-      setUpcomingActivities(filteredUpcoming);
-      setOngoingActivities(filteredOngoing);
-      setCompletedActivities(filteredCompleted);
-    } catch (error) {
-      console.error("Error fetching activities:", error);
-    }
-  };
-
-  // --- LOGGING ADDED HERE ---
+  // Check local storage for progress info and return a formatted time if available
   const checkLocalStorageForActivity = (actID) => {
-    const key = `activityState_${actID}`;
+    // Include the userID in the key here as well.
+    const key = `activityState_${actID}_${userID}`;
     const saved = localStorage.getItem(key);
-    console.log(`[checkLocalStorageForActivity] Key: ${key}, saved state:`, saved);
     if (!saved) {
-      console.log("[checkLocalStorageForActivity] No saved state found.");
       return null;
     }
     const parsed = JSON.parse(saved);
     if (!parsed.endTime) {
-      console.log("[checkLocalStorageForActivity] Saved state has no endTime.");
       return null;
     }
     const diffMs = parsed.endTime - Date.now();
-    console.log(`[checkLocalStorageForActivity] Time difference (ms): ${diffMs}`);
     if (diffMs <= 0) {
-      console.log("[checkLocalStorageForActivity] Timer expired.");
       return "expired";
     }
     const totalSec = Math.floor(diffMs / 1000);
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
-    const formatted = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    console.log(`[checkLocalStorageForActivity] Returning time left: ${formatted}`);
-    return formatted;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
-  // --- LOGGING ADDED HERE ---
-  const handleActivityClick = async (activity) => {
-    console.log("[handleActivityClick] Activity clicked:", activity.actTitle, "ID:", activity.actID);
-    const now = new Date();
-    const activityOpen = new Date(activity.openDate);
-    const activityClose = new Date(activity.closeDate);
+// 1) A helper to parse "HH:MM:SS" into milliseconds
+function parseHHMMSStoMs(durationStr) {
+  // durationStr might be "00:01:00"
+  const [hh, mm, ss] = durationStr.split(":").map(Number);
+  const hoursInMs = (hh || 0) * 3600000;
+  const minsInMs = (mm || 0) * 60000;
+  const secsInMs = (ss || 0) * 1000;
+  return hoursInMs + minsInMs + secsInMs;
+}
 
-    if (activity.actAttempts > 0 && (activity.attemptsTaken || 0) >= activity.actAttempts) {
-      console.log("[handleActivityClick] Maximum attempts reached.");
-      setModalTitle("Maximum Attempts Reached");
-      setModalMessage("You have already taken the maximum number of attempts for this activity.");
-      setShowModal(true);
-      return;
-    }
+const handleActivityClick = async (activity) => {
+  console.log("[handleActivityClick] Activity clicked:", activity.actTitle, "ID:", activity.actID);
+  // Sync progress from DB before taking/resuming an activity.
+  await syncProgressFromServer(activity.actID);
 
-    if (now < activityOpen) {
-      console.log("[handleActivityClick] Activity not yet started.");
-      setModalTitle("Activity Not Yet Started");
-      setModalMessage("This activity is upcoming and will start on " + formatDateString(activity.openDate) + ".");
-      setShowModal(true);
-      return;
-    }
+  const now = new Date();
+  const activityOpen = new Date(activity.openDate);
+  const activityClose = new Date(activity.closeDate);
 
-    if (now > activityClose) {
-      console.log("[handleActivityClick] Activity finished.");
-      setModalTitle("Activity Finished");
-      setModalMessage("This activity is finished and can no longer be accessed.");
-      setShowModal(true);
-      return;
-    }
+  // Check attempt limit
+  if (activity.actAttempts > 0 && (activity.attemptsTaken || 0) >= activity.actAttempts) {
+    console.log("[handleActivityClick] Maximum attempts reached.");
+    setModalTitle("Maximum Attempts Reached");
+    setModalMessage("You have already taken the maximum number of attempts for this activity.");
+    setShowModal(true);
+    return;
+  }
 
-    const timeLeftStr = checkLocalStorageForActivity(activity.actID);
-    console.log("[handleActivityClick] timeLeftStr:", timeLeftStr);
-    if (timeLeftStr === "expired") {
-      console.log("[handleActivityClick] Saved attempt expired. Initiating auto-submission.");
-      setExpiredAttempt(true);
-      const key = `activityState_${activity.actID}`;
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        console.log("[handleActivityClick] Parsed saved state:", parsed);
-  
-        // If you stored selectedItem in local storage, use it:
-        let itemID = parsed.selectedItem; 
-        if (!itemID && activity.items && activity.items[0]) {
-          itemID = activity.items[0].itemID;
-        }
-  
-        let code = "";
-        if (parsed.files && parsed.activeFileId !== undefined) {
-          const fileObj = parsed.files[parsed.activeFileId];
-          if (fileObj) {
-            code = fileObj.content;
-          }
-        }
-        
-        const submissionData = {
-          itemID: itemID,  // Must be a valid itemID
-          codeSubmission: code, 
-          score: 0, 
-          timeSpent: Math.floor((Date.now() - (parsed.startTime || Date.now())) / 60000) || 0
-        };
-        console.log("[handleActivityClick] Auto-submitting with data:", submissionData);
-        const result = await finalizeSubmission(activity.actID, submissionData);
-        if (!result.error) {
-          console.log("[handleActivityClick] Auto-submission successful.");
-          setModalTitle("Time Expired - Attempt Submitted");
-          setModalMessage("Your allotted time for this activity has expired and your attempt has been submitted automatically.");
+  // Check if activity is not yet open
+  if (now < activityOpen) {
+    console.log("[handleActivityClick] Activity not yet started.");
+    setModalTitle("Activity Not Yet Started");
+    setModalMessage("This activity is upcoming and will start on " + formatDateString(activity.openDate) + ".");
+    setShowModal(true);
+    return;
+  }
+
+  // Check if activity is finished
+  if (now > activityClose) {
+    console.log("[handleActivityClick] Activity finished.");
+    setModalTitle("Activity Finished");
+    setModalMessage("This activity is finished and can no longer be accessed.");
+    setShowModal(true);
+    return;
+  }
+
+  // Check local storage to see if there's a saved progress with a timer
+  const timeLeftStr = checkLocalStorageForActivity(activity.actID);
+  console.log("[handleActivityClick] timeLeftStr:", timeLeftStr);
+
+  if (timeLeftStr === "expired") {
+    console.log("[handleActivityClick] Saved attempt expired. Initiating auto-submission.");
+    setExpiredAttempt(true);
+
+    const key = `activityState_${activity.actID}_${userID}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      console.log("[handleActivityClick] Parsed saved state:", parsed);
+
+      // Convert actDuration to milliseconds.
+      const maxDurationMs = parseHHMMSStoMs(activity.actDuration);
+
+      // Ensure we have all items.
+      if (!activity.items || activity.items.length === 0) {
+        console.warn("[handleActivityClick] Activity items are missing. Fetching from API...");
+        const resp = await getActivityItemsByStudent(activity.actID);
+        if (resp && resp.items && resp.items.length > 0) {
+          activity.items = resp.items;
         } else {
-          console.error("[handleActivityClick] Auto-submission error:", result.error, result.details);
+          console.error("[handleActivityClick] No activity items found from API.");
           setModalTitle("Submission Error");
-          setModalMessage("An error occurred while submitting your attempt automatically.");
+          setModalMessage("No valid submission items found. Please try reloading the page or contact support.");
+          setShowModal(true);
+          return;
         }
-        localStorage.removeItem(key);
-        console.log("[handleActivityClick] Removed localStorage key:", key);
-      } else {
-        console.log("[handleActivityClick] No saved attempt found in localStorage.");
-        setModalTitle("Expired");
-        setModalMessage("No saved attempt found.");
       }
-      setShowModal(true);
-      return;
-    } else if (timeLeftStr) {
-      console.log("[handleActivityClick] Valid saved attempt found. Resuming attempt.");
-      setIsResuming(true);
-      setResumeTimeLeft(timeLeftStr);
-      setExpiredAttempt(false);
-    } else {
-      console.log("[handleActivityClick] No saved attempt detected. Starting new attempt.");
-      setIsResuming(false);
-      setResumeTimeLeft("00:00:00");
-      setExpiredAttempt(false);
-    }
 
-    setSelectedActivityForAssessment(activity);
-    setShowTakeModal(true);
-  };
+      // Grab the code from local storage (assuming overall activity code applies for every item).
+      let code = "";
+      if (parsed.files && parsed.activeFileId !== undefined) {
+        const fileObj = parsed.files[parsed.activeFileId];
+        if (fileObj) {
+          code = fileObj.content;
+        }
+      }
+
+      // Retrieve and parse test case results into an object.
+      let rawResults = parsed.draftTestCaseResults || parsed.testCaseResults || {};
+      if (typeof rawResults === "string") {
+        try {
+          rawResults = JSON.parse(rawResults);
+        } catch (e) {
+          rawResults = {};
+        }
+      }
+
+      // Calculate elapsed time (clamped by actDuration).
+      let rawElapsedMs = Date.now() - (parsed.startTime || Date.now());
+      if (rawElapsedMs < 0) rawElapsedMs = 0;
+      const finalElapsedMs = Math.min(rawElapsedMs, maxDurationMs);
+      const timeSpentSeconds = Math.floor(finalElapsedMs / 1000);
+
+      // Build the submissions array for ALL items.
+      const submissions = activity.items.map((item) => ({
+        itemID: item.itemID,
+        codeSubmission: code,
+        score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
+        itemTimeSpent: timeSpentSeconds,
+        // Each item gets its own test case results from rawResults keyed by itemID.
+        testCaseResults: JSON.stringify(rawResults[item.itemID] || {}),
+        timeRemaining: parsed.draftTimeRemaining || null,
+        selectedLanguage: parsed.draftSelectedLanguage || null,
+      }));
+
+      console.log("[handleActivityClick] Generated submissions array:", submissions);
+      const submissionData = { submissions };
+      console.log("[handleActivityClick] Final submission payload:", submissionData);
+
+      // Call API to finalize submission
+      const result = await finalizeSubmission(activity.actID, submissionData);
+      if (!result.error) {
+        console.log("[handleActivityClick] Auto-submission successful:", result);
+        setModalTitle("Time Expired - Attempt Submitted");
+        setModalMessage("Your allotted time for this activity has expired and your attempt has been submitted automatically.");
+      } else {
+        console.error("[handleActivityClick] Auto-submission error:", result.error, result.details);
+        setModalTitle("Submission Error");
+        setModalMessage("An error occurred while submitting your attempt automatically.");
+      }
+      localStorage.removeItem(key);
+      console.log("[handleActivityClick] Removed localStorage key:", key);
+    } else {
+      console.log("[handleActivityClick] No saved attempt found in localStorage.");
+      setModalTitle("Expired");
+      setModalMessage("No saved attempt found.");
+    }
+    setShowModal(true);
+    return;
+
+  } else if (timeLeftStr) {
+    console.log("[handleActivityClick] Valid saved attempt found. Resuming attempt.");
+    setIsResuming(true);
+    setResumeTimeLeft(timeLeftStr);
+    setExpiredAttempt(false);
+
+  } else {
+    console.log("[handleActivityClick] No saved attempt detected. Starting new attempt.");
+    setIsResuming(false);
+    setResumeTimeLeft("00:00:00");
+    setExpiredAttempt(false);
+  }
+
+  setSelectedActivityForAssessment(activity);
+  setShowTakeModal(true);
+};
+
 
   const renderLanguages = (languagesArray) => {
     if (!Array.isArray(languagesArray) || languagesArray.length === 0) {
@@ -306,7 +407,7 @@ export const StudentClassComponent = () => {
   const formatDateString = (dateString) => {
     if (!dateString) return "-";
     const dateObj = new Date(dateString);
-    const day = String(dateObj.getDate()).padStart(2, '0'); 
+    const day = String(dateObj.getDate()).padStart(2, '0');
     const monthName = dateObj.toLocaleString('default', { month: 'long' });
     const year = dateObj.getFullYear();
     let hours = dateObj.getHours();
@@ -399,6 +500,10 @@ export const StudentClassComponent = () => {
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
                             </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                            </div>
                           </div>
                         </Col>
                         <Col className='activity-stats'>
@@ -451,7 +556,7 @@ export const StudentClassComponent = () => {
                                 if (status === "expired") {
                                   return (
                                     <span style={{ color: "red", fontWeight: "bold", marginLeft: "8px" }}>
-                                      Expired Attempt #{(activity.attemptsTaken || 0)}
+                                      Expired Attempt #{((selectedActivityForAssessment?.attemptsTaken || 0) + 1)}
                                     </span>
                                   );
                                 } else if (status) {
@@ -485,23 +590,17 @@ export const StudentClassComponent = () => {
                             <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
                             <div style={{ marginTop: "5px" }}>
                               <strong>Time Left: </strong>
-                              {(() => {
-                                const status = checkLocalStorageForActivity(activity.actID);
-                                if (status === "expired") {
-                                  return (
-                                    <span style={{ color: "red", fontWeight: "bold" }}>
-                                      Expired Attempt #{(activity.attemptsTaken || 0)}
-                                    </span>
-                                  );
-                                }
-                                return <Timer openDate={activity.openDate} closeDate={activity.closeDate} />;
-                              })()}
+                              <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
                             </div>
                             <div>
                               <strong>Attempts: </strong>
                               {activity.actAttempts === 0 
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
+                            </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
                           </div>
                         </Col>
@@ -563,6 +662,10 @@ export const StudentClassComponent = () => {
                             <div style={{ marginTop: "5px" }}>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
+                            </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
                           </div>
                         </Col>
@@ -641,8 +744,7 @@ export const StudentClassComponent = () => {
           ) : isResuming ? (
             <>
               <p>
-                Do you want to resume your progress on activity:{" "}
-                <strong>{selectedActivityForAssessment?.actTitle}</strong>?
+                Do you want to resume your progress on activity: <strong>{selectedActivityForAssessment?.actTitle}</strong>?
               </p>
               <p>
                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
@@ -652,15 +754,11 @@ export const StudentClassComponent = () => {
           ) : (
             <>
               <p>
-                Do you want to take the activity:{" "}
-                <strong>{selectedActivityForAssessment?.actTitle}</strong>?
+                Do you want to take the activity: <strong>{selectedActivityForAssessment?.actTitle}</strong>?
               </p>
               <p>
                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
-                Duration:{" "}
-                {selectedActivityForAssessment?.actDuration
-                  ? selectedActivityForAssessment.actDuration + " min"
-                  : "-"}
+                Duration: {selectedActivityForAssessment?.actDuration ? selectedActivityForAssessment.actDuration + " min" : "-"}
               </p>
             </>
           )}
@@ -680,9 +778,7 @@ export const StudentClassComponent = () => {
             <Button 
               variant="primary" 
               onClick={() => {
-                navigate(
-                  `/student/class/${classID}/activity/${selectedActivityForAssessment.actID}/assessment`
-                );
+                navigate(`/student/class/${classID}/activity/${selectedActivityForAssessment.actID}/assessment`);
               }}
             >
               Yes, {isResuming ? "resume activity" : "take activity"}

@@ -2,22 +2,31 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import "../../style/teacher/leaderboard.css";
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
-import { getActivityLeaderboardByTeacher } from "../api/API"; // ✅ Import API function
+import { getActivityLeaderboardByTeacher } from "../api/API";
+
+// Helper function to convert seconds to HH:MM:SS format
+const convertSecondsToHMS = (seconds) => {
+  if (typeof seconds !== "number") return "00:00:00";
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return [hrs, mins, secs]
+    .map(unit => String(unit).padStart(2, "0"))
+    .join(":");
+};
 
 const TeacherActivityLeaderboardComponent = () => {
-  const { actID } = useParams(); // ✅ Get actID from URL
-  const [students, setStudents] = useState([]);
+  const { actID } = useParams();
+  const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, []);
-
+  // Fetch the leaderboard
   const fetchLeaderboard = async () => {
+    setLoading(true);
     try {
       const response = await getActivityLeaderboardByTeacher(actID);
       if (!response.error) {
-        setStudents(response);
+        setLeaderboard(response.leaderboard);
       } else {
         console.error("❌ Error fetching leaderboard:", response.error);
       }
@@ -28,12 +37,25 @@ const TeacherActivityLeaderboardComponent = () => {
     }
   };
 
+  // On mount or when actID changes
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [actID]);
+
   return (
     <div className="leaderboard-body">
       <TeacherAMNavigationBarComponent />
       <div className="leaderboard-container">
         <div className="leaderboard-header">
           <h1 className="leaderboard-title">Leaderboard</h1>
+
+          {/* Refresh Button */}
+          <div className="d-flex gap-2 mb-3">
+            <button className="btn btn-info" onClick={fetchLeaderboard}>
+              Refresh
+            </button>
+          </div>
+
           {loading ? (
             <p>Loading students...</p>
           ) : (
@@ -43,23 +65,28 @@ const TeacherActivityLeaderboardComponent = () => {
                   <th className="leaderboard-column-titles">Student Name</th>
                   <th className="leaderboard-column-titles">Program</th>
                   <th className="leaderboard-column-titles">Score</th>
+                  <th className="leaderboard-column-titles">Time Spent</th>
                   <th className="leaderboard-column-titles">Rank</th>
                 </tr>
               </thead>
               <tbody className="leaderboard-students">
-                {students.length > 0 ? (
-                  students.map((student, index) => (
+                {leaderboard.length > 0 ? (
+                  leaderboard.map((student, index) => (
                     <LeaderboardItem
                       key={index}
                       name={student.studentName}
                       program={student.program}
-                      averageScore={student.averageScore}
+                      score={student.score}
+                      timeSpent={convertSecondsToHMS(student.timeSpent)}
                       rank={student.rank}
+                      profileImage={student.profileImage}
                     />
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="no-data">No students available</td>
+                    <td colSpan="5" className="no-data">
+                      No students attempted yet
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -71,22 +98,26 @@ const TeacherActivityLeaderboardComponent = () => {
   );
 };
 
-// ✅ Updated Leaderboard Item Component
-const LeaderboardItem = ({ name, program, averageScore, rank }) => {
+const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }) => {
+  const defaultProfileImage = "/src/assets/noy.png";
+  const imageToShow =
+    profileImage && profileImage.trim() !== "" ? profileImage : defaultProfileImage;
+
   return (
     <tr>
       <td>
         <div className="avatar-name">
           <div className="avatar">
-            <img src="src/assets/avatar.png" alt="Avatar" className="avatar-image" />
+            <img src={imageToShow} alt="Avatar" className="avatar-image" />
           </div>
           <span className="student-name">{name}</span>
         </div>
       </td>
       <td>{program}</td>
       <td>
-        <div className="score-circle">{averageScore}</div>
+        <div className="score-circle">{score}</div>
       </td>
+      <td>{timeSpent}</td>
       <td>
         <div className="score-circle">{rank}</div>
       </td>

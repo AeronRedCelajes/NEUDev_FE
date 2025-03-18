@@ -11,7 +11,9 @@ import {
   getItems,
   getItemTypes, 
   getProgrammingLanguages,
-  verifyPassword
+  verifyPassword,
+  getSessionData,
+  getProfile
 } from "../api/API"; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faEllipsisV, faEye, faEyeSlash, faClock } from '@fortawesome/free-solid-svg-icons';
@@ -97,6 +99,7 @@ export const TeacherClassManagementComponent = () => {
     maxPoints: '',
     actDuration: '', // in minutes (string)
     actAttempts: '', // NEW: store attempts as string
+    finalScorePolicy: 'last_attempt', // NEW: default policy
     // renamed "questions" -> "items"
     items: ['', '', ''],
   });
@@ -170,7 +173,9 @@ export const TeacherClassManagementComponent = () => {
   // -------------------- API Calls --------------------
   const fetchActivities = async () => {
     try {
-      const storedClassID = sessionStorage.getItem("selectedClassID");
+      // Use per-tab session data instead of sessionStorage
+      const sessionData = getSessionData();
+      const storedClassID = sessionData.selectedClassID;
       if (!storedClassID) {
         console.error("❌ No class ID found in session storage.");
         return;
@@ -214,7 +219,9 @@ export const TeacherClassManagementComponent = () => {
 
   // Using getItems instead of getQuestions, with query params
   const fetchPresetItems = async () => {
-    const teacherID = sessionStorage.getItem("userID");
+    // Instead of sessionStorage, get teacherID from per-tab session data.
+    const sessionData = getSessionData();
+    const teacherID = sessionData.userID;
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
       setPresetItems(response);
@@ -262,7 +269,8 @@ export const TeacherClassManagementComponent = () => {
   };
 
   const handleConfirmDelete = async () => {
-    const teacherEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const teacherEmail = sessionData.email;
     if (!teacherEmail) {
       alert("Teacher email not found. Please log in again.");
       return;
@@ -408,7 +416,7 @@ export const TeacherClassManagementComponent = () => {
       }
     }
 
-    // NEW: Include actAttempts (convert to string for form control)
+    // NEW: Include actAttempts and finalScorePolicy (converted to string for form control)
     setEditFormData({
       actTitle:       activity.actTitle || '',
       actDesc:        activity.actDesc || '',
@@ -418,6 +426,7 @@ export const TeacherClassManagementComponent = () => {
       maxPoints:      activity.maxPoints ? activity.maxPoints.toString() : '',
       actDuration:    totalMinutes,
       actAttempts:    activity.actAttempts !== undefined ? activity.actAttempts.toString() : "0",
+      finalScorePolicy: activity.finalScorePolicy || "last_attempt",
       items:          existingItems
     });
 
@@ -449,6 +458,7 @@ export const TeacherClassManagementComponent = () => {
       actDuration:   finalDuration,
       maxPoints:     computedPoints,
       actAttempts:   parseInt(editFormData.actAttempts || "0", 10),
+      finalScorePolicy: editFormData.finalScorePolicy, // Include updated finalScorePolicy
       progLangIDs:   editSelectedProgLangs,
       items: editFormData.items
         .filter(it => it.itemName.trim() !== '')
@@ -579,7 +589,9 @@ export const TeacherClassManagementComponent = () => {
         <button
           className="create-new-activity-button"
           onClick={() => {
-            const storedClassID = sessionStorage.getItem("selectedClassID");
+            // Use per-tab session data instead of sessionStorage for selectedClassID.
+            const sessionData = getSessionData();
+            const storedClassID = sessionData.selectedClassID;
             if (!storedClassID) {
               alert("⚠️ No class selected!");
               return;
@@ -728,6 +740,10 @@ export const TeacherClassManagementComponent = () => {
                               {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
                             </div>
                             <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                            </div>
+                            <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                               Duration: {activity.actDuration ? activity.actDuration : "-"}
                             </div>
@@ -851,6 +867,10 @@ export const TeacherClassManagementComponent = () => {
                             <div>
                               <strong>Attempts: </strong>
                               {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                            </div>
+                            <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
                             <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
@@ -978,6 +998,10 @@ export const TeacherClassManagementComponent = () => {
                               {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
                             </div>
                             <div>
+                              <strong>Final Score Policy: </strong>
+                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                            </div>
+                            <div>
                               <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                               Duration: {activity.actDuration ? activity.actDuration : "-"}
                             </div>
@@ -1091,6 +1115,22 @@ export const TeacherClassManagementComponent = () => {
               />
               <Form.Text className="text-muted">
                 Enter 0 for unlimited attempts; otherwise, enter a positive number.
+              </Form.Text>
+            </Form.Group>
+            {/* NEW: Final Score Policy in Edit Modal */}
+            <Form.Group controlId="formFinalScorePolicy" className="mt-3">
+              <Form.Label>Final Score Policy</Form.Label>
+              <Form.Control
+                as="select"
+                value={editFormData.finalScorePolicy || "last_attempt"}
+                onChange={(e) => setEditFormData({ ...editFormData, finalScorePolicy: e.target.value })}
+                required
+              >
+                <option value="last_attempt">Last Attempt</option>
+                <option value="highest_score">Highest Score</option>
+              </Form.Control>
+              <Form.Text className="text-muted">
+                Choose whether the final score is determined by the student's last submission or their highest score.
               </Form.Text>
             </Form.Group>
             <Form.Group controlId="formSelectProgLang" className="mt-3">
@@ -1213,7 +1253,6 @@ export const TeacherClassManagementComponent = () => {
               </div>
             )}
 
-            {/* NEW: Item Creator Selector */}
             <div className="filter-section" style={{ marginBottom: "10px" }}>
               <label>Item Creator:</label>
               <select
@@ -1228,7 +1267,6 @@ export const TeacherClassManagementComponent = () => {
               </select>
             </div>
 
-            {/* Sorting Controls for preset items */}
             <div
               style={{
                 margin: "10px 0",
@@ -1258,34 +1296,40 @@ export const TeacherClassManagementComponent = () => {
               </p>
             ) : (
               sortedPresetItems.map((item, idx) => (
-                <Button
-                  key={idx}
-                  className={`question-item d-block ${selectedItem === item ? "highlighted" : ""}`}
-                  onClick={() => handleSelectItem(item)}
-                  style={{ textAlign: "left", marginBottom: "8px" }}
-                >
-                  <div>
-                    <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
-                  </div>
-                  <div style={{ marginTop: "5px" }}>
-                    {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
-                      const plName = langObj.progLangName;
-                      const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
-                      return mapping.image ? (
-                        <img
-                          key={i}
-                          src={mapping.image}
-                          alt={mapping.name}
-                          style={{ width: "20px", marginRight: "5px" }}
-                        />
-                      ) : (
-                        <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
-                          {mapping.name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </Button>
+                <div key={idx}>
+                  <Button
+                    className={`question-item d-block ${selectedItem && selectedItem.itemID === item.itemID ? "highlighted" : ""}`}
+                    onClick={() => handleSelectItem(item)}
+                    style={{ textAlign: "left", marginBottom: "8px", width: "100%" }}
+                  >
+                    <div>
+                      <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
+                    </div>
+                    <div style={{ marginTop: "5px" }}>
+                      {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
+                        const plName = langObj.progLangName;
+                        const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
+                        return mapping.image ? (
+                          <img
+                            key={i}
+                            src={mapping.image}
+                            alt={mapping.name}
+                            style={{ width: "20px", marginRight: "5px" }}
+                          />
+                        ) : (
+                          <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
+                            {mapping.name}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </Button>
+                  {selectedItem && selectedItem.itemID === item.itemID && (
+                    <div className="item-description-dropdown" style={{ padding: "10px", backgroundColor: "#f1f1f1", marginBottom: "8px", borderRadius: "4px" }}>
+                      {item.itemDesc}
+                    </div>
+                  )}
+                </div>
               ))
             )}
           </Modal.Body>
