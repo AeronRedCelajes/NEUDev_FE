@@ -64,11 +64,7 @@
 }
 
 .sign-in:hover {
-  font-size: 16px;
   color: #ddd;
-  margin: 5px 0px;
-  padding: 5px 50px;
-  border-radius: 50px;
 }
 
 .landing-navbar .sign-up{
@@ -76,13 +72,8 @@
 }
 
 .sign-up:hover {
-  font-size: 16px;
   color: #ddd;
-  margin: 5px 0px;
-  padding: 5px 50px;
-  border-style: solid;
-  border-radius: 50px;
-  border-color: #EC5A2F;
+  border-color: #ec8a6c;
 }
 
 @media (max-width: 1024px) {

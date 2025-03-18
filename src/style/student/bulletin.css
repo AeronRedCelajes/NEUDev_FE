@@ -2,11 +2,13 @@
     font-family: 'Poppins';
     height: fit-content;
     background-color: #CCCFDA;
+    width: 100vw;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 .bulletin-header{
-    background-color: #FFF5F1;
-    margin-top: -80px;
+    background-color: #fff9f7;
     padding: 20px;
     display: flex;
     align-items: center;
@@ -149,7 +151,7 @@
     background-color: #F5DAD0;
 }
 
-.post-concern .modal-header h3{
+.post-concern .modal-header h4{
     color: #B84C20;
     font-weight: 700;
     margin-bottom: 0;

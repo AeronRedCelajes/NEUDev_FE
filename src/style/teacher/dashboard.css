@@ -106,10 +106,144 @@
     border-bottom-right-radius: 20px;
 }
 
-.class-card-archived{
-    opacity: 70%;
+
+.modal-edit-class .modal-content {
+    border-radius: 20px !important; /* Fully rounded */
+    overflow: hidden; /* Ensures child elements don't override the radius */
 }
 
+/* Modal Header */
+.modal-edit-class .modal-header {
+    background-color: #F5DAD0;
+    color: #B84C20;
+    font-weight: bold;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom: 2px solid #B84C20;
+}
+
+/* Modal Title */
+.modal-edit-class .modal-title {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+/* Close Button */
+.modal-edit-class .modal-header .btn-close {
+    filter: invert(25%);
+}
+
+/* Modal Body */
+.modal-edit-class .modal-body {
+    background-color: #FFF5F1;
+    padding: 20px;
+}
+
+/* Form Input Fields */
+.modal-edit-class .form-control {
+    border-radius: 10px;
+    border: 2px solid #C4907B;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.modal-edit-class .form-control:focus {
+    border-color: #B84C20;
+    box-shadow: 0 0 5px rgba(184, 76, 32, 0.5);
+}
+
+/* Create Button */
+.modal-edit-class .btn-primary {
+    background-color: #84C776;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background 0.3s ease-in-out;
+}
+
+.modal-edit-class .btn-primary:hover {
+    background-color: #6aaf5c;
+}
+
+
+.modal-delete-class .modal-content {
+    border-radius: 20px !important; /* Fully rounded */
+    overflow: hidden; /* Ensures child elements don't override the radius */
+}
+
+/* Modal Header */
+.modal-delete-class .modal-header {
+    background-color: #F5DAD0;
+    color: #B84C20;
+    font-weight: bold;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom: 2px solid #B84C20;
+}
+
+/* Modal Title */
+.modal-delete-class .modal-title {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+/* Close Button */
+.modal-delete-class .modal-header .btn-close {
+    filter: invert(25%);
+}
+
+/* Modal Body */
+.modal-delete-class .modal-body {
+    background-color: #FFF5F1;
+    padding: 20px;
+}
+
+/* Form Input Fields */
+.modal-delete-class .form-control {
+    border-radius: 10px;
+    border: 2px solid #C4907B;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.modal-delete-class .form-control:focus {
+    border-color: #B84C20;
+    box-shadow: 0 0 5px rgba(184, 76, 32, 0.5);
+}
+
+
+.modal-archive-class .modal-content {
+    border-radius: 20px !important; /* Fully rounded */
+    overflow: hidden; /* Ensures child elements don't override the radius */
+}
+
+/* Modal Header */
+.modal-archive-class .modal-header {
+    background-color: #F5DAD0;
+    color: #B84C20;
+    font-weight: bold;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom: 2px solid #B84C20;
+}
+
+/* Modal Title */
+.modal-archive-class .modal-title {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+/* Close Button */
+.modal-archive-class .modal-header .btn-close {
+    filter: invert(25%);
+}
+
+/* Modal Body */
+.modal-archive-class .modal-body {
+    background-color: #FFF5F1;
+    padding: 20px;
+}
 
 /* 🎯 Responsive Fixes */
 @media (max-width: 992px) {
@@ -121,6 +255,11 @@
 @media (max-width: 680px) {
     .classes-container .class-card{
         width: 80%;
+    }
+
+    .classes-container .create-class{
+        width: 80%;
+        height: auto;
     }
 
 }

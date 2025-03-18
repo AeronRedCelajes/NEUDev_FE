@@ -1,77 +1,21 @@
-.class-navbar-top {
-    font-family: 'Poppins';
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #ddd;
-    background-color: #FFF5F1;
-    box-shadow: 0 3px 4px rgba(89, 89, 89, 0.244);
-}
-
-.class-navbar-top .bi-arrow-left-circle{
-    font-size: 20px;
-    font-weight: bolder;
-    color: #B84C20;
-    border: none;
-    margin-inline: 10px;
-    padding-left: 20px;
-    cursor: pointer;
-}
-
-.class-navbar-top .bi-arrow-left-circle:hover{
-    color: #e4bcac;
-}
-
-.class-navbar-top p{
-    margin: auto 0;
-    font-size: 17px;
-    color: #B84C20;
-}
-
-.navbar-center{
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    flex-direction: row;
-    padding-left: 20px;
-    position: absolute;
-    left: 50%;
-    height: 100%;
-    transform: translateX(-50%);
-}
-
-.navbar-center #tab .nav-item {
-    margin: 0 20px;
-}
-
-.navbar-center .nav-tabs .nav-link {
-    color: #eab8a7;
-    border: none;
-    border-bottom: 2px solid transparent;
-    font-weight: normal;
-    transition: color 0.3s ease, border-color 0.3s ease;
-}
-
-.navbar-center .nav-tabs .nav-link.active {
-    background-color: transparent !important;
-    color: #B84C20 !important;
-    font-weight: bold !important;
-    border-bottom: 5px solid #B84C20 !important;
-    border-left: 0;
-    border-right: 0;
-    border-top: transparent;
-}
-
-.navbar-center .nav-tabs .nav-link:hover {
-    border-bottom: 2px solid #b84b2086; 
-}
-
-.class-management{
-    background-color: #CCCFDA;
+.class-management-container{
     height: 100vh;
     min-height: fit-content;
+    background-color: #CCCFDA;
+}
+
+.class-info {
+    text-align: center;
+    background-color: #fff9f7; 
+    padding: 10px 20px;     
+    position: relative;
+}
+
+.class-info h3{
+    color: #B84C20;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
 }
 
 .class-content{

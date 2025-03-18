@@ -1,9 +1,28 @@
+.class-post-container{
+    background-color: #CCCFDA;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    height: 100vh;
+    min-height: fit-content;
+}
+
+.create-new-post-container{
+    display: flex;
+    align-items: center;  
+    justify-content: center;
+    background-color: #fff9f7; 
+    padding: 10px 20px;     
+    position: relative;
+}
+
 .modal-post-announcement .modal-header{
     color: #B84C20;
     background-color: #F5DAD0;
+    border-bottom: 2px solid #B84C20;
 }
 
-.modal-post-announcement .modal-header h3{
+.modal-post-announcement .modal-header h4{
     font-weight: 700;
 }
 
@@ -16,6 +35,7 @@
     border-top: 2px solid #9196A1;
     display: flex;
     justify-content: center;
+    border-top: 1px solid #B84C20;
 }
 
 .modal-post-announcement .modal-footer button{
@@ -27,4 +47,10 @@
 
 .modal-post-announcement .modal-footer button:hover{
     background-color: #76c7c6b3;
+}
+
+.announcement-container{
+    padding-inline: 10px;
+    display: flex;
+    justify-content: center;
 }

@@ -11,9 +11,7 @@ import {
   getItems,
   getItemTypes, 
   getProgrammingLanguages,
-  verifyPassword,
-  getSessionData,
-  getProfile
+  verifyPassword
 } from "../api/API"; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faEllipsisV, faEye, faEyeSlash, faClock } from '@fortawesome/free-solid-svg-icons';
@@ -173,9 +171,7 @@ export const TeacherClassManagementComponent = () => {
   // -------------------- API Calls --------------------
   const fetchActivities = async () => {
     try {
-      // Use per-tab session data instead of sessionStorage
-      const sessionData = getSessionData();
-      const storedClassID = sessionData.selectedClassID;
+      const storedClassID = sessionStorage.getItem("selectedClassID");
       if (!storedClassID) {
         console.error("❌ No class ID found in session storage.");
         return;
@@ -219,9 +215,7 @@ export const TeacherClassManagementComponent = () => {
 
   // Using getItems instead of getQuestions, with query params
   const fetchPresetItems = async () => {
-    // Instead of sessionStorage, get teacherID from per-tab session data.
-    const sessionData = getSessionData();
-    const teacherID = sessionData.userID;
+    const teacherID = sessionStorage.getItem("userID");
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
       setPresetItems(response);
@@ -269,8 +263,7 @@ export const TeacherClassManagementComponent = () => {
   };
 
   const handleConfirmDelete = async () => {
-    const sessionData = getSessionData();
-    const teacherEmail = sessionData.email;
+    const teacherEmail = sessionStorage.getItem("user_email");
     if (!teacherEmail) {
       alert("Teacher email not found. Please log in again.");
       return;
@@ -573,734 +566,758 @@ export const TeacherClassManagementComponent = () => {
     return 0;
   });
 
+  // --------------Copy classID----------------
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    if (classInfo?.classID) {
+      navigator.clipboard.writeText(classInfo.classID);
+      setCopied(true);
+
+      // Reset copied state after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   // -------------------- Rendering --------------------
   return (
     <>
       <TeacherCMNavigationBarComponent />
-      <div className="create-new-activity-wrapper"></div>
-      <div className="create-new-activity-container">
-        {/* Dynamic header using fetched classInfo */}
-        <h2>
-          {classInfo 
-            ? `${classInfo.className} (${classInfo.classID})` 
-            : "Loading class..."}
-        </h2>
-        
-        <button
-          className="create-new-activity-button"
-          onClick={() => {
-            // Use per-tab session data instead of sessionStorage for selectedClassID.
-            const sessionData = getSessionData();
-            const storedClassID = sessionData.selectedClassID;
-            if (!storedClassID) {
-              alert("⚠️ No class selected!");
-              return;
-            }
-            navigate(`/teacher/class/${storedClassID}/create-activity`);
-          }}
-        >
-          + Create New Activity
-        </button>
-      </div>
-
-      {/* Sorting Controls for Activities */}
-      <div style={{ margin: "20px 0" }}>
-        <span>Sort by: </span>
-        <Button variant="link" onClick={handleSortByOpenDate}>
-          Open Date{" "}
-          {sortField === "openDate" && (
-            <FontAwesomeIcon
-              icon={faCaretDown}
-              style={{
-                transform: sortOrder === "asc" ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s",
-              }}
-            />
-          )}
-        </Button>
-        <Button variant="link" onClick={handleSortByCloseDate}>
-          Close Date{" "}
-          {sortField === "closeDate" && (
-            <FontAwesomeIcon
-              icon={faCaretDown}
-              style={{
-                transform: sortOrder === "asc" ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s",
-              }}
-            />
-          )}
-        </Button>
-      </div>
-
-      <div className="class-management">
-        <div className="container class-content">
-          <Tabs defaultActiveKey={contentKey} id="tab" onSelect={(k) => setContentKey(k)} fill>
-            <Tab eventKey="upcoming" title="Upcoming"></Tab>
-            <Tab eventKey="ongoing" title="Ongoing"></Tab>
-            <Tab eventKey="completed" title="Completed"></Tab>
-          </Tabs>
-
-          {/* Upcoming Activities */}
-          {contentKey === "upcoming" && (
-            <div className="upcoming-class-activities">
-              {upcomingActivities.length === 0 ? (
-                <p>No upcoming activities found.</p>
-              ) : (
-                upcomingActivities.map((activity) => {
-                  const languages = activity.programming_languages || [];
-                  return (
-                    <div
-                      key={`upcoming-${activity.actID}`}
-                      className="class-activities"
-                      style={{ position: "relative", cursor: "pointer" }}
-                      onClick={() => handleActivityCardClick(activity)}
-                    >
-                      {/* 3-dots Menu Button */}
-                      <div
-                        className="activity-menu-container"
-                        style={{ position: "absolute", top: "10px", right: "10px" }}
-                      >
-                        <button
-                          className="menu-btn"
-                          onClick={(e) => toggleMenu(e, activity.actID)}
-                          style={{ background: "none", border: "none" }}
-                        >
-                          <FontAwesomeIcon icon={faEllipsisV} />
-                        </button>
-                        {openMenu === activity.actID && (
-                          <div
-                            className="activity-menu"
-                            style={{
-                              position: "absolute",
-                              top: "30px",
-                              right: "0",
-                              background: "white",
-                              border: "1px solid #ccc",
-                              zIndex: 10,
-                            }}
-                          >
-                            <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Edit
-                            </div>
-                            <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Delete
-                            </div>
-                            <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Copy Link
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <Row>
-                        <Col className="activity-details-column">
-                          <div className="class-activity-details">
-                            <h3>{activity.actTitle}</h3>
-                            <p className="activity-description">{activity.actDesc}</p>
-                            <div className="lang-container">
-                              {languages.length > 0 ? (
-                                languages.map((lang, index) => {
-                                  const mapping =
-                                    programmingLanguageMap[lang.progLangID] ||
-                                    { name: lang.progLangName, image: null };
-                                  return (
-                                    <button disabled key={lang.progLangID} className="lang-btn">
-                                      {mapping.image && (
-                                        <img
-                                          src={mapping.image}
-                                          alt={`${mapping.name} Icon`}
-                                          style={{ width: "20px", marginRight: "5px" }}
-                                        />
-                                      )}
-                                      {mapping.name}
-                                      {index < languages.length - 1 ? ", " : ""}
-                                    </button>
-                                  );
-                                })
-                              ) : (
-                                "-"
-                              )}
-                            </div>
-                            <p>
-                              <i className="bi bi-calendar-check"></i>{" "}
-                              Open Date: {formatDateString(activity.openDate)}
-                            </p>
-                            <p>
-                              <i className="bi bi-calendar-x"></i>{" "}
-                              Close Date: {formatDateString(activity.closeDate)}
-                            </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div>
-                              <strong>Time Left: </strong>
-                              <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            {/* Display Attempts */}
-                            <div>
-                              <strong>Attempts: </strong>
-                              {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
-                            </div>
-                            <div>
-                              <strong>Final Score Policy: </strong>
-                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
-                            </div>
-                            <div>
-                              <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
-                              Duration: {activity.actDuration ? activity.actDuration : "-"}
-                            </div>
-                          </div>
-                        </Col>
-                        <Col className="activity-stats">
-                          <div className="score-chart">
-                            <h4>{activity.classAvgScore ?? "-"}</h4>
-                            <p>Class Avg. Score</p>
-                          </div>
-                          <div className="score-chart">
-                            <h4>
-                              {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
-                            </h4>
-                            <p>Highest Score</p>
-                          </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          )}
-
-          {/* Ongoing Activities */}
-          {contentKey === "ongoing" && (
-            <div className="ongoing-class-activities">
-              {sortedOngoingActivities.length === 0 ? (
-                <p>No ongoing activities found.</p>
-              ) : (
-                sortedOngoingActivities.map((activity) => {
-                  const languages = activity.programming_languages || [];
-                  return (
-                    <div
-                      key={`ongoing-${activity.actID}`}
-                      className="class-activities"
-                      style={{ position: "relative", cursor: "pointer" }}
-                      onClick={() => handleActivityCardClick(activity)}
-                    >
-                      {/* 3-dots Menu Button */}
-                      <div
-                        className="activity-menu-container"
-                        style={{ position: "absolute", top: "10px", right: "10px" }}
-                      >
-                        <button
-                          className="menu-btn"
-                          onClick={(e) => toggleMenu(e, activity.actID)}
-                          style={{ background: "none", border: "none" }}
-                        >
-                          <FontAwesomeIcon icon={faEllipsisV} />
-                        </button>
-                        {openMenu === activity.actID && (
-                          <div
-                            className="activity-menu"
-                            style={{
-                              position: "absolute",
-                              top: "30px",
-                              right: "0",
-                              background: "white",
-                              border: "1px solid #ccc",
-                              zIndex: 10,
-                            }}
-                          >
-                            <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Edit
-                            </div>
-                            <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Delete
-                            </div>
-                            <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Copy Link
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <Row>
-                        <Col className="activity-details-column">
-                          <div className="class-activity-details">
-                            <h3>{activity.actTitle}</h3>
-                            <p className="activity-description">{activity.actDesc}</p>
-                            <div className="lang-container">
-                              {languages.length > 0 ? (
-                                languages.map((lang, index) => {
-                                  const mapping =
-                                    programmingLanguageMap[lang.progLangID] ||
-                                    { name: lang.progLangName, image: null };
-                                  return (
-                                    <button disabled key={lang.progLangID} className="lang-btn">
-                                      {mapping.image && (
-                                        <img
-                                          src={mapping.image}
-                                          alt={`${mapping.name} Icon`}
-                                          style={{ width: "20px", marginRight: "5px" }}
-                                        />
-                                      )}
-                                      {mapping.name}
-                                      {index < languages.length - 1 ? ", " : ""}
-                                    </button>
-                                  );
-                                })
-                              ) : (
-                                "-"
-                              )}
-                            </div>
-                            <p>
-                              <i className="bi bi-calendar-check"></i>{" "}
-                              Open Date: {formatDateString(activity.openDate)}
-                            </p>
-                            <p>
-                              <i className="bi bi-calendar-x"></i>{" "}
-                              Close Date: {formatDateString(activity.closeDate)}
-                            </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div>
-                              <strong>Time Left: </strong>
-                              <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            {/* Display Attempts */}
-                            <div>
-                              <strong>Attempts: </strong>
-                              {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
-                            </div>
-                            <div>
-                              <strong>Final Score Policy: </strong>
-                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
-                            </div>
-                            <div>
-                              <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
-                              Duration: {activity.actDuration ? activity.actDuration : "-"}
-                            </div>
-                          </div>
-                        </Col>
-                        <Col className="activity-stats">
-                          <div className="score-chart">
-                            <h4>{activity.classAvgScore ?? "-"}</h4>
-                            <p>Class Avg. Score</p>
-                          </div>
-                          <div className="score-chart">
-                            <h4>
-                              {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
-                            </h4>
-                            <p>Highest Score</p>
-                          </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          )}
-
-          {/* Completed Activities */}
-          {contentKey === "completed" && (
-            <div className="completed-class-activities">
-              {sortedCompletedActivities.length === 0 ? (
-                <p>No completed activities found.</p>
-              ) : (
-                sortedCompletedActivities.map((activity) => {
-                  const languages = activity.programming_languages || [];
-                  return (
-                    <div
-                      key={`completed-${activity.actID}`}
-                      className="class-activities"
-                      style={{ position: "relative", cursor: "pointer" }}
-                      onClick={() => handleActivityCardClick(activity)}
-                    >
-                      {/* 3-dots Menu Button */}
-                      <div
-                        className="activity-menu-container"
-                        style={{ position: "absolute", top: "10px", right: "10px" }}
-                      >
-                        <button
-                          className="menu-btn"
-                          onClick={(e) => toggleMenu(e, activity.actID)}
-                          style={{ background: "none", border: "none" }}
-                        >
-                          <FontAwesomeIcon icon={faEllipsisV} />
-                        </button>
-                        {openMenu === activity.actID && (
-                          <div
-                            className="activity-menu"
-                            style={{
-                              position: "absolute",
-                              top: "30px",
-                              right: "0",
-                              background: "white",
-                              border: "1px solid #ccc",
-                              zIndex: 10,
-                            }}
-                          >
-                            <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Edit
-                            </div>
-                            <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Delete
-                            </div>
-                            <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
-                              Copy Link
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <Row>
-                        <Col className="activity-details-column">
-                          <div className="class-activity-details">
-                            <h3>{activity.actTitle}</h3>
-                            <p className="activity-description">{activity.actDesc}</p>
-                            <div className="lang-container">
-                              {languages.length > 0 ? (
-                                languages.map((lang, index) => {
-                                  const mapping =
-                                    programmingLanguageMap[lang.progLangID] ||
-                                    { name: lang.progLangName, image: null };
-                                  return (
-                                    <button disabled key={lang.progLangID} className="lang-btn">
-                                      {mapping.image && (
-                                        <img
-                                          src={mapping.image}
-                                          alt={`${mapping.name} Icon`}
-                                          style={{ width: "20px", marginRight: "5px" }}
-                                        />
-                                      )}
-                                      {mapping.name}
-                                      {index < languages.length - 1 ? ", " : ""}
-                                    </button>
-                                  );
-                                })
-                              ) : (
-                                "-"
-                              )}
-                            </div>
-                            <p>
-                              <i className="bi bi-calendar-check"></i>{" "}
-                              Open Date: {formatDateString(activity.openDate)}
-                            </p>
-                            <p>
-                              <i className="bi bi-calendar-x"></i>{" "}
-                              Close Date: {formatDateString(activity.closeDate)}
-                            </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div>
-                              <strong>Time Left: </strong>
-                              <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            {/* Display Attempts */}
-                            <div>
-                              <strong>Attempts: </strong>
-                              {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
-                            </div>
-                            <div>
-                              <strong>Final Score Policy: </strong>
-                              {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
-                            </div>
-                            <div>
-                              <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
-                              Duration: {activity.actDuration ? activity.actDuration : "-"}
-                            </div>
-                          </div>
-                        </Col>
-                        <Col className="activity-stats">
-                          <div className="score-chart">
-                            <h4>{activity.classAvgScore ?? "-"}</h4>
-                            <p>Class Avg. Score</p>
-                          </div>
-                          <div className="score-chart">
-                            <h4>
-                              {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
-                            </h4>
-                            <p>Highest Score</p>
-                          </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          )}
+      <div className='class-management-container'>
+        <div className="class-wrapper"></div>
+        <div className="create-new-activity-container">
+          {/* Dynamic header using fetched classInfo */}
+          <h3>
+            {classInfo ? (
+              <>
+                {classInfo.className}{" "}
+                <span className='class-id' onClick={copyToClipboard}>
+                  (#{classInfo.classID})
+                </span>
+                {copied && <span className='popup'>Copied!</span>}
+              </>
+            ) : (
+              "Loading class..."
+            )}
+          </h3>
+          
+          <button
+            className="create-new-activity-button"
+            onClick={() => {
+              const storedClassID = sessionStorage.getItem("selectedClassID");
+              if (!storedClassID) {
+                alert("⚠️ No class selected!");
+                return;
+              }
+              navigate(`/teacher/class/${storedClassID}/create-activity`);
+            }}
+          >
+            + Create New Activity
+          </button>
         </div>
-      </div>
 
-      {/* -------------------- Edit Activity Modal -------------------- */}
-      <Modal
-        show={showEditModal}
-        onHide={() => setShowEditModal(false)}
-        size="lg"
-        backdrop='static'
-        keyboard={false}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Activity</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleEditSubmit}>
-          <Modal.Body>
-            <Form.Group controlId="formActivityTitle">
-              <Form.Label>Activity Title</Form.Label>
-              <Form.Control
-                type="text"
-                value={editFormData.actTitle}
-                onChange={(e) => setEditFormData({ ...editFormData, actTitle: e.target.value })}
-                required
-              />
-            </Form.Group>
-            <Form.Group controlId="formActivityDesc" className="mt-3">
-              <Form.Label>Activity Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={editFormData.actDesc}
-                onChange={(e) => setEditFormData({ ...editFormData, actDesc: e.target.value })}
-                required
-              />
-            </Form.Group>
-            <Form.Group controlId="formDifficulty" className="mt-3">
-              <Form.Label>Difficulty</Form.Label>
-              <Form.Control
-                as="select"
-                value={editFormData.actDifficulty}
-                onChange={(e) => setEditFormData({ ...editFormData, actDifficulty: e.target.value })}
-                required
-              >
-                <option value="">Select Difficulty</option>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </Form.Control>
-            </Form.Group>
-            <Form.Group controlId="formStartDate" className="mt-3">
-              <Form.Label>Open Date and Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                value={editFormData.openDate}
-                onChange={(e) => setEditFormData({ ...editFormData, openDate: e.target.value })}
-                required
-              />
-            </Form.Group>
-            <Form.Group controlId="formEndDate" className="mt-3">
-              <Form.Label>Close Date and Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                value={editFormData.closeDate}
-                onChange={(e) => setEditFormData({ ...editFormData, closeDate: e.target.value })}
-                required
-              />
-            </Form.Group>
-            <Form.Group controlId="formDuration" className="mt-3">
-              <Form.Label>Activity Duration (in minutes)</Form.Label>
-              <Form.Control
-                type="number"
-                min="1"
-                value={editFormData.actDuration || ""}
-                onChange={(e) => setEditFormData({ ...editFormData, actDuration: e.target.value })}
-                required
-              />
-            </Form.Group>
-            {/* NEW: Activity Attempts Input in Edit Modal */}
-            <Form.Group controlId="formAttempts" className="mt-3">
-              <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
-              <Form.Control
-                type="number"
-                min="0"
-                value={editFormData.actAttempts || ""}
-                onChange={(e) => setEditFormData({ ...editFormData, actAttempts: e.target.value })}
-                required
-              />
-              <Form.Text className="text-muted">
-                Enter 0 for unlimited attempts; otherwise, enter a positive number.
-              </Form.Text>
-            </Form.Group>
-            {/* NEW: Final Score Policy in Edit Modal */}
-            <Form.Group controlId="formFinalScorePolicy" className="mt-3">
-              <Form.Label>Final Score Policy</Form.Label>
-              <Form.Control
-                as="select"
-                value={editFormData.finalScorePolicy || "last_attempt"}
-                onChange={(e) => setEditFormData({ ...editFormData, finalScorePolicy: e.target.value })}
-                required
-              >
-                <option value="last_attempt">Last Attempt</option>
-                <option value="highest_score">Highest Score</option>
-              </Form.Control>
-              <Form.Text className="text-muted">
-                Choose whether the final score is determined by the student's last submission or their highest score.
-              </Form.Text>
-            </Form.Group>
-            <Form.Group controlId="formSelectProgLang" className="mt-3">
-              <Form.Label>Select Programming Languages</Form.Label>
-              <div style={{ marginBottom: "0.5rem" }}>
-                <Form.Check
-                  type="checkbox"
-                  label="Applicable to all"
-                  checked={editSelectedProgLangs.length > 0 && editSelectedProgLangs.length === allProgrammingLanguages.length}
-                  onChange={(e) => handleSelectAllLangsEdit(e.target.checked)}
+        {/* Sorting Controls for Activities */}
+        <div className='sort-container'>
+          <div className='sort-content'>
+            <span>Sort by: </span>
+            <Button variant="link" onClick={handleSortByOpenDate}>
+              Open Date{" "}
+              {sortField === "openDate" && (
+                <FontAwesomeIcon
+                  icon={faCaretDown}
+                  style={{
+                    transform: sortOrder === "asc" ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s",
+                  }}
                 />
-              </div>
-              {allProgrammingLanguages.map((lang) => (
-                <Form.Check
-                  key={lang.progLangID}
-                  type="checkbox"
-                  label={lang.progLangName}
-                  checked={editSelectedProgLangs.includes(lang.progLangID)}
-                  onChange={() => handleEditProgLangToggle(lang.progLangID)}
+              )}
+            </Button>
+            <Button variant="link" onClick={handleSortByCloseDate}>
+              Close Date{" "}
+              {sortField === "closeDate" && (
+                <FontAwesomeIcon
+                  icon={faCaretDown}
+                  style={{
+                    transform: sortOrder === "asc" ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s",
+                  }}
                 />
-              ))}
-            </Form.Group>
-            <Form.Group controlId="formMaxPoints" className="mt-3">
-              <Form.Label>Total Points (automatically computed)</Form.Label>
-              <Form.Control
-                type="number"
-                value={
-                  editFormData.items
-                    .filter((it) => it && it.itemPoints)
-                    .reduce((sum, it) => sum + it.itemPoints, 0)
-                }
-                readOnly
-              />
-            </Form.Group>
-            <Form.Group className="mt-3">
-              <Form.Label>Items (up to 3)</Form.Label>
-              {editFormData.items.map((it, index) => (
-                <div
-                  key={index}
-                  className="question-edit-item mt-2"
-                  style={{ display: "flex", alignItems: "center" }}
-                  onClick={() => handleItemClick(index)}
-                >
-                  <Form.Control
-                    type="text"
-                    placeholder={`Item ${index + 1}`}
-                    value={
-                      it.itemName
-                        ? `${it.itemName} | ${it.itemDifficulty || "-"} | ${it.itemPoints || 0} pts`
-                        : ""
-                    }
-                    readOnly
-                    style={{ flex: 1 }}
-                  />
-                  {it.programming_languages && it.programming_languages.length > 0 && (
-                    <div style={{ marginLeft: "8px" }}>
-                      {it.programming_languages.map((lang, idx) => {
-                        const mapping = programmingLanguageMap[lang.progLangID] || {
-                          name: lang.progLangName,
-                          image: null
-                        };
-                        return mapping.image ? (
-                          <img
-                            key={idx}
-                            src={mapping.image}
-                            alt={mapping.name}
-                            style={{ width: "20px", marginRight: "5px" }}
-                          />
-                        ) : (
-                          <span key={idx} style={{ marginRight: "5px", fontSize: "12px" }}>
-                            {mapping.name}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-              Cancel
+              )}
             </Button>
-            <Button variant="primary" type="submit">
-              Save Changes
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+          </div>
+        </div>
 
-      {/* -------------------- Item Selection Modal -------------------- */}
-      <Modal
-        show={showItemModal}
-        onHide={handleItemModalClose}
-        dialogClassName="custom-modal"
-        backdropClassName="custom-modal-backdrop"
-        centered={false}
-      >
-        <div className="custom-modal-content">
-          <Modal.Header closeButton>
-            <Modal.Title>Choose an Item</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <h5>Item Type:</h5>
-            <Button variant="light" onClick={() => setShowItemTypeDropdown((prev) => !prev)}>
-              {itemTypeName} <FontAwesomeIcon icon={faCaretDown} />
-            </Button>
-            {showItemTypeDropdown && (
-              <div className="item-type-dropdown">
-                {itemTypes.map(type => (
-                  <Button
-                    key={type.itemTypeID}
-                    className="dropdown-item"
-                    onClick={() => handleItemTypeSelect(type)}
-                  >
-                    {type.itemTypeName}
-                  </Button>
-                ))}
+        <div className="class-management">
+          <div className="container class-content">
+            <Tabs defaultActiveKey={contentKey} id="tab" onSelect={(k) => setContentKey(k)} fill>
+              <Tab eventKey="upcoming" title="Upcoming"></Tab>
+              <Tab eventKey="ongoing" title="Ongoing"></Tab>
+              <Tab eventKey="completed" title="Completed"></Tab>
+            </Tabs>
+
+            {/* Upcoming Activities */}
+            {contentKey === "upcoming" && (
+              <div className="upcoming-class-activities">
+                {upcomingActivities.length === 0 ? (
+                  <p>No upcoming activities found.</p>
+                ) : (
+                  upcomingActivities.map((activity) => {
+                    const languages = activity.programming_languages || [];
+                    return (
+                      <div
+                        key={`upcoming-${activity.actID}`}
+                        className="class-activities"
+                        style={{ position: "relative", cursor: "pointer" }}
+                        onClick={() => handleActivityCardClick(activity)}
+                      >
+                        {/* 3-dots Menu Button */}
+                        <div
+                          className="activity-menu-container"
+                          style={{ position: "absolute", top: "10px", right: "10px" }}
+                        >
+                          <button
+                            className="menu-btn"
+                            onClick={(e) => toggleMenu(e, activity.actID)}
+                            style={{ background: "none", border: "none" }}
+                          >
+                            <FontAwesomeIcon icon={faEllipsisV} />
+                          </button>
+                          {openMenu === activity.actID && (
+                            <div
+                              className="activity-menu"
+                              style={{
+                                position: "absolute",
+                                top: "30px",
+                                right: "0",
+                                background: "white",
+                                border: "1px solid #ccc",
+                                zIndex: 10,
+                              }}
+                            >
+                              <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Edit
+                              </div>
+                              <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Delete
+                              </div>
+                              <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Copy Link
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <Row>
+                          <Col className="activity-details-column">
+                            <div className="class-activity-details">
+                              <h3>{activity.actTitle}</h3>
+                              <p className="activity-description">{activity.actDesc}</p>
+                              <div className="lang-container">
+                                {languages.length > 0 ? (
+                                  languages.map((lang, index) => {
+                                    const mapping =
+                                      programmingLanguageMap[lang.progLangID] ||
+                                      { name: lang.progLangName, image: null };
+                                    return (
+                                      <button disabled key={lang.progLangID} className="lang-btn">
+                                        {mapping.image && (
+                                          <img
+                                            src={mapping.image}
+                                            alt={`${mapping.name} Icon`}
+                                            style={{ width: "20px", marginRight: "5px" }}
+                                          />
+                                        )}
+                                        {mapping.name}
+                                        {index < languages.length - 1 ? ", " : ""}
+                                      </button>
+                                    );
+                                  })
+                                ) : (
+                                  "-"
+                                )}
+                              </div>
+                              <p>
+                                <i className="bi bi-calendar-check"></i>{" "}
+                                Open Date: {formatDateString(activity.openDate)}
+                              </p>
+                              <p>
+                                <i className="bi bi-calendar-x"></i>{" "}
+                                Close Date: {formatDateString(activity.closeDate)}
+                              </p>
+                              <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
+                              <div>
+                                <strong>Time Left: </strong>
+                                <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
+                              </div>
+                              {/* Display Attempts */}
+                              <div>
+                                <strong>Attempts: </strong>
+                                {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                              </div>
+                              <div>
+                                <strong>Final Score Policy: </strong>
+                                {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                              </div>
+                              <div>
+                                <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
+                                Duration: {activity.actDuration ? activity.actDuration : "-"}
+                              </div>
+                            </div>
+                          </Col>
+                          <Col className="activity-stats">
+                            <div className="score-chart">
+                              <h4>{activity.classAvgScore ?? "-"}</h4>
+                              <p>Class Avg. Score</p>
+                            </div>
+                            <div className="score-chart">
+                              <h4>
+                                {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
+                              </h4>
+                              <p>Highest Score</p>
+                            </div>
+                          </Col>
+                        </Row>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
 
-            <div className="filter-section" style={{ marginBottom: "10px" }}>
-              <label>Item Creator:</label>
-              <select
-                value={itemBankScope}
-                onChange={(e) => {
-                  setItemBankScope(e.target.value);
-                  fetchPresetItems();
+            {/* Ongoing Activities */}
+            {contentKey === "ongoing" && (
+              <div className="ongoing-class-activities">
+                {sortedOngoingActivities.length === 0 ? (
+                  <p>No ongoing activities found.</p>
+                ) : (
+                  sortedOngoingActivities.map((activity) => {
+                    const languages = activity.programming_languages || [];
+                    return (
+                      <div
+                        key={`ongoing-${activity.actID}`}
+                        className="class-activities"
+                        style={{ position: "relative", cursor: "pointer" }}
+                        onClick={() => handleActivityCardClick(activity)}
+                      >
+                        {/* 3-dots Menu Button */}
+                        <div
+                          className="activity-menu-container"
+                          style={{ position: "absolute", top: "10px", right: "10px" }}
+                        >
+                          <button
+                            className="menu-btn"
+                            onClick={(e) => toggleMenu(e, activity.actID)}
+                            style={{ background: "none", border: "none" }}
+                          >
+                            <FontAwesomeIcon icon={faEllipsisV} />
+                          </button>
+                          {openMenu === activity.actID && (
+                            <div
+                              className="activity-menu"
+                              style={{
+                                position: "absolute",
+                                top: "30px",
+                                right: "0",
+                                background: "white",
+                                border: "1px solid #ccc",
+                                zIndex: 10,
+                              }}
+                            >
+                              <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Edit
+                              </div>
+                              <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Delete
+                              </div>
+                              <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Copy Link
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <Row>
+                          <Col className="activity-details-column">
+                            <div className="class-activity-details">
+                              <h3>{activity.actTitle}</h3>
+                              <p className="activity-description">{activity.actDesc}</p>
+                              <div className="lang-container">
+                                {languages.length > 0 ? (
+                                  languages.map((lang, index) => {
+                                    const mapping =
+                                      programmingLanguageMap[lang.progLangID] ||
+                                      { name: lang.progLangName, image: null };
+                                    return (
+                                      <button disabled key={lang.progLangID} className="lang-btn">
+                                        {mapping.image && (
+                                          <img
+                                            src={mapping.image}
+                                            alt={`${mapping.name} Icon`}
+                                            style={{ width: "20px", marginRight: "5px" }}
+                                          />
+                                        )}
+                                        {mapping.name}
+                                        {index < languages.length - 1 ? ", " : ""}
+                                      </button>
+                                    );
+                                  })
+                                ) : (
+                                  "-"
+                                )}
+                              </div>
+                              <p>
+                                <i className="bi bi-calendar-check"></i>{" "}
+                                Open Date: {formatDateString(activity.openDate)}
+                              </p>
+                              <p>
+                                <i className="bi bi-calendar-x"></i>{" "}
+                                Close Date: {formatDateString(activity.closeDate)}
+                              </p>
+                              <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
+                              <div>
+                                <strong>Time Left: </strong>
+                                <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
+                              </div>
+                              {/* Display Attempts */}
+                              <div>
+                                <strong>Attempts: </strong>
+                                {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                              </div>
+                              <div>
+                                <strong>Final Score Policy: </strong>
+                                {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                              </div>
+                              <div>
+                                <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
+                                Duration: {activity.actDuration ? activity.actDuration : "-"}
+                              </div>
+                            </div>
+                          </Col>
+                          <Col className="activity-stats">
+                            <div className="score-chart">
+                              <h4>{activity.classAvgScore ?? "-"}</h4>
+                              <p>Class Avg. Score</p>
+                            </div>
+                            <div className="score-chart">
+                              <h4>
+                                {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
+                              </h4>
+                              <p>Highest Score</p>
+                            </div>
+                          </Col>
+                        </Row>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* Completed Activities */}
+            {contentKey === "completed" && (
+              <div className="completed-class-activities">
+                {sortedCompletedActivities.length === 0 ? (
+                  <p>No completed activities found.</p>
+                ) : (
+                  sortedCompletedActivities.map((activity) => {
+                    const languages = activity.programming_languages || [];
+                    return (
+                      <div
+                        key={`completed-${activity.actID}`}
+                        className="class-activities"
+                        style={{ position: "relative", cursor: "pointer" }}
+                        onClick={() => handleActivityCardClick(activity)}
+                      >
+                        {/* 3-dots Menu Button */}
+                        <div
+                          className="activity-menu-container"
+                          style={{ position: "absolute", top: "10px", right: "10px" }}
+                        >
+                          <button
+                            className="menu-btn"
+                            onClick={(e) => toggleMenu(e, activity.actID)}
+                            style={{ background: "none", border: "none" }}
+                          >
+                            <FontAwesomeIcon icon={faEllipsisV} />
+                          </button>
+                          {openMenu === activity.actID && (
+                            <div
+                              className="activity-menu"
+                              style={{
+                                position: "absolute",
+                                top: "30px",
+                                right: "0",
+                                background: "white",
+                                border: "1px solid #ccc",
+                                zIndex: 10,
+                              }}
+                            >
+                              <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Edit
+                              </div>
+                              <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Delete
+                              </div>
+                              <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                                Copy Link
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <Row>
+                          <Col className="activity-details-column">
+                            <div className="class-activity-details">
+                              <h3>{activity.actTitle}</h3>
+                              <p className="activity-description">{activity.actDesc}</p>
+                              <div className="lang-container">
+                                {languages.length > 0 ? (
+                                  languages.map((lang, index) => {
+                                    const mapping =
+                                      programmingLanguageMap[lang.progLangID] ||
+                                      { name: lang.progLangName, image: null };
+                                    return (
+                                      <button disabled key={lang.progLangID} className="lang-btn">
+                                        {mapping.image && (
+                                          <img
+                                            src={mapping.image}
+                                            alt={`${mapping.name} Icon`}
+                                            style={{ width: "20px", marginRight: "5px" }}
+                                          />
+                                        )}
+                                        {mapping.name}
+                                        {index < languages.length - 1 ? ", " : ""}
+                                      </button>
+                                    );
+                                  })
+                                ) : (
+                                  "-"
+                                )}
+                              </div>
+                              <p>
+                                <i className="bi bi-calendar-check"></i>{" "}
+                                Open Date: {formatDateString(activity.openDate)}
+                              </p>
+                              <p>
+                                <i className="bi bi-calendar-x"></i>{" "}
+                                Close Date: {formatDateString(activity.closeDate)}
+                              </p>
+                              <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
+                              <div>
+                                <strong>Time Left: </strong>
+                                <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
+                              </div>
+                              {/* Display Attempts */}
+                              <div>
+                                <strong>Attempts: </strong>
+                                {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
+                              </div>
+                              <div>
+                                <strong>Final Score Policy: </strong>
+                                {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                              </div>
+                              <div>
+                                <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
+                                Duration: {activity.actDuration ? activity.actDuration : "-"}
+                              </div>
+                            </div>
+                          </Col>
+                          <Col className="activity-stats">
+                            <div className="score-chart">
+                              <h4>{activity.classAvgScore ?? "-"}</h4>
+                              <p>Class Avg. Score</p>
+                            </div>
+                            <div className="score-chart">
+                              <h4>
+                                {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
+                              </h4>
+                              <p>Highest Score</p>
+                            </div>
+                          </Col>
+                        </Row>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* -------------------- Edit Activity Modal -------------------- */}
+        <Modal
+          show={showEditModal}
+          onHide={() => setShowEditModal(false)}
+          size="lg"
+          backdrop='static'
+          keyboard={false}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Edit Activity</Modal.Title>
+          </Modal.Header>
+          <Form onSubmit={handleEditSubmit}>
+            <Modal.Body>
+              <Form.Group controlId="formActivityTitle">
+                <Form.Label>Activity Title</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editFormData.actTitle}
+                  onChange={(e) => setEditFormData({ ...editFormData, actTitle: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formActivityDesc" className="mt-3">
+                <Form.Label>Activity Description</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={editFormData.actDesc}
+                  onChange={(e) => setEditFormData({ ...editFormData, actDesc: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formDifficulty" className="mt-3">
+                <Form.Label>Difficulty</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={editFormData.actDifficulty}
+                  onChange={(e) => setEditFormData({ ...editFormData, actDifficulty: e.target.value })}
+                  required
+                >
+                  <option value="">Select Difficulty</option>
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </Form.Control>
+              </Form.Group>
+              <Form.Group controlId="formStartDate" className="mt-3">
+                <Form.Label>Open Date and Time</Form.Label>
+                <Form.Control
+                  type="datetime-local"
+                  value={editFormData.openDate}
+                  onChange={(e) => setEditFormData({ ...editFormData, openDate: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formEndDate" className="mt-3">
+                <Form.Label>Close Date and Time</Form.Label>
+                <Form.Control
+                  type="datetime-local"
+                  value={editFormData.closeDate}
+                  onChange={(e) => setEditFormData({ ...editFormData, closeDate: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formDuration" className="mt-3">
+                <Form.Label>Activity Duration (in minutes)</Form.Label>
+                <Form.Control
+                  type="number"
+                  min="1"
+                  value={editFormData.actDuration || ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, actDuration: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              {/* NEW: Activity Attempts Input in Edit Modal */}
+              <Form.Group controlId="formAttempts" className="mt-3">
+                <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
+                <Form.Control
+                  type="number"
+                  min="0"
+                  value={editFormData.actAttempts || ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, actAttempts: e.target.value })}
+                  required
+                />
+                <Form.Text className="text-muted">
+                  Enter 0 for unlimited attempts; otherwise, enter a positive number.
+                </Form.Text>
+              </Form.Group>
+              {/* NEW: Final Score Policy in Edit Modal */}
+              <Form.Group controlId="formFinalScorePolicy" className="mt-3">
+                <Form.Label>Final Score Policy</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={editFormData.finalScorePolicy || "last_attempt"}
+                  onChange={(e) => setEditFormData({ ...editFormData, finalScorePolicy: e.target.value })}
+                  required
+                >
+                  <option value="last_attempt">Last Attempt</option>
+                  <option value="highest_score">Highest Score</option>
+                </Form.Control>
+                <Form.Text className="text-muted">
+                  Choose whether the final score is determined by the student's last submission or their highest score.
+                </Form.Text>
+              </Form.Group>
+              <Form.Group controlId="formSelectProgLang" className="mt-3">
+                <Form.Label>Select Programming Languages</Form.Label>
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <Form.Check
+                    type="checkbox"
+                    label="Applicable to all"
+                    checked={editSelectedProgLangs.length > 0 && editSelectedProgLangs.length === allProgrammingLanguages.length}
+                    onChange={(e) => handleSelectAllLangsEdit(e.target.checked)}
+                  />
+                </div>
+                {allProgrammingLanguages.map((lang) => (
+                  <Form.Check
+                    key={lang.progLangID}
+                    type="checkbox"
+                    label={lang.progLangName}
+                    checked={editSelectedProgLangs.includes(lang.progLangID)}
+                    onChange={() => handleEditProgLangToggle(lang.progLangID)}
+                  />
+                ))}
+              </Form.Group>
+              <Form.Group controlId="formMaxPoints" className="mt-3">
+                <Form.Label>Total Points (automatically computed)</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={
+                    editFormData.items
+                      .filter((it) => it && it.itemPoints)
+                      .reduce((sum, it) => sum + it.itemPoints, 0)
+                  }
+                  readOnly
+                />
+              </Form.Group>
+              <Form.Group className="mt-3">
+                <Form.Label>Items (up to 3)</Form.Label>
+                {editFormData.items.map((it, index) => (
+                  <div
+                    key={index}
+                    className="question-edit-item mt-2"
+                    style={{ display: "flex", alignItems: "center" }}
+                    onClick={() => handleItemClick(index)}
+                  >
+                    <Form.Control
+                      type="text"
+                      placeholder={`Item ${index + 1}`}
+                      value={
+                        it.itemName
+                          ? `${it.itemName} | ${it.itemDifficulty || "-"} | ${it.itemPoints || 0} pts`
+                          : ""
+                      }
+                      readOnly
+                      style={{ flex: 1 }}
+                    />
+                    {it.programming_languages && it.programming_languages.length > 0 && (
+                      <div style={{ marginLeft: "8px" }}>
+                        {it.programming_languages.map((lang, idx) => {
+                          const mapping = programmingLanguageMap[lang.progLangID] || {
+                            name: lang.progLangName,
+                            image: null
+                          };
+                          return mapping.image ? (
+                            <img
+                              key={idx}
+                              src={mapping.image}
+                              alt={mapping.name}
+                              style={{ width: "20px", marginRight: "5px" }}
+                            />
+                          ) : (
+                            <span key={idx} style={{ marginRight: "5px", fontSize: "12px" }}>
+                              {mapping.name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit">
+                Save Changes
+              </Button>
+            </Modal.Footer>
+          </Form>
+        </Modal>
+
+        {/* -------------------- Item Selection Modal -------------------- */}
+        <Modal
+          show={showItemModal}
+          onHide={handleItemModalClose}
+          dialogClassName="custom-modal"
+          backdropClassName="custom-modal-backdrop"
+          centered={false}
+        >
+          <div className="custom-modal-content">
+            <Modal.Header closeButton>
+              <Modal.Title>Choose an Item</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <h5>Item Type:</h5>
+              <Button variant="light" onClick={() => setShowItemTypeDropdown((prev) => !prev)}>
+                {itemTypeName} <FontAwesomeIcon icon={faCaretDown} />
+              </Button>
+              {showItemTypeDropdown && (
+                <div className="item-type-dropdown">
+                  {itemTypes.map(type => (
+                    <Button
+                      key={type.itemTypeID}
+                      className="dropdown-item"
+                      onClick={() => handleItemTypeSelect(type)}
+                    >
+                      {type.itemTypeName}
+                    </Button>
+                  ))}
+                </div>
+              )}
+
+              {/* NEW: Item Creator Selector */}
+              <div className="filter-section" style={{ marginBottom: "10px" }}>
+                <label>Item Creator:</label>
+                <select
+                  value={itemBankScope}
+                  onChange={(e) => {
+                    setItemBankScope(e.target.value);
+                    fetchPresetItems();
+                  }}
+                >
+                  <option value="personal">Created by Me</option>
+                  <option value="global">NEUDev</option>
+                </select>
+              </div>
+
+              {/* Sorting Controls for preset items */}
+              <div
+                style={{
+                  margin: "10px 0",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "5px",
+                  borderRadius: "4px",
+                  backgroundColor: "#f8f9fa"
                 }}
               >
-                <option value="personal">Created by Me</option>
-                <option value="global">NEUDev</option>
-              </select>
-            </div>
+                <span style={{ marginRight: "8px" }}>Sort by:</span>
+                <Button variant="link" onClick={() => toggleItemSortOrder("itemName")}>
+                  Name {itemSortField === "itemName" && (itemSortOrder === "asc" ? "↑" : "↓")}
+                </Button>
+                <Button variant="link" onClick={() => toggleItemSortOrder("itemDifficulty")}>
+                  Difficulty {itemSortField === "itemDifficulty" && (itemSortOrder === "asc" ? "↑" : "↓")}
+                </Button>
+                <Button variant="link" onClick={() => toggleItemSortOrder("itemPoints")}>
+                  Points {itemSortField === "itemPoints" && (itemSortOrder === "asc" ? "↑" : "↓")}
+                </Button>
+              </div>
 
-            <div
-              style={{
-                margin: "10px 0",
-                display: "flex",
-                alignItems: "center",
-                padding: "5px",
-                borderRadius: "4px",
-                backgroundColor: "#f8f9fa"
-              }}
-            >
-              <span style={{ marginRight: "8px" }}>Sort by:</span>
-              <Button variant="link" onClick={() => toggleItemSortOrder("itemName")}>
-                Name {itemSortField === "itemName" && (itemSortOrder === "asc" ? "↑" : "↓")}
-              </Button>
-              <Button variant="link" onClick={() => toggleItemSortOrder("itemDifficulty")}>
-                Difficulty {itemSortField === "itemDifficulty" && (itemSortOrder === "asc" ? "↑" : "↓")}
-              </Button>
-              <Button variant="link" onClick={() => toggleItemSortOrder("itemPoints")}>
-                Points {itemSortField === "itemPoints" && (itemSortOrder === "asc" ? "↑" : "↓")}
-              </Button>
-            </div>
-
-            {sortedPresetItems.length === 0 ? (
-              <p>
-                There are no items yet. Please go to the{' '}
-                <a href="/teacher/item">Item Bank</a> to create items.
-              </p>
-            ) : (
-              sortedPresetItems.map((item, idx) => (
-                <div key={idx}>
+              {sortedPresetItems.length === 0 ? (
+                <p>
+                  There are no items yet. Please go to the{' '}
+                  <a href="/teacher/item">Item Bank</a> to create items.
+                </p>
+              ) : (
+                sortedPresetItems.map((item, idx) => (
                   <Button
-                    className={`question-item d-block ${selectedItem && selectedItem.itemID === item.itemID ? "highlighted" : ""}`}
+                    key={idx}
+                    className={`question-item d-block ${selectedItem === item ? "highlighted" : ""}`}
                     onClick={() => handleSelectItem(item)}
-                    style={{ textAlign: "left", marginBottom: "8px", width: "100%" }}
+                    style={{ textAlign: "left", marginBottom: "8px" }}
                   >
                     <div>
                       <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
@@ -1324,66 +1341,61 @@ export const TeacherClassManagementComponent = () => {
                       })}
                     </div>
                   </Button>
-                  {selectedItem && selectedItem.itemID === item.itemID && (
-                    <div className="item-description-dropdown" style={{ padding: "10px", backgroundColor: "#f1f1f1", marginBottom: "8px", borderRadius: "4px" }}>
-                      {item.itemDesc}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleSaveItem}>
+                Save Item
+              </Button>
+              <Button variant="danger" onClick={handleRemoveItem}>
+                Remove Item
+              </Button>
+            </Modal.Footer>
+          </div>
+        </Modal>
+
+        {/* -------------------- Delete Confirmation Modal -------------------- */}
+        <Modal
+          show={showDeleteModal}
+          backdrop='static'
+          keyboard={false}
+          onHide={() => { setShowDeleteModal(false); setDeletePassword(""); }}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Delete Activity</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group controlId="deletePassword">
+              <Form.Label>Enter Password</Form.Label>
+              <div className="d-flex">
+                <Form.Control
+                  type={showDeletePassword ? "text" : "password"}
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                />
+                <Button
+                  variant="outline-secondary"
+                  onClick={() => setShowDeletePassword(!showDeletePassword)}
+                  style={{ marginLeft: "5px" }}
+                >
+                  <FontAwesomeIcon icon={showDeletePassword ? faEyeSlash : faEye} />
+                </Button>
+              </div>
+            </Form.Group>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={handleSaveItem}>
-              Save Item
+            <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setDeletePassword(""); }}>
+              Cancel
             </Button>
-            <Button variant="danger" onClick={handleRemoveItem}>
-              Remove Item
+            <Button variant="danger" onClick={handleConfirmDelete}>
+              Confirm Delete
             </Button>
           </Modal.Footer>
-        </div>
-      </Modal>
-
-      {/* -------------------- Delete Confirmation Modal -------------------- */}
-      <Modal
-        show={showDeleteModal}
-        backdrop='static'
-        keyboard={false}
-        onHide={() => { setShowDeleteModal(false); setDeletePassword(""); }}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete Activity</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group controlId="deletePassword">
-            <Form.Label>Enter Password</Form.Label>
-            <div className="d-flex">
-              <Form.Control
-                type={showDeletePassword ? "text" : "password"}
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-              />
-              <Button
-                variant="outline-secondary"
-                onClick={() => setShowDeletePassword(!showDeletePassword)}
-                style={{ marginLeft: "5px" }}
-              >
-                <FontAwesomeIcon icon={showDeletePassword ? faEyeSlash : faEye} />
-              </Button>
-            </div>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setDeletePassword(""); }}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleConfirmDelete}>
-            Confirm Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </Modal>
+      </div>
+      
     </>
   );
 };
-
 export default TeacherClassManagementComponent;

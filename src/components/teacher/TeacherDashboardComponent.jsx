@@ -1,24 +1,11 @@
-import { faBars, faDesktop, faLaptopCode, faEllipsisV, faBell, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faDesktop, faLaptopCode, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Dropdown, Form, Modal, Nav, Navbar, Badge } from 'react-bootstrap';
+import { Button, Card, Dropdown, Form, Modal, Nav, Navbar } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import '/src/style/teacher/dashboard.css';
 
-import { 
-  logout, 
-  getProfile, 
-  createClass, 
-  getClasses, 
-  updateClass, 
-  deleteClass, 
-  verifyPassword, 
-  getSessionData, 
-  setSessionData,
-  getNotifications, 
-  markNotificationAsRead, 
-  deleteNotification 
-} from '../api/API.js';
+import { logout, getProfile, createClass, getClasses, updateClass, deleteClass, verifyPassword } from '../api/API.js';
 
 export const TeacherDashboardComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
@@ -57,11 +44,6 @@ export const TeacherDashboardComponent = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  // [CHANGED] State for notifications
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [showNotifications, setShowNotifications] = useState(false); // controls dropdown visibility
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -90,75 +72,9 @@ export const TeacherDashboardComponent = () => {
       }
     };
 
-    // Fetch notifications on mount
-    const fetchUserNotifications = async () => {
-      const resp = await getNotifications();
-      if (!resp.error && Array.isArray(resp)) {
-        // Store all notifications in state
-        setNotifications(resp);
-        // Count unread by checking isRead === false
-        const unread = resp.filter(n => !n.isRead).length;
-        setUnreadCount(unread);
-      }
-    };
-
     fetchProfile();
     fetchClasses();
-    fetchUserNotifications();
-
-    // POLLING: setInterval to fetch notifications every 10 seconds
-    const interval = setInterval(() => {
-      fetchUserNotifications();
-    }, 10000);
-
-    // Cleanup on unmount
-    return () => clearInterval(interval);
-
   }, [instructorName]);
-
-// THIS IS THE FUNCTION IF YOU WANT TO MAKE ALL NOTIF TO BE CONSIDERED ALL READ
-//   const handleBellClick = async () => {
-//     setShowNotifications(!showNotifications);
-//     if (!showNotifications && unreadCount > 0) {
-//       // Mark all unread notifications as read
-//       for (let n of notifications) {
-//         if (!n.isRead) {
-//           await markNotificationAsRead(n.id);
-//         }
-//       }
-//       const resp = await getNotifications();
-//       if (!resp.error && Array.isArray(resp)) {
-//         setNotifications(resp);
-//       }
-//       setUnreadCount(0);
-//     }
-//   };
-
-// THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
-const handleBellClick = () => {
-  setShowNotifications(!showNotifications);
-};
-
-  /**
-   * Mark a single notification as read, then update state.
-   */
-  const handleNotificationClick = async (notificationId) => {
-    // Mark as read on the server
-    await markNotificationAsRead(notificationId);
-
-    // Update local state to set isRead = true
-    const updatedList = notifications.map(n =>
-      n.id === notificationId ? { ...n, isRead: true } : n
-    );
-    setNotifications(updatedList);
-
-    // Recalculate how many are unread
-    const newUnreadCount = updatedList.filter(n => !n.isRead).length;
-    setUnreadCount(newUnreadCount);
-
-    // (Optional) If you want to do something else, like navigate somewhere:
-    // navigate('/some-other-page');
-  };
 
   const handleLogout = async () => {
     const result = await logout();
@@ -214,24 +130,19 @@ const handleBellClick = () => {
       return;
     }
     setIsEditing(true);
-  
-    // Call updateClass and wait for the response. The response includes the updated cover image URL.
     const response = await updateClass(editClassData.id, editClassData);
     if (response.error) {
       alert(`❌ Failed to update class: ${response.error}`);
       setIsEditing(false);
       return;
     }
-  
-    // Update the state using the response (which has the updated classCoverImage URL)
-    const updatedClasses = classes.map((cls) => {
+    const updatedClasses = classes.map(cls => {
       if ((cls.id || cls.classID) === editClassData.id) {
-        return { ...cls, ...response, instructorName };
+        return { ...cls, ...editClassData, instructorName };
       }
       return cls;
     });
     setClasses(updatedClasses);
-  
     alert("✅ Class updated successfully!");
     setShowEditModal(false);
     setIsEditing(false);
@@ -251,8 +162,7 @@ const handleBellClick = () => {
       alert("⚠️ Please enter your password to confirm deletion.");
       return;
     }
-    const sessionData = getSessionData();
-    const teacherEmail = sessionData.email;
+    const teacherEmail = sessionStorage.getItem("user_email");
     const verifyResponse = await verifyPassword(teacherEmail, deletePassword);
     if (verifyResponse.error) {
       alert(`❌ Password verification failed: ${verifyResponse.error}`);
@@ -342,100 +252,6 @@ const handleBellClick = () => {
             <span className='ping'>20 ms</span>
             <a href='#'><i className='bi bi-moon'></i></a>
             <span className='student-badge'>Teacher</span>
-
-                        {/* [CHANGED] Notification Bell */}
-                        <div className='notification-bell' style={{ position: 'relative', marginRight: '20px' }}>
-              <FontAwesomeIcon
-                icon={faBell}
-                size='lg'
-                style={{ cursor: 'pointer' }}
-                onClick={handleBellClick}
-              />
-              {unreadCount > 0 && (
-                <Badge bg='danger' pill style={{
-                  position: 'absolute',
-                  top: '-5px',
-                  right: '-5px'
-                }}>
-                  {unreadCount}
-                </Badge>
-              )}
-              {/* Dropdown Panel */}
-              {showNotifications && (
-                <div
-                  className='notification-dropdown'
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '30px',
-                    width: '300px',
-                    background: '#fff',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                    borderRadius: '4px',
-                    zIndex: 9999
-                  }}
-                >
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: '10px' }}>No Notifications</div>
-                  ) : (
-                    notifications.map((notif) => {
-                      // Parse notif.data from string to object
-                      const parsedData = JSON.parse(notif.data || '{}');
-
-                      // [CHANGED] A function to handle deleting the notification
-                      const handleDelete = async (e) => {
-                        e.stopPropagation(); // prevent parent onClick from firing
-                        const resp = await deleteNotification(notif.id);
-                        if (!resp.error) {
-                          // Remove this notification from state
-                          const updatedList = notifications.filter(n => n.id !== notif.id);
-                          setNotifications(updatedList);
-
-                          // Recount unread
-                          const unread = updatedList.filter(n => !n.read_at).length;
-                          setUnreadCount(unread);
-                        } else {
-                          console.error('Failed to delete notification:', resp.error);
-                        }
-                      };
-
-                      return (
-                        <div
-                          key={notif.id}
-                          style={{
-                            padding: '10px',
-                            borderBottom: '1px solid #ccc',
-                            backgroundColor: notif.isRead ? '#f9f9f9' : '#eaf3ff',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start'
-                          }}
-                          onClick={() => handleNotificationClick(notif.id)}
-                        >
-                          <div>
-                            <div><strong>{notif.type}</strong></div>
-                            <div>{parsedData.message}</div>
-                            <small style={{ color: '#666' }}>
-                              {new Date(notif.created_at).toLocaleString()}
-                            </small>
-                          </div>
-
-                          {/* [CHANGED] Delete (X) icon/button */}
-                          <div onClick={handleDelete} style={{ marginLeft: '8px', cursor: 'pointer' }}>
-                            <FontAwesomeIcon icon={faTimes} />
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-                </div>
-              )}
-            </div>
-            {/* END Notification Bell */}
-
             <Dropdown align='end'>
               <Dropdown.Toggle variant='transparent' className='profile-dropdown'>
                 <img src={profileImage} className='profile-image' alt="Profile" />
@@ -454,9 +270,7 @@ const handleBellClick = () => {
             {classes.map((classItem, index) => (
               <Card className='class-card' key={index}
                 onClick={() => {
-                  const sessionData = getSessionData();
-                  sessionData.selectedClassID = classItem.id || classItem.classID;
-                  setSessionData(sessionData);
+                  sessionStorage.setItem("selectedClassID", classItem.id || classItem.classID);
                   navigate(`/teacher/class/${classItem.id || classItem.classID}/activity`);
                 }}
                 style={{ position: 'relative', cursor: 'pointer' }}>
@@ -560,10 +374,12 @@ const handleBellClick = () => {
                 />
               </Form.Group>
               <Form.Group controlId='formEditClassCoverPhoto' className='mt-3'>
-                <Form.Label>Class Cover Photo</Form.Label>
-                <Button variant="secondary" as="label" htmlFor="class-cover-upload">
-                  Upload Cover Photo
-                </Button>
+                <div className='d-flex flex-row align-items-center justify-content-between'>
+                  <Form.Label>Class Cover Photo</Form.Label>
+                  <Button variant="secondary" as="label" htmlFor="class-cover-upload">
+                    Upload Cover Photo
+                  </Button>
+                </div>
                 <input
                   id="class-cover-upload"
                   type="file"

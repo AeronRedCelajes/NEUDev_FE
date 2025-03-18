@@ -257,30 +257,29 @@ body {
 .date-time-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 .label-with-icon {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .label-with-icon i {
-  font-size: 20px;
+  font-size: 1.3rem;
 }
 
 .label-with-icon label {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 0.8rem;
   color: #666;
 }
 
 .date-time-item input[type="datetime-local"] {
   width: 100%;
-  padding: 12px;
-  font-size: 16px;
+  font-size: 0.85rem;
   font-weight: bold;
   border: 2px solid #999;
   border-radius: 12px;
