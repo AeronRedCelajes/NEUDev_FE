@@ -659,16 +659,17 @@ const handleActivityClick = async (activity) => {
                             <p><strong>Teacher:</strong> {activity.teacherName}</p>
                             <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-check'></i>{" "}
                               Open Date: {formatDateString(activity.openDate)}
                             </p>
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-x'></i>{" "}
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>
+                            
                             <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div style={{ marginTop: "5px" }}>
+                            <div style={{ marginTop: "10px" }}>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
                             </div>
@@ -757,11 +758,11 @@ const handleActivityClick = async (activity) => {
                             <p><strong>Teacher:</strong> {activity.teacherName}</p>
                             <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-check'></i>{" "}
                               Open Date: {formatDateString(activity.openDate)}
                             </p>
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-x'></i>{" "}
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>

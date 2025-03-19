@@ -43,9 +43,7 @@
 .ongoing-class-activities{
     background-color: #FFF5F1;
     padding: 30px;
-    border-top-right-radius: 20px;
-    border-bottom-right-radius: 20px;
-    border-bottom-left-radius: 20px;
+    border-radius: 20px;
 }
 
 .completed-class-activities{
@@ -78,46 +76,56 @@
     margin-bottom: 0;
 }
 
-.class-activity-details{
-    margin-bottom: 30px;
+.activity-details-column .class-activity-details{
+    margin-bottom: 20px;
 }
 
-.class-activity-details p{
-    color: #9196A1;
+.activity-details-column .class-activity-details p{
+    color: #797979;
     font-size: small;
-    margin-bottom: 0;
 }
 
-.class-activity-details button{
+.activity-details-column .activity-description{
+    margin-top: 0;
+}
+
+.activity-details-column .class-activity-details button{
     border: none;
     border-radius: 20px;
     background-color: #E2D8D3;
     font-size: small;
     color: #B84C20;
     padding-inline: 7px;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 .class-activity-details button img{
     height: 20px;
 }
 
-.class-activity-date{
-    font-size: 15px;
-    margin-left: 10px;
-    color: #2C2829;
-}
-
-.class-activity-date p{
-    margin-bottom: 5px;
-}
-
 .class-activity-date .bi-calendar-check{
    color: #84C776;
+   font-size: 1rem;
 }
 
 .class-activity-date .bi-calendar-x{
     color: #dd0a0a;
+    font-size: 1rem;
 }
+
+.activity-details-column .class-activity-details h6{
+    font-size: 0.9rem;
+    margin-top: 20px;
+}
+
+.activity-details-column .class-activity-details .class-activity-info{
+    font-size: 5rem !important;
+    margin-top: 20px;
+}
+
+
+
 
  .class-activity-standing{
     display: flex;

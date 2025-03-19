@@ -2,196 +2,94 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; 
 import TeacherCMNavigationBarComponent from "./TeacherCMNavigationBarComponent";
 import {
-  // Instead of getClassStudents, we call the new function below:
-  getClassStudentsWithOverallScores,
+  getClassRecord,
   getClassInfo,
-  unenrollStudent,
-  verifyPassword,
-  getSessionData
+  getClassActivities
 } from "../api/API";
 import "../../style/teacher/leaderboard.css";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 
-const LeaderboardItem = ({
-  index,
-  name,
-  studentNumber,
-  sumOfScores,
-  sumOfMaxPoints,
-  avatarUrl,
-  onUnenrollClick
-}) => {
-  // If totalMaxPoints is 0, we avoid dividing by zero
-  let scoreString = "0/0";
-  if (sumOfMaxPoints > 0) {
-    scoreString = `${sumOfScores}/${sumOfMaxPoints}`;
-  }
-
-  return (
-    <tr>
-      <td>{index}</td> {/* Numbering Column */}
-      <td>
-        <div className="avatar-name">
-          <div className="avatar">
-            <img
-              src={avatarUrl || "/src/assets/profile_default.png"}
-              alt="Avatar"
-              className="avatar-image"
-            />
-          </div>
-          <span className="student-name">{name}</span>
-        </div>
-      </td>
-      <td>{studentNumber}</td>
-      <td>
-        {/* Show "21/60" style instead of a percentage */}
-        <div className="score-circle">{scoreString}</div>
-      </td>
-      <td className="unenroll-cell">
-        <Button variant="danger" size="sm" onClick={onUnenrollClick}>
-          Unenroll
-        </Button>
-      </td>
-    </tr>
-  );
-};
-
-const ClassRecord = () => {
+const TeacherClassManagementClassRecordComponent = () => {
   const { classID } = useParams();
   const [className, setClassName] = useState("");
   const [students, setStudents] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [showUnenrollModal, setShowUnenrollModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-
   const [sortCriteria, setSortCriteria] = useState("lastname"); 
   const [sortOrder, setSortOrder] = useState("asc");
 
   // Fetch data from API.
   const fetchAllData = async () => {
     if (!classID) return;
-
-    const fetchClassInfo = async () => {
-      try {
-        const classInfoResponse = await getClassInfo(classID);
-        if (!classInfoResponse.error) {
-          setClassName(classInfoResponse.className);
-        } else {
-          console.error("Error fetching class info:", classInfoResponse.error);
-        }
-      } catch (error) {
-        console.error("API Fetch Error:", error);
+    setLoading(true);
+    try {
+      // 1) Get class info.
+      const classInfoResponse = await getClassInfo(classID);
+      if (!classInfoResponse.error) {
+        setClassName(classInfoResponse.className);
+      } else {
+        console.error("Error fetching class info:", classInfoResponse.error);
       }
-    };
-
-    const fetchStudentsWithScores = async () => {
-      try {
-        // Updated to call the new endpoint
-        const response = await getClassStudentsWithOverallScores(classID);
-        if (!response.error) {
-          // The response is an array of students, each with
-          // { studentID, firstname, lastname, studentNumber, profileImage, sumOfScores, sumOfMaxPoints }
-          setStudents(response);
-        } else {
-          console.error("Error fetching students:", response.error);
-        }
-      } catch (error) {
-        console.error("API Fetch Error:", error);
-      } finally {
-        setLoading(false);
+  
+      // 2) Get dynamic activities for the class.
+      const activitiesResponse = await getClassActivities(classID);
+      let activitiesArray = [];
+      if (Array.isArray(activitiesResponse)) {
+        activitiesArray = activitiesResponse;
+      } else if (
+        activitiesResponse && 
+        typeof activitiesResponse === "object" &&
+        ("ongoing" in activitiesResponse || "completed" in activitiesResponse)
+      ) {
+        // Combine ongoing and completed activities.
+        activitiesArray = [
+          ...(activitiesResponse.ongoing || []),
+          ...(activitiesResponse.completed || [])
+        ];
+      } else {
+        console.error("Unexpected activities response format:", activitiesResponse);
       }
-    };
+      setActivities(activitiesArray);
+  
+      // 3) Get the class record (students with pivot data).
+      const studentsResponse = await getClassRecord(classID);
+      if (!studentsResponse.error) {
+        setStudents(studentsResponse);
+      } else {
+        console.error("Error fetching class record:", studentsResponse.error);
+      }
+    } catch (error) {
+      console.error("API Fetch Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchClassInfo();
-    fetchStudentsWithScores();
+  useEffect(() => {
+    fetchAllData();
   }, [classID]);
 
-  // Called when user clicks "Unenroll"
-  const handleUnenrollClick = (student) => {
-    setSelectedStudent(student);
-    setShowUnenrollModal(true);
-    setPassword("");
-    setErrorMessage("");
-  };
-
-  const handleConfirmUnenroll = async (e) => {
-    e.preventDefault();
-    setIsProcessing(true);
-
-    if (!password) {
-      setErrorMessage("Please enter your password.");
-      setIsProcessing(false);
-      return;
-    }
-
-    try {
-      const sessionData = getSessionData();
-      const teacherEmail = sessionData.email;
-      if (!teacherEmail) {
-        setErrorMessage("No teacher email found. Please log in again.");
-        setIsProcessing(false);
-        return;
-      }
-
-      const verifyResponse = await verifyPassword(teacherEmail, password);
-      if (verifyResponse.error) {
-        setErrorMessage("Incorrect password. Please try again.");
-        setIsProcessing(false);
-        return;
-      }
-
-      const unenrollResponse = await unenrollStudent(classID, selectedStudent.studentID);
-      if (unenrollResponse.error) {
-        setErrorMessage(unenrollResponse.error);
-        setIsProcessing(false);
-        return;
-      }
-
-      // Filter out the unenrolled student
-      setStudents(students.filter((s) => s.studentID !== selectedStudent.studentID));
-
-      setShowUnenrollModal(false);
-      setSelectedStudent(null);
-    } catch (error) {
-      console.error("Unenroll Error:", error);
-      setErrorMessage("An error occurred while unenrolling the student.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Sorting
+  // Sorting function: sort by lastname or total score.
   const sortStudents = (criteria) => {
-    let sorted = [...students];
-
+    const sorted = [...students];
     if (criteria === "lastname") {
-      // Because we have firstname/lastname, we can do sorted by e.g. "lastname"
       sorted.sort((a, b) => {
         const aLast = a.lastname.toLowerCase();
         const bLast = b.lastname.toLowerCase();
-        if (sortOrder === "asc") {
-          return aLast.localeCompare(bLast);
-        } else {
-          return bLast.localeCompare(aLast);
-        }
+        return sortOrder === "asc"
+          ? aLast.localeCompare(bLast)
+          : bLast.localeCompare(aLast);
       });
     } else if (criteria === "averageScore") {
-      // We'll interpret averageScore as sumOfScores
       sorted.sort((a, b) => {
-        const aScore = a.sumOfScores || 0;
-        const bScore = b.sumOfScores || 0;
+        const aScore = a.totalScore || 0;
+        const bScore = b.totalScore || 0;
         return sortOrder === "asc" ? aScore - bScore : bScore - aScore;
       });
     }
-
     setStudents(sorted);
     setSortCriteria(criteria);
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc"); // Toggle sorting order
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
   // Export to CSV
@@ -271,101 +169,130 @@ const ClassRecord = () => {
 
   return (
     <div className="leaderboard-body">
-      <TeacherAMNavigationBarComponent />
-      <div className="class-wrapper"></div>
+      <TeacherCMNavigationBarComponent />
       <div className="leaderboard-container">
         <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Students in {className || "Loading..."}</h1>
-
-          {/* Sorting Buttons */}
-          <div className="sorting-buttons">
-            <Button variant="primary" onClick={() => sortStudents("lastname")}>
-              Sort by Last Name {sortCriteria === "lastname" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+          <h1 className="leaderboard-title">
+            Class Record for {className || "Loading..."}
+          </h1>
+          <div className="d-flex gap-2 mb-3">
+            <Button variant="info" onClick={fetchAllData}>
+              Refresh
             </Button>
-            <Button variant="success" className="ms-2" onClick={() => sortStudents("averageScore")}>
-              Sort by Score{" "}
+            <Button variant="secondary" onClick={exportToExcel}>
+              Export to Excel
+            </Button>
+          </div>
+          <div className="sorting-buttons mb-3">
+            <Button variant="primary" onClick={() => sortStudents("lastname")}>
+              Sort by Last Name{" "}
+              {sortCriteria === "lastname" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+            </Button>
+            <Button
+              variant="success"
+              className="ms-2"
+              onClick={() => sortStudents("averageScore")}
+            >
+              Sort by Total Score{" "}
               {sortCriteria === "averageScore" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
           </div>
           {loading ? (
             <p>Loading class record...</p>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th> {/* Numbering Column Header */}
-                  <th>Student Name</th>
-                  <th>Student Number</th>
-                  <th>Overall Score</th> {/* Now “21/60” */}
-                  <th>Unenroll</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.length > 0 ? (
-                  students.map((student, index) => (
-                    <LeaderboardItem
-                      key={student.studentID}
-                      index={index + 1}
-                      name={`${student.lastname}, ${student.firstname}`}
-                      studentNumber={student.studentNumber}
-                      avatarUrl={student.profileImage}
-                      sumOfScores={student.sumOfScores}
-                      sumOfMaxPoints={student.sumOfMaxPoints}
-                      onUnenrollClick={() => handleUnenrollClick(student)}
-                    />
-                  ))
-                ) : (
+<div className="horizontal-scrollbar">
+              <table className="table table-striped">
+                <thead>
                   <tr>
-                    <td colSpan="5" style={{ textAlign: "center" }}>
-                      No students enrolled in this class.
-                    </td>
+                    <th>Student Name</th>
+                    {activities.map((act, index) => (
+                      <React.Fragment key={act.actID}>
+                        <th>Activity #{index + 1} Name</th>
+                        <th>Activity #{index + 1} Score</th>
+                      </React.Fragment>
+                    ))}
+                    <th>Total Score</th>
+                    <th>Avg Score Percentage</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {students.length > 0 ? (
+                    students.map((student) => {
+                      // e.g. 19/30
+                      let totalScoreStr = "-";
+                      if (
+                        student.totalScore !== undefined &&
+                        student.totalMaxScore !== undefined
+                      ) {
+                        totalScoreStr = `${student.totalScore}/${student.totalMaxScore}`;
+                      }
+
+                      // e.g. 63.33%
+                      let avgPerc = "0.00%";
+                      if (
+                        student.totalScore !== undefined &&
+                        student.totalMaxScore !== undefined &&
+                        student.totalMaxScore > 0
+                      ) {
+                        const percent = (student.totalScore / student.totalMaxScore) * 100;
+                        avgPerc = `${percent.toFixed(2)}%`;
+                      }
+
+                      return (
+                        <tr key={student.studentID}>
+                          <td>
+                            <div className="avatar-name">
+                              <div className="avatar">
+                                <img
+                                  src={student.profileImage || "/src/assets/profile_default.png"}
+                                  alt="Avatar"
+                                  className="avatar-image"
+                                />
+                              </div>
+                              <span className="student-name">
+                                {student.lastname}, {student.firstname}
+                              </span>
+                            </div>
+                          </td>
+                          {activities.map((act) => {
+                            const record = student.activities
+                              ? student.activities.find((a) => a.actID === act.actID)
+                              : null;
+                            const actualScore = record
+                              ? record.overallScore ?? record.finalScore
+                              : null;
+                            const scoreStr =
+                              actualScore !== null && actualScore !== undefined
+                                ? `${actualScore}/${act.maxPoints}`
+                                : "-";
+                            return (
+                              <React.Fragment key={act.actID}>
+                                <td>{act.actTitle}</td>
+                                <td>{scoreStr}</td>
+                              </React.Fragment>
+                            );
+                          })}
+                          <td>{totalScoreStr}</td>
+                          <td>{avgPerc}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={activities.length * 2 + 2}
+                        style={{ textAlign: "center" }}
+                      >
+                        No students enrolled in this class.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Unenroll Confirmation Modal */}
-      <Modal
-        show={showUnenrollModal}
-        onHide={() => setShowUnenrollModal(false)}
-        backdrop="static"
-        keyboard={false}
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Unenroll Student</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            Are you sure you want to unenroll{" "}
-            <strong>
-              {selectedStudent?.firstname} {selectedStudent?.lastname}
-            </strong>
-            ?
-          </p>
-          <Form onSubmit={handleConfirmUnenroll}>
-            <Form.Group>
-              <Form.Label>Enter your password</Form.Label>
-              <Form.Control
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </Form.Group>
-            {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
-            <Button variant="danger" type="submit" disabled={isProcessing}>
-              {isProcessing ? "Processing..." : "Unenroll"}
-            </Button>
-            <Button variant="secondary" onClick={() => setShowUnenrollModal(false)}>
-              Cancel
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
     </div>
   );
 };
