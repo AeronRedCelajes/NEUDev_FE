@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Row, Tabs, Col, Tab, Modal, Button } from 'react-bootstrap';
 import StudentCMNavigationBarComponent from './StudentCMNavigationBarComponent';
 import "../../style/student/class.css";
-import { getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent} from "../api/API";
+import { getClassInfo, getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent} from "../api/API";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCaretDown, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
@@ -74,6 +74,20 @@ export const StudentClassComponent = () => {
   const [expiredAttempt, setExpiredAttempt] = useState(false);
   const [sortField, setSortField] = useState("openDate");
   const [sortOrder, setSortOrder] = useState("asc");
+
+  // -------------------- Lifecycle: Fetch Class Info --------------------
+  useEffect(() => {
+    async function fetchClassInfo() {
+      const response = await getClassInfo(classID);
+      if (!response.error) {
+        setClassInfo(response);
+      } else {
+        console.error("❌ Failed to fetch class info:", response.error);
+      }
+    }
+    fetchClassInfo();
+  }, [classID]);
+
 
   // Fetch the latest activities every 5 seconds
   useEffect(() => {
