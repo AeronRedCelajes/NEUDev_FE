@@ -270,7 +270,7 @@ export const TeacherDashboardArchivedComponent = () => {
           <h4>Archived Classes</h4>
           <div className='classes-container'>
             {classes.map((classItem, index) => (
-              <Card className='class-card-archived' key={index}
+              <Card className='class-card' key={index}
                 onClick={() => {
                   const sessionData = getSessionData();
                   sessionData.selectedClassID = classItem.id || classItem.classID;
