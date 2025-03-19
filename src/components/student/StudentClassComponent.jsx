@@ -733,7 +733,7 @@ const handleActivityClick = async (activity) => {
                                 const status = checkLocalStorageForActivity(activity.actID);
                                 if (status === "expired") {
                                   return (
-                                    <span style={{ color: "red", fontWeight: "bold", marginLeft: "8px" }}>
+                                    <span className='expired-tag'>
                                       Expired Attempt #{((selectedActivityForAssessment?.attemptsTaken || 0) + 1)}
                                     </span>
                                   );
@@ -876,6 +876,7 @@ const handleActivityClick = async (activity) => {
       </div>
       
       <Modal 
+        className='item-modal'
         show={showModal} 
         backdrop='static' 
         keyboard={false} 
@@ -889,13 +890,14 @@ const handleActivityClick = async (activity) => {
           <p>{modalMessage}</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={() => setShowModal(false)}>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
           </Button>
         </Modal.Footer>
       </Modal>
       
       <Modal 
+        className="item-modal"
         show={showTakeModal} 
         backdrop='static' 
         keyboard={false} 
@@ -954,7 +956,7 @@ const handleActivityClick = async (activity) => {
               Cancel
             </Button>
             <Button 
-              variant="primary" 
+              className='add-button' 
               onClick={() => {
                 navigate(`/student/class/${classID}/activity/${selectedActivityForAssessment.actID}/assessment`);
               }}

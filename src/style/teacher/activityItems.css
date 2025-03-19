@@ -38,7 +38,12 @@ body {
   font-size: 16px;
   cursor: pointer;
   opacity: 0.5; /* Default faded */
-  transition: opacity 0.3s ease-in-out;
+  transition: ease-in-out 0.3s;
+}
+
+.try-answer-button:hover {
+  background-color: #813a1b;
+  transition: ease-in-out 0.3s;
 }
 
 .try-answer-button.active, .answer-item-btn.active {
@@ -60,6 +65,15 @@ body {
   align-items: stretch; 
   min-height: 100vh;
   padding-top: 110px;
+}
+
+.item-bank-container {
+  display: flex;
+  background-color: #cccfda;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch; 
+  min-height: 100vh;
 }
 
 .activity-header {
@@ -291,12 +305,22 @@ body {
 
 .item-modal .modal-body{
   background-color: #FFF5F1;
+  min-height: 20vh;
 }
 
 .item-modal .modal-body .form-label{
   color: #2e2e2e;
   font-weight: 600;
   margin-bottom: 0;
+}
+
+.item-modal .modal-body .test-case-item,
+.item-modal .modal-body .test-case-item{
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
 }
 
 .item-modal .modal-body .form-control,
@@ -323,11 +347,9 @@ body {
 }
 
 .item-modal .modal-footer{
-  background-color: #F5DAD0;
-  border-top: 2px solid #9196A1;
+  background-color: #fdf1ec;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid #B84C20;
 }
 
 .item-modal .modal-footer button{

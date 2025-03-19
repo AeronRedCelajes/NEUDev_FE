@@ -273,16 +273,14 @@ const TeacherReviewComponent = () => {
   return (
     <>
       {/* Top Navbar */}
-      <Navbar expand="lg" className="assessment-navbar-top">
-        <Button variant="link" onClick={() => navigate(-1)}>
-          <i className="bi bi-arrow-left-circle"></i>
-        </Button>
-        <p style={{ marginBottom: 0 }}>Back to previous page</p>
-        <div className="assessment-navbar">
-          <span className="ping">23 ms</span>
-          <a href="#">
-            <i className="bi bi-moon"></i>
-          </a>
+      <Navbar expand='lg' className='assessment-navbar-top'>
+        <a href='#' onClick={() => navigate(-1)}>
+          <i className='bi bi-arrow-left-circle'></i>
+        </a>
+        <p>Back to previous page</p>
+        <div className='assessment-navbar'>
+          <span className='ping'>23 ms</span>
+          <a href='#'><i className='bi bi-moon'></i></a>
         </div>
       </Navbar>
 
@@ -290,7 +288,7 @@ const TeacherReviewComponent = () => {
         <Row className="g-3">
           {/* LEFT COLUMN: Items */}
           <Col>
-            <div style={{ marginBottom: "1rem", fontWeight: "bold" }}>
+            <div className='assessment-time'>
               {/* Now we convert timeRemaining to HH:MM:SS */}
               Time Left: {formatSecondsToHMS(timeRemaining)}
             </div>
@@ -320,8 +318,7 @@ const TeacherReviewComponent = () => {
           <Col xs={7} className="col-compiler">
             <div className="compiler-container">
               <div className="compiler-header">
-                <Row>
-                  <Col sm={10} className="compiler-left-corner">
+                  {/* <Col sm={10} className="compiler-left-corner">
                     <Tabs
                       activeKey={activeFileId}
                       id="teacher-file-tabs"
@@ -348,8 +345,31 @@ const TeacherReviewComponent = () => {
                         />
                       ))}
                     </Tabs>
-                  </Col>
-                  <Col sm={1} className="compiler-right-corner">
+                  </Col> */}
+                  <div className='left-corner'>
+                    <Tabs
+                      activeKey={activeFileId}
+                      id="teacher-file-tabs"
+                      onSelect={(k) => setActiveFileId(Number(k))}
+                    >
+                      {files.map(file => (
+                        <Tab
+                          key={file.id}
+                          eventKey={file.id}
+                          title={
+                            <div
+                              className={`d-flex align-items-center file-tab ${
+                                file.id === activeFileId ? "active-tab" : ""
+                              }`}
+                            >
+                              <span>{`${file.fileName}.${file.extension}`}</span>
+                            </div>
+                          }
+                        />
+                      ))}
+                    </Tabs>
+                  </div>
+                  <div className='right-corner'>
                     <DropdownButton
                       className="compiler-dropdown"
                       id="language-dropdown"
@@ -368,15 +388,13 @@ const TeacherReviewComponent = () => {
                     >
                       <Dropdown.Item>Teacher Mode</Dropdown.Item>
                     </DropdownButton>
-                  </Col>
-                </Row>
+                  </div>
                 <div className="compiler-header-border"></div>
               </div>
 
-              <div style={{ padding: "1rem", minHeight: "300px" }}>
+              <div>
                 <textarea
                   className="code-editor w-100"
-                  style={{ height: "400px" }}
                   value={activeFile.content || ""}
                   placeholder="Read-only code"
                   disabled
@@ -392,12 +410,6 @@ const TeacherReviewComponent = () => {
                 <Button className="check" disabled>
                   <FontAwesomeIcon icon={faCheck} className="check-icon" />
                   Check Code
-                </Button>
-                <Button variant="link" disabled>
-                  <FontAwesomeIcon icon={faPlusSquare} />
-                </Button>
-                <Button variant="link" disabled>
-                  <i className="bi bi-download"></i>
                 </Button>
               </div>
             </div>
@@ -541,15 +553,14 @@ const TeacherReviewComponent = () => {
                       else if (res.latestPass === false) passFail = "fail";
 
                       return (
-                        <div key={tc.testCaseID} className="test-case">
-                          <div
-                            style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
-                            onClick={() =>
+                        <div key={tc.testCaseID}>
+                          <div onClick={() =>
                               setExpandedTestCases(prev => ({
                                 ...prev,
                                 [tc.testCaseID]: !prev[tc.testCaseID]
                               }))
                             }
+                            className="test-case"
                           >
                             <Button
                               style={{
@@ -582,12 +593,12 @@ const TeacherReviewComponent = () => {
                             <i className="bi bi-play-circle" style={{ cursor: "not-allowed", marginLeft: "auto" }}></i>
                           </div>
                           {expandedTestCases[tc.testCaseID] && (
-                            <div className="test-case-details" style={{ paddingLeft: "35px" }}>
+                            <div className="test-case-details mt-1">
                               {tc.isHidden ? (
                                 <p>This test case is hidden</p>
                               ) : (
                                 <>
-                                  <p>Your Output: {res.latestOutput || "(none)"}</p>
+                                  <p>Your Output: {res.latestOutput || "none"}</p>
                                   <p>Expected Output: {tc.expectedOutput}</p>
                                   <p>
                                     Points: {finalScorePolicy === "highest_score"

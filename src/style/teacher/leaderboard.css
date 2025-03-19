@@ -3,24 +3,18 @@
 ::-webkit-scrollbar {
     width: 0px;   
     background: transparent;  
-  }
-  
-  .leaderboard-body {
+}
+
+.leaderboard-body {
     overflow-y: scroll;  
     scrollbar-width: none; 
     -ms-overflow-style: none;  
-  }
-  
-  .leaderboard-body {
     scrollbar-width: none;
-  }
-  
-  .leaderboard-body {
     font-family: Poppins, sans-serif;
     background-color: #CCCFDA;
     text-align: center;
     min-height: 100vh;
-  }
+}
   
 .leaderboard-container {
     max-width: 1044px;
@@ -29,6 +23,7 @@
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20vh;
   }
   
   .navbar {
@@ -84,6 +79,12 @@
     margin-bottom: 20px;
     background-color: #F5DAD0;
     font-weight: bold;
+  }
+
+  .leaderboard-title i{
+    font-size: 2rem;
+    color: #9196A1;
+    cursor: pointer;
   }
 
 table {

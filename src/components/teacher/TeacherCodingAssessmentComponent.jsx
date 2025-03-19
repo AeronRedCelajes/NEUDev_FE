@@ -123,6 +123,9 @@ export const TeacherCodingAssessmentComponent = () => {
   const [expandedTestCases, setExpandedTestCases] = useState({});
   const [expandedSummaryItems, setExpandedSummaryItems] = useState([]);
 
+  // For disabled state when submitting
+    const [isDisabled, setIsDisabled] = useState(false);
+    
   // Format seconds to HH:MM:SS
   function formatTime(seconds) {
     const h = Math.floor(seconds / 3600);
@@ -703,7 +706,9 @@ export const TeacherCodingAssessmentComponent = () => {
 
   // Actually finalize the teacher's test
   const handleSubmitAllAndFinish = async () => {
-    if (isTestFinished) return;
+    if (isTestFinished || isDisabled) return; // Prevent multiple clicks
+
+    setIsDisabled(true); // Disable button immediately
 
     let totalTC = 0, correctTC = 0;
     items.forEach(it => {
@@ -782,7 +787,7 @@ export const TeacherCodingAssessmentComponent = () => {
         <Row className='g-3'>
           {/* Left Column: Items list */}
           <Col>
-            <div style={{ marginBottom: '1rem', fontWeight: 'bold' }}>
+            <div className='assessment-time'>
               Time Left: {formatTime(timeLeft)}
             </div>
             <div className='description-item'>
@@ -811,67 +816,70 @@ export const TeacherCodingAssessmentComponent = () => {
           <Col xs={7} className='col-compiler'>
             <div className='compiler-container'>
               <div className='compiler-header'>
-                <Row>
-                  <Col sm={10} className='compiler-left-corner'>
-                    <Tabs activeKey={activeFileId} id='dynamic-file-tabs' onSelect={handleTabSelect}>
-                      {files.map(file => (
-                        <Tab
-                          key={file.id}
-                          eventKey={file.id}
-                          title={
-                            <div 
-                              className={`d-flex align-items-center file-tab ${file.id === activeFileId ? 'active-tab' : ''}`}
-                              style={ file.id === activeFileId ? { borderBottom: '2px solid #007bff' } : {} }
-                            >
-                              <span>{`${file.fileName}.${file.extension}`}</span>
-                              {files.length > 1 && (
-                                <Button variant='link' size='sm'
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteFile(file.id); }}
-                                  title='Delete file'
+                <div className='left-corner'>
+                  <Tabs activeKey={activeFileId} id='dynamic-file-tabs' onSelect={handleTabSelect}>
+                    {files.map(file => (
+                      <Tab
+                        key={file.id}
+                        eventKey={file.id}
+                        title={
+                          <div 
+                            className={`d-flex align-items-center ${file.id === activeFileId ? 'active-tab' : ''}`}
+                          >
+                            <span>{`${file.fileName}.${file.extension}`}</span>
+                            {files.length > 1 && (
+                                <Button
+                                  className='tab-close-button'
+                                  variant="link"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteFile(file.id);
+                                  }}
+                                  title="Delete file"
                                 >
-                                  <FontAwesomeIcon icon={faTimes} color='red' />
+                                  <FontAwesomeIcon icon={faTimes} color="gray" />
                                 </Button>
                               )}
-                            </div>
-                          }
-                        />
-                      ))}
-                    </Tabs>
-                    <Button variant='link' style={{ textDecoration: 'none' }} onClick={openAddFileModal} title='Add File'>
-                      <FontAwesomeIcon icon={faPlusSquare} />
-                    </Button>
-                    <Button variant='link' style={{ textDecoration: 'none' }} onClick={openEditFileModal} title='Edit File'>
-                      <i className='bi bi-pencil'></i>
-                    </Button>
-                  </Col>
-                  <Col sm={1} className='compiler-right-corner'>
-                    <DropdownButton className='compiler-dropdown' id='language-dropdown' size='sm'
-                      title={
-                        <>
-                          <img src={selectedLanguage.imgSrc} style={{ width: '17px', marginRight: '8px' }} alt='lang-icon' />
-                          {selectedLanguage.name}
-                        </>
-                      }
-                      onSelect={handleSelectLanguage}
-                    >
-                      {programmingLanguages.map(lang => (
-                        <Dropdown.Item eventKey={lang.progLangName} key={lang.progLangID}>
-                          {languageIconMap[lang.progLangName] && (
-                            <img src={languageIconMap[lang.progLangName]} alt='' style={{ width: '17px', marginRight: '8px' }} />
-                          )}
-                          {lang.progLangName}
-                        </Dropdown.Item>
-                      ))}
-                    </DropdownButton>
-                  </Col>
-                </Row>
+                          </div>
+                        }
+                      />
+                    ))}
+                  </Tabs>
+                  <Button className='plus-sqaure-icon' variant='transparent' onClick={openAddFileModal}>
+                    <FontAwesomeIcon icon={faPlusSquare} size="lg" />
+                  </Button>
+
+                  <Button className='pencil-icon' variant='transparent' onClick={openEditFileModal} title='Edit File'>
+                    <i className='bi bi-pencil'></i>
+                  </Button>
+                </div>
+
+                <div className='right-corner'>
+                  <DropdownButton className='compiler-dropdown' id='language-dropdown' size='sm'
+                    title={
+                      <>
+                        <img src={selectedLanguage.imgSrc} style={{ width: '17px', marginRight: '8px' }} alt='lang-icon' />
+                        {selectedLanguage.name}
+                      </>
+                    }
+                    onSelect={handleSelectLanguage}>
+                    {programmingLanguages.map(lang => (
+                      <Dropdown.Item eventKey={lang.progLangName} key={lang.progLangID}>
+                        {languageIconMap[lang.progLangName] && (
+                          <img src={languageIconMap[lang.progLangName]} alt='' style={{ width: '17px', marginRight: '8px' }} />
+                        )}
+                        {lang.progLangName}
+                      </Dropdown.Item>
+                    ))}
+                  </DropdownButton>
+                </div>
                 <div className='compiler-header-border'></div>
               </div>
 
-              <div style={{ padding: '1rem', minHeight: '300px' }}>
+              <div>
                 <textarea
                   className='code-editor w-100'
-                  style={{ height: '400px' }}
                   value={activeFile?.content || ''}
                   onChange={(e) => !isTestFinished && !timeExpired && handleFileChange(e.target.value)}
                   placeholder='Write your code here...'
@@ -900,13 +908,9 @@ export const TeacherCodingAssessmentComponent = () => {
                     </>
                   )}
                 </Button>
-                <Button variant='link' onClick={openAddFileModal}>
-                  <FontAwesomeIcon icon={faPlusSquare} />
-                </Button>
-                <Button variant='link' onClick={handleDownloadFiles}>
-                  <i className='bi bi-download'></i>
-                </Button>
               </div>
+
+              
             </div>
           </Col>
 
@@ -939,96 +943,73 @@ export const TeacherCodingAssessmentComponent = () => {
                 Tests <i className='bi bi-info-circle'></i>
               </div>
               {selectedItem &&
-                items
-                  .filter(it => it.itemID === selectedItem)
-                  .map(it =>
-                    it.testCases?.map((tc, idx) => {
-                      const itemResults = testCaseResults[it.itemID] || {};
-                      const r = itemResults[tc.testCaseID] || {
-                        latestPass: null,
-                        latestPoints: 0,
-                        latestOutput: '',
-                        bestPass: null,
-                        bestPoints: 0,
-                        bestOutput: ''
-                      };
+                items.filter(it => it.itemID === selectedItem).map(it =>
+                  it.testCases?.map((tc, idx) => {
+                    const itemResults = testCaseResults[it.itemID] || {};
+                    const r = itemResults[tc.testCaseID] || {
+                      latestPass: null,
+                      latestPoints: 0,
+                      latestOutput: '',
+                      bestPass: null,
+                      bestPoints: 0,
+                      bestOutput: ''
+                    };
+                    let passFail = 'untested';
+                    if (r.latestPass === true) passFail = 'pass';
+                    else if (r.latestPass === false) passFail = 'fail';
 
-                      let passFail = 'untested';
-                      if (r.latestPass === true) passFail = 'pass';
-                      else if (r.latestPass === false) passFail = 'fail';
+                    return (
+                      <>
+                      <div key={tc.testCaseID}>
+                        <div onClick={() => 
+                          setExpandedTestCases(prev => ({ 
+                            ...prev, 
+                            [tc.testCaseID]: !prev[tc.testCaseID] 
+                          }))}
+                          className='test-case'
+                        >
 
-                      return (
-                        <div key={tc.testCaseID} className='test-case'>
-                          <div
-                            onClick={() =>
-                              setExpandedTestCases(prev => ({
-                                ...prev,
-                                [tc.testCaseID]: !prev[tc.testCaseID]
-                              }))
-                            }
-                            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                          >
-                            <Button
-                              style={{
-                                width: '25px',
-                                height: '25px',
-                                borderRadius: '50%',
-                                border: 'none',
-                                marginRight: '10px',
-                                backgroundColor:
-                                  passFail === 'pass'
-                                    ? 'green'
-                                    : passFail === 'fail'
-                                    ? 'red'
-                                    : '#D9D9D9',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              {passFail === 'pass' && (
-                                <FontAwesomeIcon icon={faCheck} style={{ color: '#fff' }} />
-                              )}
-                              {passFail === 'fail' && (
-                                <FontAwesomeIcon icon={faTimes} style={{ color: '#fff' }} />
-                              )}
-                              {passFail === 'untested' && (
-                                <FontAwesomeIcon icon={faQuestion} style={{ color: '#fff' }} />
-                              )}
-                            </Button>
-                            <p>{`Test Case ${idx + 1}`}</p>
-                            <i
-                              className='bi bi-play-circle'
-                              style={{ cursor: 'pointer', marginLeft: 'auto' }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                runSingleTestCase(tc, false);
-                              }}
-                            ></i>
-                          </div>
-                          {expandedTestCases[tc.testCaseID] && (
-                            <div className='test-case-details' style={{ paddingLeft: '35px' }}>
-                              {tc.isHidden ? (
-                                <p>This test case is hidden</p>
-                              ) : (
-                                <>
-                                  <p>Your Output: {r.latestOutput || '(none)'}</p>
-                                  <p>Expected Output: {tc.expectedOutput}</p>
-                                  <p>
-                                    Points:{' '}
-                                    {finalScorePolicy === 'highest_score'
-                                      ? r.bestPoints || 0
-                                      : r.latestPoints || 0}
-                                    /{tc.testCasePoints}
-                                  </p>
-                                </>
-                              )}
-                            </div>
-                          )}
+                          <Button style={{
+                            width: '25px',
+                            height: '25px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            marginRight: '10px',
+                            backgroundColor: passFail === 'pass' ? 'green' : passFail === 'fail' ? 'red' : '#D9D9D9',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            {passFail === 'pass' && (<FontAwesomeIcon icon={faCheck} style={{ color: '#fff' }} />)}
+                            {passFail === 'fail' && (<FontAwesomeIcon icon={faTimes} style={{ color: '#fff' }} />)}
+                            {passFail === 'untested' && (<FontAwesomeIcon icon={faQuestion} style={{ color: '#fff' }} />)}
+                          </Button>
+                          <p>{`Test Case ${idx + 1}`}</p>
+                          <i className='bi bi-play-circle' style={{ cursor: 'pointer', marginLeft: 'auto' }}
+                            onClick={(e) => { e.stopPropagation(); runSingleTestCase(tc, false); }}></i>
                         </div>
-                      );
-                    })
-                  )}
+                      </div>
+                      
+                      {expandedTestCases[tc.testCaseID] && (
+                        <div className='test-case-details'>
+                          {tc.isHidden 
+                            ? <p>This test case is hidden</p>
+                            : (
+                              <>
+                                <p>Your Output: {r.latestOutput || 'none'}</p>
+                                <p>Expected Output: {tc.expectedOutput}</p>
+                                <p>
+                                  Points: {finalScorePolicy === 'highest_score' ? (r.bestPoints || 0) : (r.latestPoints || 0)}/{tc.testCasePoints}
+                                </p>
+                              </>
+                            )
+                          }
+                        </div>
+                      )}
+                      </>
+                    );
+                  })
+                )}
               <div className='test-footer'>
                 <p>
                   Score: {selectedItem ? computeItemScore(selectedItem) : 0}/
@@ -1185,7 +1166,7 @@ export const TeacherCodingAssessmentComponent = () => {
         </Modal.Header>
         <Modal.Body>
           <h3>{activityName}</h3>
-          <p>Total Activity Score: {computeTotalScore()}/{maxPoints}</p>
+          <p className='total-activity-score'>Total Activity Score: {computeTotalScore()}/{maxPoints}</p>
           {items.map((item, idx) => (
             <div
               key={item.itemID}
@@ -1193,13 +1174,15 @@ export const TeacherCodingAssessmentComponent = () => {
               onClick={() => toggleSummaryItem(item.itemID)}
               style={{ cursor: 'pointer' }}
             >
-              <p>{`Item ${idx + 1}: ${item.itemName}`}</p>
+              <p><strong>{`Item ${idx + 1}: ${item.itemName}`}</strong></p>
               <p>{item.itemDesc} | <em>{item.itemType}</em></p>
-              <p>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</p>
+              <p><strong>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</strong></p>
             </div>
           ))}
-          <div className='submit-finish'>
-            <Button onClick={handleSubmitAllAndFinish}>Submit all and Finish</Button>
+          <div className='submit-finish'> 
+            <Button onClick={handleSubmitAllAndFinish} disabled={isDisabled}>
+              {isDisabled ? "Submitting..." : "Submit all and Finish"}
+            </Button>
           </div>
         </Modal.Body>
       </Modal>
@@ -1249,6 +1232,7 @@ export const TeacherCodingAssessmentComponent = () => {
 
       {/* Test Completed Modal */}
       <Modal
+        className='item-modal'
         show={showTestCompletedModal}
         onHide={() => setShowTestCompletedModal(false)}
         backdrop='static'
@@ -1262,7 +1246,7 @@ export const TeacherCodingAssessmentComponent = () => {
           <p>Your test attempt has been completed.</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant='primary' onClick={handleTestCompletedConfirm}>
+          <Button className='add-button' onClick={handleTestCompletedConfirm}>
             OK
           </Button>
         </Modal.Footer>

@@ -134,6 +134,9 @@ export const StudentCodingAssessmentComponent = () => {
     return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   };
 
+  // For disabled state when submitting
+  const [isDisabled, setIsDisabled] = useState(false);
+
   // --- Listen for submission events from other tabs ---
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -789,7 +792,10 @@ export const StudentCodingAssessmentComponent = () => {
   };
   
   const handleSubmitAllAndFinish = async () => {
-    if (isSubmitted) return;
+    if (isSubmitted || isDisabled) return; // Prevent multiple clicks
+
+    setIsDisabled(true); // Disable button immediately
+
     let totalTC = 0;
     let correctTC = 0;
     items.forEach(it => {
@@ -819,6 +825,8 @@ export const StudentCodingAssessmentComponent = () => {
     await finalizeSubmissionHandler(overallTimeSpent);
     setShowFinishAttempt(false);
     setShowSubmit(true);
+
+    console.log("Submitted!");
   };
 
   const handleDownloadFiles = async () => {
@@ -838,14 +846,13 @@ export const StudentCodingAssessmentComponent = () => {
 
   return (
     <>
-      <Navbar expand='lg' className='assessment-navbar-top'>
-        <a href='#' onClick={() => navigate(`/student/class/${classID}/activity`)}>
-          <i className='bi bi-arrow-left-circle'></i>
-        </a>
+      <Navbar className='profile-playground-navbar'>
+        <a href='#'><i className='bi bi-arrow-left-circle' onClick={() => navigate(`/student/class/${classID}/activity`)}></i></a>
         <p>Back to previous page</p>
-        <div className='assessment-navbar'>
-          <span className='ping'>23 ms</span>
-          <a href='#'><i className='bi bi-moon'></i></a>
+
+        <div className='right-navbar'>
+            <span className='ping'>20 ms</span>
+            <a href='#'><i className='bi bi-moon'></i></a>
         </div>
       </Navbar>
 
@@ -1028,8 +1035,10 @@ export const StudentCodingAssessmentComponent = () => {
                         <p className='item-score'>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</p>
                       </div>
                     ))}
-                    <div className='submit-finish'>
-                      <Button onClick={handleSubmitAllAndFinish}>Submit all and Finish</Button>
+                    <div className='submit-finish'> 
+                      <Button onClick={handleSubmitAllAndFinish} disabled={isDisabled}>
+                        {isDisabled ? "Submitting..." : "Submit all and Finish"}
+                      </Button>
                     </div>
                   </Modal.Body>
                 </Modal>

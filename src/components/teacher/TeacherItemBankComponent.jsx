@@ -539,7 +539,7 @@ export default function TeacherItemBankComponent() {
 
   // -------------------- Render --------------------
   return (
-    <div className="activity-items">
+    <div className="item-bank-container">
       <ProfilePlaygroundNavbarComponent />
 
       {/* Header */}
@@ -898,18 +898,17 @@ export default function TeacherItemBankComponent() {
                   <Form.Label>Test Cases (added after each successful run)</Form.Label>
                   {(itemData.testCases || []).map((tc, index) => (
                     <div
+                      className="test-case-item"
                       key={index}
-                      style={{
-                        border: "1px solid #ddd",
-                        padding: "10px",
-                        marginBottom: "10px"
-                      }}
                     >
+                      <Form.Label>Test Case {index + 1}</Form.Label>
                       <AutoResizeTextarea
                         readOnly
                         value={tc.expectedOutput}
                         style={{ marginBottom: "5px" }}
                       />
+
+                      <Form.Label>Points</Form.Label>
                       <Form.Control
                         type="number"
                         placeholder="Enter points for this test case"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "react-bootstrap";
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
 import "../../style/teacher/leaderboard.css";
 import { getActivitySubmissionByTeacher } from "../api/API";
@@ -47,18 +48,11 @@ const TeacherActivitySubmissionComponent = () => {
   };
   
   return (
-    <div className="submission-body">
+    <div className="leaderboard-body">
       <TeacherAMNavigationBarComponent />
-      <div className="submission-container">
-        <div className="submission-header">
-          <h1 className="submission-title">Activity Submissions</h1>
-
-          {/* Refresh Button */}
-          <div className="d-flex gap-2 mb-3">
-            <button className="btn btn-info" onClick={fetchSubmissions}>
-              Refresh
-            </button>
-          </div>
+      <div className="leaderboard-container">
+        <div className="leaderboard-header">
+          <h1 className="leaderboard-title">Activity Submissions <i className="bi bi-arrow-clockwise" onClick={fetchSubmissions}></i></h1>
 
           {loading ? (
             <p>Loading submissions...</p>
@@ -132,15 +126,15 @@ const SubmissionItem = ({ submission, actID, classID }) => {
         <td>{submission.overallScore}</td>
         <td>{convertSecondsToHMS(submission.overallTimeSpent)}</td>
         <td>
-          <button
-            className="expand-btn"
+          <Button
+            variant="secondary"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(!expanded);
             }}
           >
             {expanded ? "Hide Attempts" : "Show Attempts"}
-          </button>
+          </Button>
         </td>
       </tr>
       {expanded && submission.attempts && (
@@ -162,8 +156,8 @@ const SubmissionItem = ({ submission, actID, classID }) => {
                     <td>{attempt.totalScore}</td>
                     <td>{convertSecondsToHMS(attempt.totalTimeSpent)}</td>
                     <td>
-                      <button
-                        className="review-btn"
+                      <Button
+                        variant="secondary"
                         onClick={() => {
                           // Navigate to the review page route:
                           // /teacher/class/:classID/activity/:actID/review
@@ -174,7 +168,7 @@ const SubmissionItem = ({ submission, actID, classID }) => {
                         }}
                       >
                         Review
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}

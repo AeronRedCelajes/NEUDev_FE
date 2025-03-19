@@ -47,14 +47,7 @@ const TeacherActivityLeaderboardComponent = () => {
       <TeacherAMNavigationBarComponent />
       <div className="leaderboard-container">
         <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Leaderboard</h1>
-
-          {/* Refresh Button */}
-          <div className="d-flex gap-2 mb-3">
-            <button className="btn btn-info" onClick={fetchLeaderboard}>
-              Refresh
-            </button>
-          </div>
+          <h1 className="leaderboard-title">Leaderboard <i className="bi bi-arrow-clockwise" onClick={fetchLeaderboard}></i></h1>
 
           {loading ? (
             <p>Loading students...</p>

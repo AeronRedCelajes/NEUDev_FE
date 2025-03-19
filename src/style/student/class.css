@@ -40,6 +40,14 @@
     border: none !important;
 }
 
+.upcoming-class-activities{
+    background-color: #FFF5F1;
+    padding: 30px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+}
+
 .ongoing-class-activities{
     background-color: #FFF5F1;
     padding: 30px;
@@ -74,6 +82,16 @@
     font-weight: bold;
     color: #2C2829;
     margin-bottom: 0;
+}
+
+.activity-details-column .class-activity-details .expired-tag{
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    margin-left: 10px;
+    padding-inline: 7px;
+    border-radius: 10px;
+    background-color: rgb(255, 45, 45);
 }
 
 .activity-details-column .class-activity-details .in-progess-tag{

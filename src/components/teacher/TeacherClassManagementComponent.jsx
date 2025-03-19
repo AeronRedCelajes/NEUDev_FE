@@ -689,18 +689,16 @@ export const TeacherClassManagementComponent = () => {
                                 position: "absolute",
                                 top: "30px",
                                 right: "0",
-                                background: "white",
-                                border: "1px solid #ccc",
                                 zIndex: 10,
                               }}
                             >
-                              <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleEditClick(e, activity)} className='activity-menu-item'>
                                 Edit
                               </div>
-                              <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleDeleteClick(e, activity)} className='activity-menu-item'>
                                 Delete
                               </div>
-                              <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleCopyLinkClick(e, activity)} className='activity-menu-item'>
                                 Copy Link
                               </div>
                             </div>
@@ -736,29 +734,26 @@ export const TeacherClassManagementComponent = () => {
                                   "-"
                                 )}
                               </div>
-                              <p>
+                              <p className='class-activity-date'> 
                                 <i className="bi bi-calendar-check"></i>{" "}
                                 Open Date: {formatDateString(activity.openDate)}
                               </p>
-                              <p>
+                              <p className='class-activity-date'>
                                 <i className="bi bi-calendar-x"></i>{" "}
                                 Close Date: {formatDateString(activity.closeDate)}
                               </p>
-                              <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                              <div>
+                              <div className='class-activity-info'>
+                                <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                                <br/>
                                 <strong>Time Left: </strong>
                                 <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                              </div>
-                              {/* Display Attempts */}
-                              <div>
+                                <br/>
                                 <strong>Attempts: </strong>
                                 {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
-                              </div>
-                              <div>
+                                <br/>
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
-                              </div>
-                              <div>
+                                <br/>
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
@@ -766,13 +761,13 @@ export const TeacherClassManagementComponent = () => {
                           </Col>
                           <Col className="activity-stats">
                             <div className="score-chart">
-                              <h4>{activity.classAvgScore ?? "-"}</h4>
+                              <h5>{activity.classAvgScore ?? "-"}</h5>
                               <p>Class Avg. Score</p>
                             </div>
                             <div className="score-chart">
-                              <h4>
+                              <h5>
                                 {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
-                              </h4>
+                              </h5>
                               <p>Highest Score</p>
                             </div>
                           </Col>
@@ -818,7 +813,6 @@ export const TeacherClassManagementComponent = () => {
                                 position: "absolute",
                                 top: "30px",
                                 right: "0",
-                                border: "1px solid #ccc",
                                 zIndex: 10,
                               }}
                             >
@@ -889,9 +883,6 @@ export const TeacherClassManagementComponent = () => {
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
-                              <div>
-                                
-                              </div>
                             </div>
                           </Col>
                           <Col className="activity-stats">
@@ -948,18 +939,16 @@ export const TeacherClassManagementComponent = () => {
                                 position: "absolute",
                                 top: "30px",
                                 right: "0",
-                                background: "white",
-                                border: "1px solid #ccc",
-                                zIndex: 10,
+                                zIndex: 10
                               }}
                             >
-                              <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleEditClick(e, activity)} className='activity-menu-item'>
                                 Edit
                               </div>
-                              <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleDeleteClick(e, activity)} className='activity-menu-item'>
                                 Delete
                               </div>
-                              <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleCopyLinkClick(e, activity)} className='activity-menu-item'>
                                 Copy Link
                               </div>
                             </div>
@@ -995,29 +984,28 @@ export const TeacherClassManagementComponent = () => {
                                   "-"
                                 )}
                               </div>
-                              <p>
+                              
+                              <p className='class-activity-date'>
                                 <i className="bi bi-calendar-check"></i>{" "}
                                 Open Date: {formatDateString(activity.openDate)}
                               </p>
-                              <p>
+                              <p className='class-activity-date'>
                                 <i className="bi bi-calendar-x"></i>{" "}
                                 Close Date: {formatDateString(activity.closeDate)}
                               </p>
-                              <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                              <div>
+
+                              <div className='class-activity-info'>
+                                <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                                <br/>
                                 <strong>Time Left: </strong>
                                 <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                              </div>
-                              {/* Display Attempts */}
-                              <div>
+                                <br/>
                                 <strong>Attempts: </strong>
                                 {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
-                              </div>
-                              <div>
+                                <br/>
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
-                              </div>
-                              <div>
+                                <br/>
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
@@ -1025,13 +1013,13 @@ export const TeacherClassManagementComponent = () => {
                           </Col>
                           <Col className="activity-stats">
                             <div className="score-chart">
-                              <h4>{activity.classAvgScore ?? "-"}</h4>
+                              <h5>{activity.classAvgScore ?? "-"}</h5>
                               <p>Class Avg. Score</p>
                             </div>
                             <div className="score-chart">
-                              <h4>
+                              <h5>
                                 {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
-                              </h4>
+                              </h5>
                               <p>Highest Score</p>
                             </div>
                           </Col>
