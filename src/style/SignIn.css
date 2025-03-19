@@ -22,7 +22,7 @@
     transition: background-color 0.3s ease;
 }
 
-.custom-button:hover{
+.custom-button:hover {
     background-color: #ed5a2dd6;
     color: #ffdacb;
 }
