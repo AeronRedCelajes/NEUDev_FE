@@ -76,6 +76,16 @@
     margin-bottom: 0;
 }
 
+.activity-details-column .class-activity-details .in-progess-tag{
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    margin-left: 10px;
+    padding-inline: 7px;
+    border-radius: 10px;
+    background-color: #84C776;
+}
+
 .activity-details-column .class-activity-details{
     margin-bottom: 20px;
 }
@@ -85,10 +95,6 @@
     font-size: small;
 }
 
-.activity-details-column .activity-description{
-    margin-top: 0;
-}
-
 .activity-details-column .class-activity-details button{
     border: none;
     border-radius: 20px;
@@ -96,13 +102,17 @@
     font-size: small;
     color: #B84C20;
     padding-inline: 7px;
-    margin-top: 10px;
     margin-bottom: 20px;
 }
 
 .class-activity-details button img{
     height: 20px;
 }
+
+.class-activity-date{
+    margin-bottom: 0;
+    margin-left: 10px;
+ }
 
 .class-activity-date .bi-calendar-check{
    color: #84C776;
@@ -117,17 +127,49 @@
 .activity-details-column .class-activity-details h6{
     font-size: 0.9rem;
     margin-top: 20px;
+    color: #2C2829;
 }
 
 .activity-details-column .class-activity-details .class-activity-info{
-    font-size: 5rem !important;
+    font-size: 0.9rem !important;
     margin-top: 20px;
 }
 
 
+.activity-stats{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #B84C20;
+}
 
+.activity-stats .score-chart{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    padding-top: 20px;
+}
 
- .class-activity-standing{
+.activity-stats .score-chart h5{
+    font-weight: bold;
+}
+
+.class-activity-standing button{
+    height: 110px;
+    width: 110px;
+    border-radius: 50%;
+    border: 15px solid #E2D8D3;
+    background-color: #FFF5F1;
+    color: #B84C20;
+    font-weight: 600;
+}
+
+.class-activity-standing{
     display: flex;
     flex-direction: column;
     justify-content: center;

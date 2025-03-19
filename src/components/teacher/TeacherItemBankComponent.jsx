@@ -749,7 +749,7 @@ export default function TeacherItemBankComponent() {
         }}
         backdrop="static" 
         keyboard={false}
-        size="lg"
+        size="md"
       >
         <Modal.Header closeButton>
           <Modal.Title>

@@ -708,7 +708,7 @@ export const TeacherClassManagementComponent = () => {
                         </div>
 
                         <Row>
-                          <Col className="activity-details-column">
+                          <Col lg={7} xl={7} xxl={7} className="activity-details-column">
                             <div className="class-activity-details">
                               <h3>{activity.actTitle}</h3>
                               <p className="activity-description">{activity.actDesc}</p>
@@ -818,18 +818,17 @@ export const TeacherClassManagementComponent = () => {
                                 position: "absolute",
                                 top: "30px",
                                 right: "0",
-                                background: "white",
                                 border: "1px solid #ccc",
                                 zIndex: 10,
                               }}
                             >
-                              <div onClick={(e) => handleEditClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleEditClick(e, activity)} className='activity-menu-item'>
                                 Edit
                               </div>
-                              <div onClick={(e) => handleDeleteClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleDeleteClick(e, activity)} className='activity-menu-item'>
                                 Delete
                               </div>
-                              <div onClick={(e) => handleCopyLinkClick(e, activity)} style={{ padding: "5px", cursor: "pointer" }}>
+                              <div onClick={(e) => handleCopyLinkClick(e, activity)} className='activity-menu-item'>
                                 Copy Link
                               </div>
                             </div>
@@ -837,7 +836,7 @@ export const TeacherClassManagementComponent = () => {
                         </div>
 
                         <Row>
-                          <Col className="activity-details-column">
+                          <Col lg={7} xl={7} xxl={7} className="activity-details-column">
                             <div className="class-activity-details">
                               <h3>{activity.actTitle}</h3>
                               <p className="activity-description">{activity.actDesc}</p>
@@ -865,43 +864,45 @@ export const TeacherClassManagementComponent = () => {
                                   "-"
                                 )}
                               </div>
-                              <p>
+                              
+                              <p className='class-activity-date'>
                                 <i className="bi bi-calendar-check"></i>{" "}
                                 Open Date: {formatDateString(activity.openDate)}
                               </p>
-                              <p>
+                              <p className='class-activity-date'>
                                 <i className="bi bi-calendar-x"></i>{" "}
                                 Close Date: {formatDateString(activity.closeDate)}
                               </p>
-                              <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                              <div>
+
+                              <div className='class-activity-info'>
+                                <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                                <br/>
                                 <strong>Time Left: </strong>
                                 <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                              </div>
-                              {/* Display Attempts */}
-                              <div>
+                                <br/>
                                 <strong>Attempts: </strong>
                                 {activity.actAttempts === 0 ? "Unlimited" : activity.actAttempts}
-                              </div>
-                              <div>
+                                <br/>
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
-                              </div>
-                              <div>
+                                <br/>
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
+                              </div>
+                              <div>
+                                
                               </div>
                             </div>
                           </Col>
                           <Col className="activity-stats">
                             <div className="score-chart">
-                              <h4>{activity.classAvgScore ?? "-"}</h4>
+                              <h5>{activity.classAvgScore ?? "-"}</h5>
                               <p>Class Avg. Score</p>
                             </div>
                             <div className="score-chart">
-                              <h4>
+                              <h5>
                                 {activity.highestScore ?? "-"} / {activity.maxPoints ?? "-"}
-                              </h4>
+                              </h5>
                               <p>Highest Score</p>
                             </div>
                           </Col>
@@ -966,7 +967,7 @@ export const TeacherClassManagementComponent = () => {
                         </div>
 
                         <Row>
-                          <Col className="activity-details-column">
+                          <Col lg={7} xl={7} xxl={7} className="activity-details-column">
                             <div className="class-activity-details">
                               <h3>{activity.actTitle}</h3>
                               <p className="activity-description">{activity.actDesc}</p>
@@ -1046,9 +1047,10 @@ export const TeacherClassManagementComponent = () => {
 
         {/* -------------------- Edit Activity Modal -------------------- */}
         <Modal
+          className='item-modal'
           show={showEditModal}
           onHide={() => setShowEditModal(false)}
-          size="lg"
+          size="md"
           backdrop='static'
           keyboard={false}
         >
@@ -1230,7 +1232,7 @@ export const TeacherClassManagementComponent = () => {
               <Button variant="secondary" onClick={() => setShowEditModal(false)}>
                 Cancel
               </Button>
-              <Button variant="primary" type="submit">
+              <Button className="add-button" type="submit">
                 Save Changes
               </Button>
             </Modal.Footer>
@@ -1249,27 +1251,23 @@ export const TeacherClassManagementComponent = () => {
             <Modal.Header closeButton>
               <Modal.Title>Choose an Item</Modal.Title>
             </Modal.Header>
-            <Modal.Body>
-              <h5>Item Type:</h5>
-              <Button variant="light" onClick={() => setShowItemTypeDropdown((prev) => !prev)}>
-                {itemTypeName} <FontAwesomeIcon icon={faCaretDown} />
-              </Button>
-              {showItemTypeDropdown && (
-                <div className="item-type-dropdown">
-                  {itemTypes.map(type => (
-                    <Button
-                      key={type.itemTypeID}
-                      className="dropdown-item"
-                      onClick={() => handleItemTypeSelect(type)}
-                    >
+            <Modal.Body className='item-modal-body'>
+              <div className="item-creator d-flex flex-column">
+                <label>Item Type:</label>
+                <select
+                  value={selectedItemType}
+                  onChange={(e) => handleItemTypeSelect(e.target.value)}
+                >
+                  {itemTypes.map((type) => (
+                    <option key={type.itemTypeID} value={type.itemTypeID}>
                       {type.itemTypeName}
-                    </Button>
+                    </option>
                   ))}
-                </div>
-              )}
-
+                </select>
+              </div>
+              
               {/* NEW: Item Creator Selector */}
-              <div className="filter-section" style={{ marginBottom: "10px" }}>
+              <div className="item-creator d-flex flex-column">
                 <label>Item Creator:</label>
                 <select
                   value={itemBankScope}
@@ -1284,16 +1282,7 @@ export const TeacherClassManagementComponent = () => {
               </div>
 
               {/* Sorting Controls for preset items */}
-              <div
-                style={{
-                  margin: "10px 0",
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "5px",
-                  borderRadius: "4px",
-                  backgroundColor: "#f8f9fa"
-                }}
-              >
+              <div className='sort-section'>
                 <span style={{ marginRight: "8px" }}>Sort by:</span>
                 <Button variant="link" onClick={() => toggleItemSortOrder("itemName")}>
                   Name {itemSortField === "itemName" && (itemSortOrder === "asc" ? "↑" : "↓")}
@@ -1315,14 +1304,14 @@ export const TeacherClassManagementComponent = () => {
                 sortedPresetItems.map((item, idx) => (
                   <Button
                     key={idx}
-                    className={`question-item d-block ${selectedItem === item ? "highlighted" : ""}`}
+                    className={`question-item d-block ${selectedItem === item ? 'highlighted' : ''}`}
                     onClick={() => handleSelectItem(item)}
                     style={{ textAlign: "left", marginBottom: "8px" }}
                   >
                     <div>
                       <strong>{item.itemName}</strong> | {item.itemDifficulty} | {item.itemPoints} pts
                     </div>
-                    <div style={{ marginTop: "5px" }}>
+                    <div style={{ marginTop: "5px", display: "flex", alignItems: "center"}}>
                       {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
                         const plName = langObj.progLangName;
                         const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
@@ -1357,6 +1346,7 @@ export const TeacherClassManagementComponent = () => {
 
         {/* -------------------- Delete Confirmation Modal -------------------- */}
         <Modal
+          className='item-modal'
           show={showDeleteModal}
           backdrop='static'
           keyboard={false}

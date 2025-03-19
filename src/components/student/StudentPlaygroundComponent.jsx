@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Editor } from "@monaco-editor/react";
 import {
-  Row,
-  Col,
   Dropdown,
   DropdownButton,
   Tab,
@@ -301,7 +299,7 @@ export const StudentPlaygroundComponent = () => {
                   />
                 ))}
               </Tabs>
-              <Button className='plus-sqaure-icon' variant='light' onClick={openAddFileModal}>
+              <Button className='plus-sqaure-icon' variant='transparent' onClick={openAddFileModal}>
                 <FontAwesomeIcon icon={faPlusSquare} size="lg" />
               </Button>
             </div>

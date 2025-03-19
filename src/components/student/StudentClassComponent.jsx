@@ -653,7 +653,7 @@ const handleActivityClick = async (activity) => {
                       style={{ cursor: "pointer" }}
                     >
                       <Row>
-                        <Col className='activity-details-column'>
+                        <Col lg={7} xl={7} xxl={7} className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>{activity.actTitle}</h3>
                             <p><strong>Teacher:</strong> {activity.teacherName}</p>
@@ -668,18 +668,17 @@ const handleActivityClick = async (activity) => {
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>
                             
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div style={{ marginTop: "10px" }}>
+                            <div className='class-activity-info'>
+                              <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                              <br/>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Attempts: </strong>
                               {activity.actAttempts === 0 
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
@@ -687,19 +686,19 @@ const handleActivityClick = async (activity) => {
                         </Col>
                         <Col className='activity-stats'>
                           <div className='score-chart'>
-                            <h4>{activity.rank ?? "-"}</h4>
+                            <h5>{activity.rank ?? "-"}</h5>
                             <p>Rank</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>
+                            <h5>
                               {activity.overallScore !== null 
                                 ? `${activity.overallScore} / ${activity.maxPoints ?? "-"}` 
                                 : `- / ${activity.maxPoints ?? "-"}`}
-                            </h4>
+                            </h5>
                             <p>Overall Score</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>{activity.actDuration ? activity.actDuration : "-"}</h4>
+                            <h5>{activity.actDuration ? activity.actDuration : "-"}</h5>
                             <p>Duration</p>
                           </div>
                         </Col>
@@ -726,7 +725,7 @@ const handleActivityClick = async (activity) => {
                       style={{ cursor: "pointer" }}
                     >
                       <Row>
-                        <Col className='activity-details-column'>
+                        <Col lg={7} xl={7} xxl={7} className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>
                               {activity.actTitle}
@@ -740,14 +739,7 @@ const handleActivityClick = async (activity) => {
                                   );
                                 } else if (status) {
                                   return (
-                                    <span style={{ 
-                                      backgroundColor: "#ffc107", 
-                                      color: "#000", 
-                                      padding: "2px 6px", 
-                                      borderRadius: "4px", 
-                                      fontSize: "0.8em", 
-                                      marginLeft: "8px" 
-                                    }}>
+                                    <span className='in-progess-tag'>
                                       In Progress
                                     </span>
                                   );
@@ -766,18 +758,18 @@ const handleActivityClick = async (activity) => {
                               <i className='bi bi-calendar-x'></i>{" "}
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div style={{ marginTop: "5px" }}>
+                            
+                            <div className='class-activity-info'>
+                              <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                              <br/>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Attempts: </strong>
                               {activity.actAttempts === 0 
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
@@ -785,19 +777,19 @@ const handleActivityClick = async (activity) => {
                         </Col>
                         <Col className='activity-stats'>
                           <div className='score-chart'>
-                            <h4>{activity.rank ?? "-"}</h4>
+                            <h5>{activity.rank ?? "-"}</h5>
                             <p>Rank</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>
+                            <h5>
                               {activity.overallScore !== null 
                                 ? `${activity.overallScore} / ${activity.maxPoints ?? "-"}` 
                                 : `- / ${activity.maxPoints ?? "-"}`}
-                            </h4>
+                            </h5>
                             <p>Overall Score</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>{activity.actDuration ? activity.actDuration : "-"}</h4>
+                            <h5>{activity.actDuration ? activity.actDuration : "-"}</h5>
                             <p>Duration</p>
                           </div>
                         </Col>
@@ -824,25 +816,32 @@ const handleActivityClick = async (activity) => {
                       style={{ cursor: "pointer" }}
                     >
                       <Row>
-                        <Col className='activity-details-column'>
+                        <Col lg={7} xl={7} xxl={7} className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>{activity.actTitle}</h3>
                             <p><strong>Teacher:</strong> {activity.teacherName}</p>
+                            <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-check'></i>{" "}
                               Open Date: {formatDateString(activity.openDate)}
                             </p>
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-x'></i>{" "}
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div style={{ marginTop: "5px" }}>
+                            
+                            <div className='class-activity-info'>
+                              <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                              <br/>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            <div>
+                              <br/>
+                              <strong>Attempts: </strong>
+                              {activity.actAttempts === 0 
+                                ? "Unlimited" 
+                                : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
+                              <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
@@ -850,19 +849,19 @@ const handleActivityClick = async (activity) => {
                         </Col>
                         <Col className='activity-stats'>
                           <div className='score-chart'>
-                            <h4>{activity.rank ?? "-"}</h4>
+                            <h5>{activity.rank ?? "-"}</h5>
                             <p>Rank</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>
+                            <h5>
                               {activity.overallScore !== null 
                                 ? `${activity.overallScore} / ${activity.maxPoints ?? "-"}` 
                                 : `- / ${activity.maxPoints ?? "-"}`}
-                            </h4>
+                            </h5>
                             <p>Overall Score</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>{activity.actDuration ? activity.actDuration : "-"}</h4>
+                            <h5>{activity.actDuration ? activity.actDuration : "-"}</h5>
                             <p>Duration</p>
                           </div>
                         </Col>

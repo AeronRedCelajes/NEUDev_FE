@@ -74,7 +74,7 @@
   left: 50%;
   padding-top: 5px;
   transform: translateX(-50%);
-  width: 30rem;
+  width: 35rem;
   max-width: 1200px;
   background-color: #FFF5F1; /* Ensure it has a background */
   display: flex;

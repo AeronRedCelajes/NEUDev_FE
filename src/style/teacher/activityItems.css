@@ -59,6 +59,7 @@ body {
   justify-content: flex-start;
   align-items: stretch; 
   min-height: 100vh;
+  padding-top: 110px;
 }
 
 .activity-header {
@@ -295,12 +296,18 @@ body {
 .item-modal .modal-body .form-label{
   color: #2e2e2e;
   font-weight: 600;
+  margin-bottom: 0;
 }
 
 .item-modal .modal-body .form-control,
 .item-modal .modal-body .form-select{
   border-color: #B84C20;
   font-size: 0.9rem;
+  width: 100%;
+}
+
+.item-modal .modal-body .form-check-label{
+  font-size: 0.95rem;
 }
 
 .item-modal .modal-body .form-check-input:checked{
@@ -331,13 +338,14 @@ body {
 }
 
 .item-modal .modal-footer .add-button{
-  background-color: #20c997;
+  background-color: #84C776;
 }
 
 .item-modal .modal-footer .add-button:hover{
-  background-color: #1dba8b;
+  background-color: rgb(33, 195, 146);
   transition: ease-in-out 0.3s;
 }
+
 
 @media (max-width: 820px) {
   .item-table,
