@@ -179,7 +179,10 @@ async function register(firstname, lastname, email, student_num, program, passwo
     const response = await fetch(endpoint, {
       method: "POST",
       body: JSON.stringify(payload),
-      headers: { "Content-Type": "application/json" }
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+       }
     });
 
     const data = await response.json();
@@ -205,7 +208,10 @@ async function login(email, password) {
     const response = await fetch(`${API_LINK}/login`, {
       method: "POST",
       body: JSON.stringify({ email, password }),
-      headers: { "Content-Type": "application/json" }
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      }
     });
 
     const data = await response.json();
@@ -244,7 +250,8 @@ async function logout() {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Accept": "application/json"
     }
   });
 
@@ -454,7 +461,8 @@ async function enrollInClass(classID) {
     method: "POST",
     headers: { 
       "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Accept": "application/json"
     },
     body: JSON.stringify({ studentID })
   });
@@ -720,7 +728,8 @@ async function createBulletinPost(classID, title, message) {
     method: "POST",
     headers: { 
       "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Accept": "application/json"
     },
     body: JSON.stringify({ classID, title, message })
   });
@@ -781,7 +790,8 @@ export const createConcern = async (concernData) => {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/json"
       },
       body: JSON.stringify(concernData)
     });
