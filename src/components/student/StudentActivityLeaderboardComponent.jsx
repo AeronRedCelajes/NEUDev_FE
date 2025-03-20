@@ -35,7 +35,7 @@ const StudentActivityLeaderboardComponent = () => {
         <div className="table-header">
           <h1 className="table-title">Leaderboard</h1>
           {loading ? (
-            <p>Loading students...</p>
+            <p className="text-center">Loading students...</p>
           ) : (
             <table>
               <thead>

@@ -35,7 +35,8 @@ body {
   padding: 12px 20px;
   border-radius: 8px;
   border: none;
-  font-size: 16px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   opacity: 0.5; /* Default faded */
   transition: ease-in-out 0.3s;
@@ -311,11 +312,13 @@ body {
 .modal-design .modal-body .form-label{
   color: #2e2e2e;
   margin-bottom: 0;
+  margin-top: 5px;
+  font-weight: 500;
 }
 
 .modal-design .modal-body .test-case-item,
 .modal-design .modal-body .test-case-item{
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   border: 1px solid #ddd;
   padding: 10px;
   margin-bottom: 10px;

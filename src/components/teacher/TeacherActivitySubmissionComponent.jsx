@@ -55,9 +55,9 @@ const TeacherActivitySubmissionComponent = () => {
           <h1 className="table-title">Activity Submissions <i className="bi bi-arrow-clockwise" onClick={fetchSubmissions}></i></h1>
 
           {loading ? (
-            <p>Loading submissions...</p>
+            <p className="text-center">Loading submissions...</p>
           ) : (
-            <table>
+            <table className="table-content">
               <thead>
                 <tr>
                   <th className="table-column-titles">Student Name</th>
@@ -106,19 +106,11 @@ const SubmissionItem = ({ submission, actID, classID }) => {
     <>
       <tr className="submission-summary" onClick={toggleExpanded}>
         <td>
-          <div className="avatar-name">
-            <div className="avatar">
-              <img
-                src={
-                  submission.profileImage &&
+          <div className="avatar">
+            <img src={submission.profileImage &&
                   submission.profileImage.trim() !== ""
                     ? submission.profileImage
-                    : "/src/assets/noy.png"
-                }
-                alt="Avatar"
-                className="avatar-image"
-              />
-            </div>
+                    : "/src/assets/noy.png"} alt="Avatar" className="avatar-image" />
             <span className="student-name">{submission.studentName}</span>
           </div>
         </td>
@@ -140,8 +132,8 @@ const SubmissionItem = ({ submission, actID, classID }) => {
       {expanded && submission.attempts && (
         <tr className="submission-details">
           <td colSpan="5">
-            <table className="attempts-table">
-              <thead>
+            <table className="attempt-table">
+              <thead className="attempt-table-head">
                 <tr>
                   <th>Attempt #</th>
                   <th>Score</th>
@@ -149,7 +141,7 @@ const SubmissionItem = ({ submission, actID, classID }) => {
                   <th>Review</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="attempt-table-body">
                 {submission.attempts.map((attempt, idx) => (
                   <tr key={idx}>
                     <td>{attempt.attemptNo}</td>

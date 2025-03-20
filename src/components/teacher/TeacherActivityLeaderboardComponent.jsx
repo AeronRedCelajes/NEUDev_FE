@@ -49,7 +49,7 @@ const TeacherActivityLeaderboardComponent = () => {
         <h1 className="table-title">Leaderboard <i className="bi bi-arrow-clockwise" onClick={fetchLeaderboard}></i></h1>
 
           {loading ? (
-            <p>Loading students...</p>
+            <p className="text-center">Loading students...</p>
           ) : (
             <table className="table-content">
               <thead>
@@ -88,7 +88,7 @@ const TeacherActivityLeaderboardComponent = () => {
       </div>
   );
 };
-
+           
 const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }) => {
   const defaultProfileImage = "/src/assets/noy.png";
   const imageToShow =

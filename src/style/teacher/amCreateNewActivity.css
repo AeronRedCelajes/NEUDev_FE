@@ -13,7 +13,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
 html, body {
-    height: 100%;
     min-height: fit-content;
     margin: 0;
     padding: 0;
@@ -23,32 +22,38 @@ html, body {
 
 .whole-container{
     background-color: #CCCFDA;
+    min-height: 100vh; /* Ensures it grows with content */
+    display: flex;
+    flex-direction: column;
 }
 
 .create-activity-content {
-    padding: 20px;
     border-radius: 20px;
     max-width: 800px;
     margin: 20px auto;
+    padding-bottom: 20px;
+    margin-bottom: 10vh;
     background-color:#ffffff; 
+    overflow: hidden;
 }
 
 .create-activity-container{
-    background-color: var(--primary-bg);
+    background-color: #fffaf8;
 }
 
 /*TITLE */
 .create-activity-container h2, .choose-question-panel h3 {
     color: var(--primary-color);
     text-align: center;
-    margin-bottom: 20px;
+    margin-block: 20px;
     font-weight: bold;
 }
 
 /* 2 COLUMNS */
 .create-activity-form {
     padding: 20px;
-    background-color: var(--primary-bg);
+    padding-inline: 40px;
+    background-color: #fffaf8;
     border-radius: 20px;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -57,10 +62,9 @@ html, body {
 
 /* Title and Description Styling :text: */
 .create-activity-form .create-activity-title {
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 20px;
     padding: 10px;
-    background-color: var(--primary-bg);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     grid-column: 1 / -1;
     font-family: 'Poppins';
@@ -73,16 +77,7 @@ html, body {
 }
 
 textarea {
-    border: 2px solid var(--primary-color);
-    border-radius: 20px;
-    padding: 10px;
-    background-color: var(--primary-bg);
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
-    grid-column: 1 / -1;
-    position: relative;
     height: 150px;
-    font-family: 'Poppins';
 }
 
 textarea:focus {
@@ -95,17 +90,15 @@ textarea:focus {
 .description-section {
     grid-column: 1 / -1;
     margin-bottom: 15px;
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 20px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    background-color: var(--primary-bg);
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     overflow: hidden;
 }
 
 .description-section textarea {
-    background-color: var(--primary-bg);
     border: none;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
@@ -121,8 +114,7 @@ textarea:focus {
 
 /* Difficulty Section Styling */
 .difficulty-section {
-    grid-column: 2; 
-    background-color: var(--primary-bg);
+    grid-column: 2;
     display: flex;
     flex-direction: column;
     gap: 5px; 
@@ -134,9 +126,8 @@ textarea:focus {
 .difficulty-section select,
 .difficulty-section input[type="date"] {
     padding-left: 20px;
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 10px;
-    background-color: var(--primary-bg);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     font-family: 'Poppins';
     font-size: 1rem;
@@ -147,7 +138,6 @@ textarea:focus {
 
 /* Dropdown Menu Styling */
 select option {
-    background-color: var(--primary-bg);
     color: var(--primary-color);
     padding: 10px;
     transition: background-color 0.3s, color 0.3s;
@@ -171,22 +161,13 @@ Form.Control, select, input[type="date"] {
     border: 2px solid var(--primary-color);
     border-radius: 20px;
     padding: 10px;
-    background-color: var(--primary-bg);
     width: 100%;
     box-sizing: border-box;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .date-time-item input[type="datetime-local"] {
-    width: 100%;
     padding: 10px 15px;
-    border: 2px solid #B84C20; /* Match border color */
-    border-radius: 25px; /* Fully rounded edges */
-    outline: none;
-    background-color: transparent;
-    text-align: center; /* Center text */
-    transition: all 0.3s ease-in-out;
-    cursor: pointer;
 }
 
 .date-time-item {
@@ -205,46 +186,27 @@ Form.Control, select, input[type="date"] {
 
 
 
-/* SET QUESTION 3 */
+/* SET QUESTION 3 MODAL*/
 .question-section {
     display: inline-block;
     vertical-align: top;
     padding: 0;
-    text-align: center;
     color: var(--primary-color);
     font-weight: bold;
     font-size: 1.2rem;
     max-width: 550px;
-    font-family: 'Poppins';
     border-radius: 10px;
-    background-color: var(--primary-bg);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
 /* Part set question 3/ title*/
-.question-section h5 {
-    font-size: 0.9em;
-    padding: 10px;
-    text-align: center;
-    font-weight: 700;
-    background-color: var(--highlight-color);
-    border-bottom: 2px solid var(--primary-color);
-    width: 100%;
-    box-sizing: border-box;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-}
 
 .question-section h5 {
-    background-color: var(--highlight-color);
-    border-bottom: 2px solid var(--primary-color);
     padding: 10px;
-    margin-bottom: 15px;
     text-align: center;
     font-weight: 600; 
     font-size: 1em; 
-    color: var(--primary-color);
+    color: #312d2a;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
 }
@@ -265,21 +227,17 @@ Form.Control, select, input[type="date"] {
     font-size: 0.85em;
     border-radius: 50px;
     font-family: 'Poppins';
-    background-color: var(--primary-bg);
     border: 1px solid var(--primary-color);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 } 
 
 /* Fix background and border */
 .question-section {
-    background-color: var(--primary-bg);
-    box-shadow: 1 5px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 60px;
 }
 
 /*sa box sa loob */
 .question-section input[type="text"] {
-    background-color: var(--primary-bg);
     border: 1px solid var(--primary-color);
     padding-left: 15px;
     padding-block: 5px;
@@ -307,9 +265,8 @@ Form.Control, select, input[type="date"] {
 .activity .form-control, 
 .activity .form-select {
     padding-left: 10px;
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 10px;
-    background-color: var(--primary-bg);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     width: 100%;
     font-size: 0.9rem;
@@ -377,7 +334,6 @@ Form.Control, select, input[type="date"] {
     height: 40px;
     font-size: 1rem;
     font-weight: 600 !important;
-    margin-bottom: 20px;
     text-align: center !important;
 }
 
@@ -395,7 +351,7 @@ Form.Control, select, input[type="date"] {
 }
 
 .custom-modal-content .modal-body{
-    background-color: var(--primary-bg);
+    background-color: #fffaf8;
 }
 
 .custom-modal-content .modal-title{
@@ -431,18 +387,18 @@ Form.Control, select, input[type="date"] {
     font-size: 1rem;
     font-weight: 600;
     text-decoration: none;
-    color: #509c8d;
+    color: #72757e;
 }
 
 .sort-section button:hover{
-    color: #315f56;
+    color: #515359;
 }
 
 /* Styling rgb(57, 110, 100)stion buttons in modal */
 .custom-modal .question-item {
     width: 100%;
     padding: 10px;
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 10px;
     background-color: var(--primary-bg);
     color: var(--primary-color);
@@ -452,10 +408,15 @@ Form.Control, select, input[type="date"] {
     transition: all 0.3s ease;
 }
 
+.custom-modal .highlighted {
+    background-color: #F5DAD0;
+    border: 1px solid white;
+}
+
 .custom-modal .question-item:hover {
-    background-color: #FFF5F1;
-    color: #743015;
-    border: 2px solid #743015;
+    background-color: #F5DAD0;
+    color: var(--primary-color);
+    border: 1px solid white;
 }
 
 /* Close button styling */
@@ -536,7 +497,7 @@ Form.Control, select, input[type="date"] {
     .activity .form-control, 
     .activity .form-select {
         padding-left: 10px;
-        border: 2px solid var(--primary-color);
+        border: 1px solid var(--primary-color);
         border-radius: 10px;
         background-color: var(--primary-bg);
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);

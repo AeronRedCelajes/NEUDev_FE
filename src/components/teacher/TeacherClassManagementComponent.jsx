@@ -1322,7 +1322,7 @@ export const TeacherClassManagementComponent = () => {
               )}
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={handleSaveItem}>
+              <Button style={{backgroundColor: "#84C776"}} onClick={handleSaveItem}>
                 Save Item
               </Button>
               <Button variant="danger" onClick={handleRemoveItem}>

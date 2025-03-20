@@ -202,7 +202,7 @@ const TeacherActivityItemsComponent = () => {
           </Button>
         </div>
 
-        <TableComponent items={items} loading={loading} onRowClick={handleRowClick} />
+        <TableComponent items={items} loading={loading} onRowClick={handleRowClick}/>
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <button
@@ -229,26 +229,54 @@ const TeacherActivityItemsComponent = () => {
           className='modal-design'
           show={showDetailsModal}
           onHide={() => setShowDetailsModal(false)}
-          size="lg"
+          size="md"
         >
           <Modal.Header closeButton>
             <Modal.Title>Item Details</Modal.Title>
           </Modal.Header>
           <Modal.Body>
+            <Form>
+
             {selectedItem ? (
               <div>
-                <h5>{selectedItem.itemName}</h5>
+                <Form.Group className="mb-3">
+                  <Form.Label>Item Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={selectedItem.itemName}
+                    readOnly
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={selectedItem.itemDesc}
+                    readOnly
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Difficulty</Form.Label>
+                  <Form.Control
+                    value={selectedItem.itemDifficulty}
+                    readOnly
+                  >
+                  </Form.Control>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Item Points</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={selectedItem.actItemPoints}
+                    readOnly
+                  />
+                </Form.Group>
                 <p>
-                  <strong>Description:</strong> {selectedItem.itemDesc}
-                </p>
-                <p>
-                  <strong>Difficulty:</strong> {selectedItem.itemDifficulty}
-                </p>
-                <p>
-                  <strong>Points:</strong> {selectedItem.actItemPoints}
-                </p>
-                <p>
-                  <strong>Programming Languages:</strong>{" "}
+                  Programming Languages:{" "}
                   {selectedItem.programming_languages && selectedItem.programming_languages.length > 0 ? (
                     selectedItem.programming_languages.map((lang, index) => {
                       const mapping = programmingLanguageMap[lang.progLangID] || { name: lang.progLangName, image: null };
@@ -280,11 +308,7 @@ const TeacherActivityItemsComponent = () => {
                     {selectedItem.testCases.map((tc, index) => (
                       <div
                         key={index}
-                        style={{
-                          border: "1px solid #ddd",
-                          padding: "10px",
-                          marginBottom: "10px"
-                        }}
+                        className="test-case-item"
                       >
                         <strong>Test Case {index + 1}:</strong>
                         <br />
@@ -317,6 +341,8 @@ const TeacherActivityItemsComponent = () => {
             ) : (
               <p>No item selected.</p>
             )}
+            
+            </Form>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
@@ -383,7 +409,7 @@ const TableComponent = ({ items, loading, onRowClick }) => {
             <th>Avg. Student Time Spent</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody style={{cursor: "pointer"}}>
           {loading ? (
             <tr>
               <td colSpan="6" className="loading-text">Loading...</td>

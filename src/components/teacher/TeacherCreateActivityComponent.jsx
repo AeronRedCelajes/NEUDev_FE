@@ -395,7 +395,7 @@ export const TeacherCreateActivityComponent = () => {
             </div>
 
             {/* Activity Duration Input (in minutes) */}
-            <Form.Group className="activity mt-3">
+            <Form.Group className="activity mt-3 me-3">
               <Form.Label>Activity Duration (in minutes)</Form.Label>
               <Form.Control
                 type="number"
@@ -411,7 +411,7 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             {/* NEW: Activity Attempts Input */}
-            <Form.Group className="activity mt-3">
+            <Form.Group className="activity mt-3 me-3">
               <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
               <Form.Control
                 type="number"
@@ -427,7 +427,7 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             {/* NEW: Final Score Policy */}
-            <Form.Group className="activity mt-3">
+            <Form.Group className="activity mt-3 me-3">
               <Form.Label>Final Score Policy</Form.Label>
               <Form.Select
                 as="select"
@@ -444,7 +444,7 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             {/* Programming Languages (Checkboxes) */}
-            <Form.Group className="activity mt-3">
+            <Form.Group className="activity mt-3 me-3">
               <Form.Label>Select all languages that can be used to solve this item.</Form.Label>
               <div style={{ marginBottom: "0.5rem" }}>
                 <Form.Check 
@@ -469,7 +469,7 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             {/* Display computed Total Points */}
-            <Form.Group className="activity mt-3">
+            <Form.Group className="activity mt-3 me-3">
               <Form.Label>Total Points (automatically computed)</Form.Label>
               <Form.Control 
                 className='bg-light'

@@ -175,49 +175,47 @@ const TeacherClassManagementClassRecordComponent = () => {
           <h1 className="table-title">
             Class Record for {className || "Loading..."}
           </h1>
-          <div className="d-flex gap-2 mb-3">
-            <Button variant="info" onClick={fetchAllData}>
-              Refresh
-            </Button>
-            <Button variant="secondary" onClick={exportToExcel}>
+
+          <div className='sort-section mb-3'>
+            <Button variant="link" onClick={exportToExcel}>
               Export to Excel
             </Button>
-          </div>
-          <div className="sorting-buttons mb-3">
-            <Button variant="primary" onClick={() => sortStudents("lastname")}>
+
+            <Button variant="link" onClick={() => sortStudents("lastname")}>
               Sort by Last Name{" "}
               {sortCriteria === "lastname" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
-            <Button
-              variant="success"
-              className="ms-2"
-              onClick={() => sortStudents("averageScore")}
-            >
+
+            <Button variant="link" onClick={() => sortStudents("averageScore")}>
               Sort by Total Score{" "}
               {sortCriteria === "averageScore" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
+
+            <i className="bi bi-arrow-clockwise" onClick={fetchAllData}></i>
           </div>
+
           {loading ? (
-            <p>Loading class record...</p>
+            <p className="text-center">Loading class record...</p>
           ) : (
-<div className="horizontal-scrollbar">
-              <table className="table table-striped">
+            <div className="horizontal-scrollbar">
+              <table className="table-content">
                 <thead>
                   <tr>
-                    <th>Student Name</th>
+                    <th className="table-column-titles">#</th>
+                    <th className="table-column-titles">Student Name</th>
                     {activities.map((act, index) => (
                       <React.Fragment key={act.actID}>
-                        <th>Activity #{index + 1} Name</th>
-                        <th>Activity #{index + 1} Score</th>
+                        <th className="table-column-titles">Activity #{index + 1} Name</th>
+                        <th className="table-column-titles">Activity #{index + 1} Score</th>
                       </React.Fragment>
                     ))}
-                    <th>Total Score</th>
-                    <th>Avg Score Percentage</th>
+                    <th className="table-column-titles">Total Score</th>
+                    <th className="table-column-titles">Avg Score Percentage</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="table-column-students">
                   {students.length > 0 ? (
-                    students.map((student) => {
+                    students.map((student, index) => {
                       // e.g. 19/30
                       let totalScoreStr = "-";
                       if (
@@ -241,17 +239,12 @@ const TeacherClassManagementClassRecordComponent = () => {
                       return (
                         <tr key={student.studentID}>
                           <td>
-                            <div className="avatar-name">
-                              <div className="avatar">
-                                <img
-                                  src={student.profileImage || "/src/assets/profile_default.png"}
-                                  alt="Avatar"
-                                  className="avatar-image"
-                                />
-                              </div>
-                              <span className="student-name">
-                                {student.lastname}, {student.firstname}
-                              </span>
+                            {index + 1}
+                          </td>
+                          <td>
+                            <div className="avatar">
+                              <img src={student.profileImage || "/src/assets/profile_default.png"} alt="Avatar" className="avatar-image" />
+                              <span className="student-name">{student.lastname}, {student.firstname}</span>
                             </div>
                           </td>
                           {activities.map((act) => {

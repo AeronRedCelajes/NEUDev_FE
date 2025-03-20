@@ -54,8 +54,12 @@
 
 .bi-arrow-clockwise{
   font-size: 2rem;
-  color: #9196A1;
+  color: #72757e;
   cursor: pointer;
+}
+
+.bi-arrow-clockwise:hover{
+  color: #515359;
 }
 
 .table-body {
@@ -73,7 +77,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 20px auto;
   margin-top: 150px;
-  max-width: 1044px;
+  max-width: 1200px;
   overflow: hidden;
 }
 
@@ -92,11 +96,47 @@
   width: 100%;
 }
 
+.submission-details{
+  background-color: #ffffff;
+  color: #9196A1 !important;
+}
+
+.submission-details:hover{
+  background-color: #ffffff !important;
+}
+
+.submission-details .attempt-table{
+  margin: 0 auto;
+  text-align: center;
+  width: 100%;
+  background-color: #ffffff;
+}
+
+.submission-details .attempt-table th{
+  color: #595959 !important;
+}
+
+.submission-details .attempt-table td{
+  color: #ca6841 !important;
+}
+
+.table-content .submission-details .attempt-table .attempt-table-head tr:hover{
+  background-color: #ffffff !important;
+}
+
+.table-content .submission-details .attempt-table .attempt-table-head tr:hover{
+  background-color: #ffffff !important;
+}
+
+.table-column-students .submission-details .attempt-table .attempt-table-body tr {
+  border-bottom: 1px solid #ffffff;   
+}
+
 .table-content th,
 .table-content td {
   text-align: center;
-  vertical-align: middle; /* Centers content vertically */
-  padding: 10px 30px;
+  vertical-align: middle;
+  padding: 10px 0;
   color:#B84C20;
 }
 
@@ -125,9 +165,14 @@
   border-bottom: none;
 }
 
+.table-content th:first-child,
+.table-content td:first-child {
+  padding-left: 15px;
+}
+
 .avatar{
   text-align: left;
-  margin-right: -100px;
+  margin-left: 20px;
 }
 
 .avatar .avatar-image {
@@ -156,3 +201,4 @@
   color: #a14f2a;
   margin: auto;
 }
+
