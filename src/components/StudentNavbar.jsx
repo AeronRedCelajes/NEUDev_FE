@@ -207,7 +207,7 @@ export const StudentNavbar = () => {
           <span className='student-badge'>Student</span>
 
           {/* Notification Bell */}
-          <div className='notification-bell' style={{ position: 'relative', marginRight: '20px' }}>
+          <div className='notification-bell'>
             <FontAwesomeIcon
               icon={faBell}
               size='lg'
@@ -215,7 +215,7 @@ export const StudentNavbar = () => {
               onClick={handleBellClick}
             />
             {unreadCount > 0 && (
-              <Badge bg='danger' pill style={{ position: 'absolute', top: '-5px', right: '-5px' }}>
+              <Badge bg='danger' pill>
                 {unreadCount}
               </Badge>
             )}

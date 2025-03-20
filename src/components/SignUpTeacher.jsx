@@ -15,22 +15,31 @@ export const SignUpTeacher = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  //disabling the sign up button
+  const [isSigningUp, setIsSigningUp] = useState(false);
+
   const handleSignUp = async (e) => {
     e.preventDefault();
 
+    if (isSigningUp) return;
+    setIsSigningUp(true);
+
     if (!email.endsWith("@neu.edu.ph")) {
       alert("Invalid email format! Use '@neu.edu.ph'.");
+      setIsSigningUp(false);
       return;
     }
 
     // Check that password is at least 8 characters
     if (password.length < 8) {
       alert("Password must be at least 8 characters.");
+      setIsSigningUp(false);
       return;
     }
 
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
+      setIsSigningUp(false);
       return;
     }
 
@@ -43,10 +52,12 @@ export const SignUpTeacher = () => {
         navigate("/signin");
       } else {
         alert(response.message || "Registration unsuccessful. Please try again.");
+        setIsSigningUp(false);
       }
     } catch (error) {
       console.error("Registration error:", error);
       alert("An error occurred. Please try again.");
+      setIsSigningUp(false);
     }
   };
 
@@ -146,8 +157,8 @@ export const SignUpTeacher = () => {
               </div>
             </div>
 
-            <button type="submit" className="custom-button w-100">
-              Sign Up
+            <button disabled={isSigningUp} type="submit" className="sign-custom-button w-100 mt-3">
+              {isSigningUp ? "Signing Up..." : "Sign Up"}
             </button>
 
             <p className="text-center mt-3">

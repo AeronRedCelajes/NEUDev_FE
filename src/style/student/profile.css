@@ -46,18 +46,6 @@
     padding-left: 5px;
 }
 
-.modal-profile .modal-header{
-    font-size: 1.2rem;
-    color: #ffffff;
-    font-weight: bolder;
-    background-color: #C79E8E;
-}
-
-.modal-profile .modal-body{
-    color: #2C292A;
-    background-color: #fdf8f6;
-}
-
 .edit-button{
     display: flex;
     justify-content: space-between;
@@ -326,7 +314,7 @@
         font-size: 0.8rem;
     }
 
-    .modal-profile .modal-header{
+    .modal-design .modal-header{
         font-size: 1rem;
     }
 
@@ -448,7 +436,7 @@
         padding: 10px;
     }
 
-    .modal-profile .modal-header{
+    .modal-design .modal-header{
         font-size: 0.9rem;
     }
 
@@ -530,7 +518,7 @@
         font-size: 0.55rem;
     }
 
-    .modal-profile .modal-header{
+    .modal-design .modal-header{
         font-size: 0.9rem;
     }
 

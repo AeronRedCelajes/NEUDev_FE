@@ -10,7 +10,7 @@
     color: #ED5931;
 }
 
-.custom-button {
+.sign-custom-button {
     background-color: #ed5b2d;
     color: white;
     padding: 10px 20px;
@@ -22,9 +22,17 @@
     transition: background-color 0.3s ease;
 }
 
-.custom-button:hover {
-    background-color: #ed5a2dd6;
-    color: #ffdacb;
+.sign-custom-button:disabled {
+    background-color: rgb(212, 65, 20);
+    color: #ffffff;
+    cursor: not-allowed;
+}
+
+
+
+.sign-custom-button:hover {
+    background-color: rgb(212, 65, 20);
+    color: #ffffff;
 }
 
 @media (max-width: 1024px) {

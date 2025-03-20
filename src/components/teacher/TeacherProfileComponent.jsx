@@ -150,7 +150,7 @@ export const TeacherProfileComponent = () => {
         </div>
 
         {/* Edit Profile Modal */}
-        <Modal show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='lg' className='modal-profile'>
+        <Modal show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='md' className='modal-design'>
           <Modal.Header closeButton>
             <p className='modal-title w-100'>Edit Profile</p>
           </Modal.Header>
@@ -246,7 +246,7 @@ export const TeacherProfileComponent = () => {
           </Modal.Body>
           <Modal.Footer>
             <Button variant="danger" onClick={handleDeleteProfile}>Delete Profile</Button>
-            <Button onClick={handleSaveChanges}>Save Changes</Button>
+            <Button className="success-button" onClick={handleSaveChanges}>Save Changes</Button>
           </Modal.Footer>
         </Modal>
 

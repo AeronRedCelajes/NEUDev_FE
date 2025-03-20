@@ -1035,7 +1035,7 @@ export const TeacherClassManagementComponent = () => {
 
         {/* -------------------- Edit Activity Modal -------------------- */}
         <Modal
-          className='item-modal'
+          className='modal-design'
           show={showEditModal}
           onHide={() => setShowEditModal(false)}
           size="md"
@@ -1220,7 +1220,7 @@ export const TeacherClassManagementComponent = () => {
               <Button variant="secondary" onClick={() => setShowEditModal(false)}>
                 Cancel
               </Button>
-              <Button className="add-button" type="submit">
+              <Button className="success-button" type="submit">
                 Save Changes
               </Button>
             </Modal.Footer>
@@ -1239,7 +1239,7 @@ export const TeacherClassManagementComponent = () => {
             <Modal.Header closeButton>
               <Modal.Title>Choose an Item</Modal.Title>
             </Modal.Header>
-            <Modal.Body className='item-modal-body'>
+            <Modal.Body className='modal-design-body'>
               <div className="item-creator d-flex flex-column">
                 <label>Item Type:</label>
                 <select
@@ -1334,7 +1334,7 @@ export const TeacherClassManagementComponent = () => {
 
         {/* -------------------- Delete Confirmation Modal -------------------- */}
         <Modal
-          className='item-modal'
+          className='modal-design'
           show={showDeleteModal}
           backdrop='static'
           keyboard={false}

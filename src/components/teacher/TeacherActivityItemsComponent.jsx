@@ -226,7 +226,7 @@ const TeacherActivityItemsComponent = () => {
 
         {/* Modal to show item details */}
         <Modal
-          className='item-modal'
+          className='modal-design'
           show={showDetailsModal}
           onHide={() => setShowDetailsModal(false)}
           size="lg"
@@ -327,7 +327,7 @@ const TeacherActivityItemsComponent = () => {
 
         {/* Confirmation Modal for Test Start / Resume / Expired */}
         <Modal
-          className='item-modal'
+          className='modal-design'
           show={showConfirmModal}
           onHide={handleCancelConfirm}
           centered
@@ -342,7 +342,7 @@ const TeacherActivityItemsComponent = () => {
             <Button variant="secondary" onClick={handleCancelConfirm}>
               Cancel
             </Button>
-            <Button className='add-button' onClick={handleConfirm}>
+            <Button className='success-button' onClick={handleConfirm}>
               Yes, proceed
             </Button>
           </Modal.Footer>

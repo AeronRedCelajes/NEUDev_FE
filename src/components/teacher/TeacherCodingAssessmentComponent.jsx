@@ -1232,7 +1232,7 @@ export const TeacherCodingAssessmentComponent = () => {
 
       {/* Test Completed Modal */}
       <Modal
-        className='item-modal'
+        className='modal-design'
         show={showTestCompletedModal}
         onHide={() => setShowTestCompletedModal(false)}
         backdrop='static'
@@ -1246,7 +1246,7 @@ export const TeacherCodingAssessmentComponent = () => {
           <p>Your test attempt has been completed.</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button className='add-button' onClick={handleTestCompletedConfirm}>
+          <Button className='success-button' onClick={handleTestCompletedConfirm}>
             OK
           </Button>
         </Modal.Footer>

@@ -504,7 +504,7 @@ export const TeacherCreateActivityComponent = () => {
             <Modal.Header closeButton>
               <Modal.Title>Choose an Item</Modal.Title>
             </Modal.Header>
-            <Modal.Body className='item-modal-body'>
+            <Modal.Body className='modal-design-body'>
               <div className="item-creator d-flex flex-column">
                 <label>Item Type:</label>
                 <select

@@ -203,7 +203,7 @@ export const StudentDashboardComponent = () => {
             <span className='student-badge'>Student</span>
 
             {/* [CHANGED] Notification Bell */}
-            <div className='notification-bell' style={{ position: 'relative', marginRight: '20px' }}>
+            <div className='notification-bell'>
               <FontAwesomeIcon
                 icon={faBell}
                 size='lg'
@@ -211,30 +211,14 @@ export const StudentDashboardComponent = () => {
                 onClick={handleBellClick}
               />
               {unreadCount > 0 && (
-                <Badge bg='danger' pill style={{
-                  position: 'absolute',
-                  top: '-5px',
-                  right: '-5px'
-                }}>
+                <Badge bg='danger' pill className='notification-badge'>
                   {unreadCount}
                 </Badge>
               )}
               {/* Dropdown Panel */}
               {showNotifications && (
-                <div
-                  className='notification-dropdown'
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '30px',
-                    width: '300px',
-                    background: '#fff',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                    borderRadius: '4px',
-                    zIndex: 9999
-                  }}
-                >
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                <div className='notification-dropdown' >
+                <div style={{  }}>
                   {notifications.length === 0 ? (
                     <div style={{ padding: '10px' }}>No Notifications</div>
                   ) : (
@@ -262,21 +246,13 @@ export const StudentDashboardComponent = () => {
                       return (
                         <div
                           key={notif.id}
-                          style={{
-                            padding: '10px',
-                            borderBottom: '1px solid #ccc',
-                            backgroundColor: notif.isRead ? '#f9f9f9' : '#eaf3ff',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start'
-                          }}
+                          className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
                           onClick={() => handleNotificationClick(notif.id)}
                         >
                           <div>
                             <div><strong>{notif.type}</strong></div>
                             <div>{parsedData.message}</div>
-                            <small style={{ color: '#666' }}>
+                            <small className={`notification-item-dt ${notif.isRead ? 'read' : 'unread'}`}>
                               {new Date(notif.created_at).toLocaleString()}
                             </small>
                           </div>

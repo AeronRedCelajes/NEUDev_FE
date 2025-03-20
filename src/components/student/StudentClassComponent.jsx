@@ -890,7 +890,7 @@ const handleActivityClick = async (activity) => {
       </div>
       
       <Modal 
-        className='item-modal'
+        className='modal-design'
         show={showModal} 
         backdrop='static' 
         keyboard={false} 
@@ -911,7 +911,7 @@ const handleActivityClick = async (activity) => {
       </Modal>
       
       <Modal 
-        className="item-modal"
+        className="modal-design"
         show={showTakeModal} 
         backdrop='static' 
         keyboard={false} 
@@ -970,7 +970,7 @@ const handleActivityClick = async (activity) => {
               Cancel
             </Button>
             <Button 
-              className='add-button' 
+              className='success-button' 
               onClick={() => {
                 navigate(`/student/class/${classID}/activity/${selectedActivityForAssessment.actID}/assessment`);
               }}

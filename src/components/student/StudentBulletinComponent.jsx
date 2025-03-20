@@ -174,8 +174,6 @@ export const StudentBulletinComponent = () => {
     }
   };
 
-
-
   return (
     <>
       <StudentCMNavigationBarComponent />
@@ -211,7 +209,7 @@ export const StudentBulletinComponent = () => {
                   </Card>
                 )
               ) : (
-                <p>No Announcement</p>
+                <p className='text-center pt-4'>No Announcement</p>
               )}
             </div>
           </Col>
@@ -224,7 +222,7 @@ export const StudentBulletinComponent = () => {
 
               {/* Concern Modal */}
               <Modal
-                className='post-concern'
+                className='modal-design'
                 show={showPostConcern}
                 onHide={() => setShowPostConcern(false)}
                 backdrop='static'
@@ -252,7 +250,7 @@ export const StudentBulletinComponent = () => {
                   <Button variant="secondary" onClick={() => setShowPostConcern(false)}>
                     Cancel
                   </Button>
-                  <Button variant="primary" onClick={handlePostConcern}>
+                  <Button className='success-button' onClick={handlePostConcern}>
                     Post Concern
                   </Button>
                 </Modal.Footer>
@@ -311,7 +309,7 @@ export const StudentBulletinComponent = () => {
                     </div>
                   )
                 ) : (
-                  <p>No concerns posted yet.</p>
+                  <p className='text-center'>No concerns posted yet.</p>
                 )}
               </div>
             </div>

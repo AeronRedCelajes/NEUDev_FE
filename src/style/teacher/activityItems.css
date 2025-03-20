@@ -293,29 +293,30 @@ body {
   transition: ease-in-out 0.3s;
 }
 
-.item-modal .modal-header{
+.modal-design .modal-header{
   color: #B84C20;
-  background-color: #F5DAD0;
+  background-color: #ffe8e0;
   border-bottom: 2px solid #B84C20;
 }
 
-.item-modal .modal-title{
+.modal-design .modal-title{
+  font-size: 1.3rem;
   font-weight: 700;
 }
 
-.item-modal .modal-body{
-  background-color: #FFF5F1;
+.modal-design .modal-body{
+  background-color: #fff8f6;
   min-height: 20vh;
 }
 
-.item-modal .modal-body .form-label{
+.modal-design .modal-body .form-label{
   color: #2e2e2e;
   font-weight: 600;
   margin-bottom: 0;
 }
 
-.item-modal .modal-body .test-case-item,
-.item-modal .modal-body .test-case-item{
+.modal-design .modal-body .test-case-item,
+.modal-design .modal-body .test-case-item{
   font-size: 0.85rem;
   border: 1px solid #ddd;
   padding: 10px;
@@ -323,48 +324,48 @@ body {
   background-color: #f9f9f9;
 }
 
-.item-modal .modal-body .form-control,
-.item-modal .modal-body .form-select{
-  border-color: #B84C20;
+.modal-design .modal-body .form-control,
+.modal-design .modal-body .form-select{
+  border-color: #ccbab3;
   font-size: 0.9rem;
   width: 100%;
 }
 
-.item-modal .modal-body .form-check-label{
+.modal-design .modal-body .form-check-label{
   font-size: 0.95rem;
 }
 
-.item-modal .modal-body .form-check-input:checked{
+.modal-design .modal-body .form-check-input:checked{
   background-color: #B84C20;
   border-color: #B84C20;
 }
 
-.item-modal .modal-body .run-code-button{
+.modal-design .modal-body .run-code-button{
   background-color: #19cdca;
   border: none;
   border-radius: 10px;
   font-weight: 700;
 }
 
-.item-modal .modal-footer{
+.modal-design .modal-footer{
   background-color: #fdf1ec;
   display: flex;
   justify-content: flex-end;
 }
 
-.item-modal .modal-footer button{
+.modal-design .modal-footer button{
   border: none;
   border-radius: 20px;
-  padding-inline: 30px;
-  font-weight: 700;
+  padding-inline: 15px;
+  font-weight: 600;
 }
 
-.item-modal .modal-footer .add-button{
+.modal-design .modal-footer .success-button{
   background-color: #84C776;
 }
 
-.item-modal .modal-footer .add-button:hover{
-  background-color: rgb(33, 195, 146);
+.modal-design .modal-footer .success-button:hover{
+  background-color: #699e5e;
   transition: ease-in-out 0.3s;
 }
 
@@ -426,25 +427,25 @@ body {
     padding-block: 5px;
   }
   
-  .item-modal .modal-title{
+  .modal-design .modal-title{
     font-size: 1.2rem;
   }
   
-  .item-modal .modal-body .form-label{
+  .modal-design .modal-body .form-label{
     font-size: 0.9rem;
   }
   
-  .item-modal .modal-body .form-control,
-  .item-modal .modal-body .form-select{
+  .modal-design .modal-body .form-control,
+  .modal-design .modal-body .form-select{
     padding-block: 2px;
     font-size: .85rem;
   }
   
-  .item-modal .modal-body .run-code-button{
+  .modal-design .modal-body .run-code-button{
     font-size: 0.9rem;
   }
   
-  .item-modal .modal-footer button{
+  .modal-design .modal-footer button{
     font-size: 0.9rem;
   }
 }

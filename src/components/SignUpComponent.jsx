@@ -18,7 +18,7 @@ export const SignUpComponent = () => {
             </div>
 
             {/* Right Side - Signup Options */}
-            <div className="col-12 col-md-5 d-flex align-items-center justify-content-center signup-form-container">
+            <div className="col-12 col-md-5 d-flex align-items-center justify-content-center signup-form">
                 <div className="form-container">
                     {/* Logo */}
                     <div className="d-flex justify-content-center">
@@ -37,14 +37,14 @@ export const SignUpComponent = () => {
 
                     <div className="d-flex justify-content-center">
                         <button 
-                            className="custom-button mx-2" 
+                            className="sign-custom-button mx-2" 
                             onClick={() => navigate("/signup/student")}
                             aria-label="Sign up as Student"
                         >
                             Student
                         </button>
                         <button 
-                            className="custom-button mx-2" 
+                            className="sign-custom-button mx-2" 
                             onClick={() => navigate("/signup/teacher")}
                             aria-label="Sign up as Teacher"
                         >

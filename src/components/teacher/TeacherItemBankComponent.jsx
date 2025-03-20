@@ -741,7 +741,7 @@ export default function TeacherItemBankComponent() {
       
       {/* -------------------- Create/Edit Modal -------------------- */}
       <Modal
-        className="item-modal"
+        className="modal-design"
         show={showCreateModal || showEditModal}
         onHide={() => {
           setShowCreateModal(false);
@@ -972,7 +972,7 @@ export default function TeacherItemBankComponent() {
           >
             Cancel
           </Button>
-          <Button className="add-button" onClick={handleCreateOrUpdate}>
+          <Button className="success-button" onClick={handleCreateOrUpdate}>
             {showCreateModal ? "Add" : "Save"}
           </Button>
         </Modal.Footer>
