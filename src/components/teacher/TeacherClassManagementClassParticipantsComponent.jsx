@@ -174,19 +174,16 @@ const TeacherClassManagementClassParticipantsComponent = () => {
   };
 
   return (
-    <div className="leaderboard-body">
+    <div className="table-body">
       <TeacherCMNavigationBarComponent />
-      <div className="leaderboard-container">
-        <div className="leaderboard-header">
-          <h1 className="leaderboard-title">
+      <div className="table-container">
+        <div className="table-header">
+          <h1 className="table-title">
             Students in {className || "Loading..."}
           </h1>
 
           {/* Add a Refresh button here */}
           <div className="d-flex gap-2 mb-3">
-            <Button variant="info" onClick={fetchAllData}>
-              Refresh
-            </Button>
 
             {/* Sorting Buttons */}
             <Button variant="primary" onClick={() => sortStudents("lastname")}>
@@ -201,6 +198,8 @@ const TeacherClassManagementClassParticipantsComponent = () => {
               Sort by Score{" "}
               {sortCriteria === "averageScore" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
+
+            <i className="bi bi-arrow-clockwise" onClick={fetchAllData}></i>
           </div>
 
           {loading ? (

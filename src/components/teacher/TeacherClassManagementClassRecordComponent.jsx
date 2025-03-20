@@ -168,11 +168,11 @@ const TeacherClassManagementClassRecordComponent = () => {
   };
 
   return (
-    <div className="leaderboard-body">
+    <div className="table-body">
       <TeacherCMNavigationBarComponent />
-      <div className="leaderboard-container">
-        <div className="leaderboard-header">
-          <h1 className="leaderboard-title">
+      <div className="table-container">
+        <div className="table-header">
+          <h1 className="table-title">
             Class Record for {className || "Loading..."}
           </h1>
           <div className="d-flex gap-2 mb-3">

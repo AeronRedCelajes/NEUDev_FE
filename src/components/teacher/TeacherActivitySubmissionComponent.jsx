@@ -48,11 +48,11 @@ const TeacherActivitySubmissionComponent = () => {
   };
   
   return (
-    <div className="leaderboard-body">
+    <div className="table-body">
       <TeacherAMNavigationBarComponent />
-      <div className="leaderboard-container">
-        <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Activity Submissions <i className="bi bi-arrow-clockwise" onClick={fetchSubmissions}></i></h1>
+      <div className="table-container">
+        <div className="table-header">
+          <h1 className="table-title">Activity Submissions <i className="bi bi-arrow-clockwise" onClick={fetchSubmissions}></i></h1>
 
           {loading ? (
             <p>Loading submissions...</p>
@@ -60,14 +60,14 @@ const TeacherActivitySubmissionComponent = () => {
             <table>
               <thead>
                 <tr>
-                  <th className="leaderboard-column-titles">Student Name</th>
-                  <th className="leaderboard-column-titles">Program</th>
-                  <th className="leaderboard-column-titles">Final Score</th>
-                  <th className="leaderboard-column-titles">Time Spent</th>
-                  <th className="leaderboard-column-titles">Attempts</th>
+                  <th className="table-column-titles">Student Name</th>
+                  <th className="table-column-titles">Program</th>
+                  <th className="table-column-titles">Final Score</th>
+                  <th className="table-column-titles">Time Spent</th>
+                  <th className="table-column-titles">Attempts</th>
                 </tr>
               </thead>
-              <tbody className="leaderboard-students">
+              <tbody className="table-column-students">
                 {submissions.length > 0 ? (
                   submissions.map((submission, index) => (
                     <SubmissionItem

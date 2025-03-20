@@ -101,7 +101,6 @@ body {
 }
 
 .header-content h2 {
-  
   font-size: 1.5rem;
   font-weight: bold;
   color: #2e2e2e;
@@ -300,18 +299,17 @@ body {
 }
 
 .modal-design .modal-title{
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
 .modal-design .modal-body{
-  background-color: #fff8f6;
+  background-color: #fff7f4;
   min-height: 20vh;
 }
 
 .modal-design .modal-body .form-label{
   color: #2e2e2e;
-  font-weight: 600;
   margin-bottom: 0;
 }
 
@@ -348,7 +346,7 @@ body {
 }
 
 .modal-design .modal-footer{
-  background-color: #fdf1ec;
+  background-color: #ffeee7;
   display: flex;
   justify-content: flex-end;
 }
