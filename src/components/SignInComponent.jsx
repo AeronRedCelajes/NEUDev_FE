@@ -57,7 +57,7 @@ export const SignInComponent = () => {
             <img src="/src/assets/HANR_LOGO-4.png" alt="University" className="w-50 h-50" />
           </div>
 
-          <h3 className="text-center mb-3">Sign In to NEUDev</h3>
+          <h3 className="text-center mb-3">Sign InIN to NEUDev</h3>
 
           {error && <div className="alert alert-danger">{error}</div>}
 
