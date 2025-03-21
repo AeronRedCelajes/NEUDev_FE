@@ -8,16 +8,17 @@ import {
   getConcerns, 
   createConcern, 
   deleteConcern,
-  getClassInfo
+  getClassInfo,
+  getSessionData 
 } from '../api/API.js';
 
 export const StudentBulletinComponent = () => {
   // Get classID from URL parameters.
   const { classID } = useParams();
 
-  // Get the logged-in student's ID from sessionStorage.
-  const storedUserID = sessionStorage.getItem("userID");
-  const studentID = storedUserID ? parseInt(storedUserID) : 0;
+  // Retrieve session data for the current tab
+  const sessionData = getSessionData();
+  const studentID = sessionData.userID ? parseInt(sessionData.userID) : 0;
 
   // Teacher details will be fetched from class info.
   const [teacherID, setTeacherID] = useState(null);
@@ -87,19 +88,18 @@ export const StudentBulletinComponent = () => {
     const fetchConcerns = async () => {
       if (!classID) return;
       const response = await getConcerns(classID);
-      //console.log("All concerns response:", response); // Debug log
+      console.log("All concerns response:", response); // Debug log
+      
       if (response.error) {
         console.error("Error fetching concerns:", response.error);
       } else {
-        // Filter concerns by matching studentID.
+        // Filter concerns using the flat studentID property
         const filteredConcerns = response.filter(concern =>
-          concern.student && String(concern.student.studentID) === String(studentID)
+          String(concern.studentID) === String(studentID)
         );
         const mappedConcerns = filteredConcerns.map(concern => ({
           id: concern.id,
-          name: concern.student
-            ? `${concern.student.firstname} ${concern.student.lastname}`
-            : "Unknown",
+          name: "You", // Since the API returns a flat structure, we can display "You"
           dateCreated: new Date(concern.created_at).toLocaleDateString(),
           timeCreated: new Date(concern.created_at).toLocaleTimeString(),
           message: concern.concern,
@@ -108,9 +108,10 @@ export const StudentBulletinComponent = () => {
         setConcerns(mappedConcerns);
       }
     };
-
+  
     fetchConcerns();
   }, [classID, studentID]);
+  
 
   // Handler for posting a new concern.
   const handlePostConcern = async () => {
@@ -172,8 +173,12 @@ export const StudentBulletinComponent = () => {
       console.error("Error during deletion:", error);
       alert("Error during deletion: " + error.message);
     }
+
+    
   };
 
+
+  
   return (
     <>
       <StudentCMNavigationBarComponent />
@@ -281,8 +286,7 @@ export const StudentBulletinComponent = () => {
 
               {/* Render list of concerns */}
               <div className='concern-body'>
-                {concerns.length > 0 ? (
-                  concerns.map((concern) =>
+                {concerns.length > 0 ? (concerns.map((concern) =>
                     <div className='concern-details' key={concern.id}>
                       <h6>{concern.name}</h6>
                       <p>Posted on {concern.dateCreated} {concern.timeCreated}</p>

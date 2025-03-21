@@ -67,6 +67,7 @@ export const TeacherClassManagementBulletinComponent = () => {
     const fetchConcerns = async () => {
       if (!classID) return;
       const response = await getConcerns(classID);
+      console.log("All concerns response:", response); // Debug log
       if (!response.error) {
         setConcerns(response.map(concern => ({
           id: concern.id,
