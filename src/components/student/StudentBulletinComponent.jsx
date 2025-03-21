@@ -88,7 +88,7 @@ export const StudentBulletinComponent = () => {
     const fetchConcerns = async () => {
       if (!classID) return;
       const response = await getConcerns(classID);
-      console.log("All concerns response:", response); // Debug log
+      // console.log("All concerns response:", response); // Debug log
       
       if (response.error) {
         console.error("Error fetching concerns:", response.error);
