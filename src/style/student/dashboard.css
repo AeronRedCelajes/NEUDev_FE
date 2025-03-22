@@ -131,6 +131,7 @@
     width: 300px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     border: 1px solid #ccc;
+    background-color: #fffbf9;
     border-radius: 4px;
     max-height: 300px;
     overflow-y: auto;

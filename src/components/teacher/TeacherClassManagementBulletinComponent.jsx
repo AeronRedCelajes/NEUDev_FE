@@ -162,31 +162,29 @@ export const TeacherClassManagementBulletinComponent = () => {
               + Create New Post
             </button>
 
-            <Modal className='modal-post-announcement' show={showPostAnnouncement} onHide={() => setShowPostAnnouncement(false)} backdrop='static' keyboard={false} size='md'>
+            <Modal className='modal-design' show={showPostAnnouncement} onHide={() => setShowPostAnnouncement(false)} backdrop='static' keyboard={false} size='md'>
               <Modal.Header closeButton>
-                <h4>Create a Post</h4>
+                <h3>Create a Post</h3>
               </Modal.Header>
               <Modal.Body>
-                <Form className='create-activity-form'>
+                <Form>
                   <Form.Control 
-                    className='create-activity-title' 
                     type='text' 
                     placeholder='Title...' 
                     value={newPostTitle}
                     onChange={(e) => setNewPostTitle(e.target.value)}
                   />
-                  <div className='description-section'>
-                    <Form.Control 
-                      as='textarea' 
-                      placeholder='Description...' 
-                      value={newPostMessage}
-                      onChange={(e) => setNewPostMessage(e.target.value)}
-                    />
-                  </div>
+                  <Form.Control
+                    className='mt-3'
+                    as='textarea' 
+                    placeholder='Description...' 
+                    value={newPostMessage}
+                    onChange={(e) => setNewPostMessage(e.target.value)}
+                  />
                 </Form>
               </Modal.Body>
               <Modal.Footer>
-                <Button onClick={handleCreatePost}>Post</Button>
+                <Button className='success-button' onClick={handleCreatePost}>Post</Button>
               </Modal.Footer>
             </Modal>
           </div>
@@ -195,7 +193,7 @@ export const TeacherClassManagementBulletinComponent = () => {
             <Col xs={12} md={12} lg={9}>
               <div className='announcement'>
                 <div className='announcement-header'>
-                  <h5>Teachers Announcements</h5>
+                  <h5>Teacher's Announcements</h5>
                 </div>
                 {posts.length > 0 ? (
                   posts.map((post) =>
@@ -206,12 +204,13 @@ export const TeacherClassManagementBulletinComponent = () => {
                           <p>{post.teacherName}</p>
                           <p>{post.dateCreated} {post.timeCreated}</p>
                         </div>
-                        <Dropdown>
-                          <Dropdown.Toggle variant="link" id="dropdown-basic">
+                        
+                        <Dropdown className='compiler-dropdown'>
+                          <Dropdown.Toggle>
                             <FontAwesomeIcon icon={faEllipsisH} />
                           </Dropdown.Toggle>
                           <Dropdown.Menu>
-                            <Dropdown.Item onClick={() => confirmDelete(post.id)}>Delete</Dropdown.Item>
+                            <Dropdown.Item style={{fontSize: "1rem"}} onClick={() => confirmDelete(post.id) }>Delete</Dropdown.Item>
                           </Dropdown.Menu>
                         </Dropdown>
                       </Card.Header>
@@ -221,7 +220,7 @@ export const TeacherClassManagementBulletinComponent = () => {
                     </Card>
                   )
                 ) : (
-                  <p>No Announcement</p>
+                  <p className='text-center'>No Announcement</p>
                 )}
               </div>
             </Col>
@@ -238,7 +237,6 @@ export const TeacherClassManagementBulletinComponent = () => {
                       <p className='concern-message'>{concern.message}</p>
                       <div className='concern-actions'>
                         <p>
-
                           <h6>Your reply</h6>
                           {concern.reply ? (
                             <span className="concern-title">{concern.reply}</span>
@@ -251,24 +249,23 @@ export const TeacherClassManagementBulletinComponent = () => {
                         </p>
                       </div>
                     </div>
-                  ) : <p>No concerns posted yet.</p>}
-                  <Modal className='post-concern' show={showResponse} onHide={() => setShowResponse(false)} backdrop='static' keyboard={false} size='md'>
+                  ) : <p className='text-center'>No concerns posted yet.</p>}
+                  <Modal className='modal-design' show={showResponse} onHide={() => setShowResponse(false)} backdrop='static' keyboard={false} size='md'>
                     <Modal.Header closeButton>
-                      <div className='modal-activity-header'>
+                      <div>
                         <h3>Send Your Response</h3>
                         <p>To student, {concerns.find(c => c.id === selectedConcernId)?.name || 'Student'}</p>
                       </div>
                     </Modal.Header>
                     <Modal.Body>
                       <Form.Control 
-                        as='textarea' 
-                        className='post-concern-textarea'
+                        as='textarea'
                         value={replyMessage}
                         onChange={(e) => setReplyMessage(e.target.value)}
                       />
                     </Modal.Body>
                     <Modal.Footer>
-                      <Button onClick={handleReplyToConcern}>Send Response</Button>
+                      <Button className='success-button' onClick={handleReplyToConcern}>Send Response</Button>
                     </Modal.Footer>
                   </Modal>
                 </div>
@@ -279,11 +276,12 @@ export const TeacherClassManagementBulletinComponent = () => {
 
         {/* Delete Confirmation Modal */}
         <Modal 
+          className='modal-design'
           show={showDeleteModal} 
           onHide={() => setShowDeleteModal(false)} 
           backdrop='static' 
           keyboard={false} 
-          size='sm'
+          size='md'
         >
           <Modal.Header closeButton>
             <Modal.Title>Confirm Delete</Modal.Title>

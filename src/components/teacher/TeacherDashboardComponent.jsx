@@ -1,11 +1,13 @@
-import { faBars, faDesktop, faLaptopCode, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faDesktop, faLaptopCode, faEllipsisV, faBell, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Dropdown, Form, Modal, Nav, Navbar } from 'react-bootstrap';
+import { Button, Card, Dropdown, Form, Modal, Nav, Navbar, Badge, ModalFooter } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import '/src/style/teacher/dashboard.css';
 
-import { logout, getProfile, createClass, getClasses, updateClass, deleteClass, verifyPassword } from '../api/API.js';
+import { logout, getProfile, createClass, getClasses, updateClass, deleteClass, verifyPassword, 
+  markNotificationAsRead, 
+  deleteNotification } from '../api/API.js';
 
 export const TeacherDashboardComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
@@ -16,6 +18,11 @@ export const TeacherDashboardComponent = () => {
   const [showCreateClass, setShowCreateClass] = useState(false);
   const [classes, setClasses] = useState([]);
   const [instructorName, setInstructorName] = useState("");
+
+  //Notification
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // State for editing a class (including cover photo)
   const [showEditModal, setShowEditModal] = useState(false);
@@ -76,6 +83,50 @@ export const TeacherDashboardComponent = () => {
     fetchClasses();
   }, [instructorName]);
 
+  const handleBellClick = () => {
+      setShowNotifications(!showNotifications);
+    };
+  
+  /**
+   * Mark a single notification as read, then update state.
+   */
+  const handleNotificationClick = async (notificationId) => {
+    // Mark as read on the server
+    await markNotificationAsRead(notificationId);
+
+    // Update local state to set isRead = true
+    const updatedList = notifications.map(n =>
+      n.id === notificationId ? { ...n, isRead: true } : n
+    );
+    setNotifications(updatedList);
+
+    // Recalculate how many are unread
+    const newUnreadCount = updatedList.filter(n => !n.isRead).length;
+    setUnreadCount(newUnreadCount);
+
+    // (Optional) If you want to do something else, like navigate somewhere:
+    // navigate('/some-other-page');
+  };
+
+  /**
+   * Delete a notification entirely.
+   */
+  const handleDeleteNotification = async (e, notificationId) => {
+    e.stopPropagation(); // prevent parent onClick from firing
+    const resp = await deleteNotification(notificationId);
+    if (!resp.error) {
+      // Remove from local state
+      const updatedList = notifications.filter(n => n.id !== notificationId);
+      setNotifications(updatedList);
+
+      // Recalculate unread
+      const newUnreadCount = updatedList.filter(n => !n.isRead).length;
+      setUnreadCount(newUnreadCount);
+    } else {
+      console.error('Failed to delete notification:', resp.error);
+    }
+  };
+  
   const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
@@ -251,9 +302,59 @@ export const TeacherDashboardComponent = () => {
           <div className='dashboard-navbar'>
             <span className='ping'>20 ms</span>
             <a href='#'><i className='bi bi-moon'></i></a>
-            <span className='student-badge'>Teacher</span>
+            <span className='teacher-badge'>Teacher</span>
+
+            {/* Notification Bell */}
+            <div className='notification-bell'>
+              <FontAwesomeIcon
+                icon={faBell}
+                size='lg'
+                style={{ cursor: 'pointer' }}
+                onClick={handleBellClick}
+              />
+              {unreadCount > 0 && (
+                <Badge bg='danger' pill className='notification-badge'>
+                  {unreadCount}
+                </Badge>
+              )}
+  
+              {showNotifications && (
+                <div className='notification-dropdown'>
+                  <div>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: '10px', backgroundColor:"" }}>No Notifications</div>
+                    ) : (
+                      notifications.map((notif) => {
+                        const parsedData = JSON.parse(notif.data || '{}');
+                        return (
+                          <div
+                            key={notif.id}
+                            className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
+                            onClick={() => handleNotificationClick(notif.id)}
+                          >
+                            <div>
+                              <div><strong>{notif.type}</strong></div>
+                              <div>{parsedData.message}</div>
+                              <small className={`notification-item-dt ${notif.isRead ? 'read' : 'unread'}`}>
+                                {new Date(notif.created_at).toLocaleString()}
+                              </small>
+                            </div>
+                            <div 
+                              onClick={(e) => handleDeleteNotification(e, notif.id)}
+                              style={{ marginLeft: '8px', cursor: 'pointer' }}
+                            >
+                              <FontAwesomeIcon icon={faTimes} />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <Dropdown align='end'>
-              <Dropdown.Toggle variant='transparent' className='profile-dropdown'>
+              <Dropdown.Toggle variant='transparent' className='dropdown-desgin'>
                 <img src={profileImage} className='profile-image' alt="Profile" />
               </Dropdown.Toggle>
               <Dropdown.Menu>
@@ -347,7 +448,7 @@ export const TeacherDashboardComponent = () => {
         </Modal>
 
         {/* Edit Class Modal */}
-        <Modal className='modal-edit-class' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Edit Class</Modal.Title>
           </Modal.Header>
@@ -374,10 +475,12 @@ export const TeacherDashboardComponent = () => {
                 />
               </Form.Group>
               <Form.Group controlId='formEditClassCoverPhoto' className='mt-3'>
-                <div className='d-flex flex-row align-items-center justify-content-between'>
-                  <Form.Label>Class Cover Photo</Form.Label>
-                  <Button variant="secondary" as="label" htmlFor="class-cover-upload">
-                    Upload Cover Photo
+                <div className='edit-button'>
+                  <span>Cover Photo</span>
+                  <Button>
+                    <label htmlFor='class-cover-upload' className='upload-label'>
+                      Upload Cover Photo
+                    </label>
                   </Button>
                 </div>
                 <input
@@ -406,21 +509,23 @@ export const TeacherDashboardComponent = () => {
                   </div>
                 )}
               </Form.Group>
-              <Button variant='primary' className='mt-3' type="submit" disabled={isEditing}>
-                {isEditing ? "Saving..." : "Save Changes"}
-              </Button>
             </Form>
           </Modal.Body>
+          <Modal.Footer>
+            <Button className='success-button' type="submit" disabled={isEditing}>
+              {isEditing ? "Saving..." : "Save Changes"}
+            </Button>
+          </Modal.Footer>
         </Modal>
 
         {/* Delete Class Modal */}
-        <Modal className='modal-delete-class' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Deletion</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Please enter your password to confirm deletion of <strong>{deleteClassData?.className}</strong>.</p>
-            <Form onSubmit={handleDeleteClassConfirm}>
+            <Form>
               <Form.Group controlId='formDeletePassword'>
                 <Form.Label>Password</Form.Label>
                 <Form.Control
@@ -431,26 +536,29 @@ export const TeacherDashboardComponent = () => {
                   required
                 />
               </Form.Group>
-              <div className='d-flex justify-content-end mt-3'>
-                <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
-                  Cancel
-                </Button>
-                <Button variant='danger' type="submit">
-                  Delete Class
-                </Button>
-              </div>
             </Form>
           </Modal.Body>
+          <Modal.Footer>
+            <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
+              Cancel
+            </Button>
+            <Button variant='danger' onClick={handleDeleteClassConfirm}>
+              Delete Class
+            </Button>
+          </Modal.Footer>
         </Modal>
 
         {/* Archive Class Modal */}
-        <Modal className='modal-archive-class' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Archive</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Are you sure you want to archive <strong>{archiveClassData?.className}</strong>?</p>
-            <div className='d-flex justify-content-end mt-3'>
+            
+          </Modal.Body>
+          <Modal.Footer>
+          <div className='d-flex justify-content-end mt-3'>
               <Button variant='secondary' onClick={() => setShowArchiveModal(false)} className='me-2'>
                 Cancel
               </Button>
@@ -458,7 +566,7 @@ export const TeacherDashboardComponent = () => {
                 {isArchiving ? "Archiving..." : "Archive Class"}
               </Button>
             </div>
-          </Modal.Body>
+          </Modal.Footer>
         </Modal>
       </div>
     </div>

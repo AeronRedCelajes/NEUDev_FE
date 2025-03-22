@@ -107,13 +107,13 @@
 }
 
 .concern{
+    display: flex;
+    flex-direction: column;
     background-color: #FFF5F1;
     margin-top: 20px;
     min-height: 100vh;
     height: fit-content;
     border-radius: 20px;
-    display: flex;
-    flex-direction: column;
 }
 
 .concern-header{
@@ -130,8 +130,8 @@
     margin-bottom: 0;
 }
 
-.concern button{
-    width: 45%;
+.concern .send-concern{
+    padding-inline: 20px;
     margin-top: 20px;
     border-radius: 20px;
     background-color: #76C7C5;
@@ -139,6 +139,10 @@
     color: #FFF5F1;
     border: none;
     align-self: center;
+}
+
+.concern .send-concern:hover{
+    background-color: #558f8e;
 }
 
 .post-concern .modal-content{
@@ -230,7 +234,13 @@
 .concern-body .concern-actions{
     display: flex;
     justify-content: space-between;
-    color: #2C2829;
+}
+
+.concern-body .concern-actions button{
+    background-color: transparent;
+    font-weight: 900;
+    color: #ff0000 !important;
+    border: none;
 }
 
 .concern-body .concern-actions p{
@@ -240,7 +250,6 @@
 
 .concern-body .concern-actions i{
     cursor: pointer;
-    color: #76C7C5;
     font-size: medium;
     margin-left: 5px;
 }

@@ -980,9 +980,9 @@ export default function TeacherItemBankComponent() {
 
       {/* -------------------- Delete Confirmation Modal with Password -------------------- */}
       <Modal
+        className="modal-design"
         show={showDeleteModal}
         onHide={() => setShowDeleteModal(false)}
-        centered
       >
         <Modal.Header closeButton>
           <Modal.Title>Delete Item</Modal.Title>

@@ -299,6 +299,18 @@ body {
   border-bottom: 2px solid #B84C20;
 }
 
+.modal-design .modal-header p{
+  font-size: 0.85rem;
+  margin-bottom: 0;
+  color: #9196A1;
+}
+
+.modal-design .modal-header h3{
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
 .modal-design .modal-title{
   font-size: 1.5rem;
   font-weight: 700;

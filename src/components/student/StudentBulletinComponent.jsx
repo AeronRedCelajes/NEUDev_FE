@@ -223,7 +223,7 @@ export const StudentBulletinComponent = () => {
               <div className='concern-header'>
                 <h5>Your Concerns</h5>
               </div>
-              <Button onClick={() => setShowPostConcern(true)}>Send a concern</Button>
+              <Button className='send-concern' onClick={() => setShowPostConcern(true)}>Send a concern</Button>
 
               {/* Concern Modal */}
               <Modal
@@ -236,7 +236,7 @@ export const StudentBulletinComponent = () => {
               >
                 <Modal.Header closeButton>
                   <div className='modal-activity-header'>
-                    <h4>Post Your Concern</h4>
+                    <h3>Post Your Concern</h3>
                     <p>To professor {teacherName}</p>
                   </div>
                 </Modal.Header>
@@ -263,10 +263,10 @@ export const StudentBulletinComponent = () => {
 
               {/* Delete Confirmation Modal */}
               <Modal
+                className='modal-design'
                 show={showDeleteModal}
                 onHide={() => setShowDeleteModal(false)}
                 size="md"
-                centered
               >
                 <Modal.Header closeButton>
                   <Modal.Title>Confirm Delete</Modal.Title>
@@ -291,23 +291,22 @@ export const StudentBulletinComponent = () => {
                       <h6>{concern.name}</h6>
                       <p>Posted on {concern.dateCreated} {concern.timeCreated}</p>
                       <p className='concern-message'>{concern.message}</p>
-                      <div className="teacher-reply-section">
-                        <h6>Teacher's Reply:</h6>
-                        {concern.teacherReply ? (
-                          <p>{concern.teacherReply}</p>
-                        ) : (
-                          <p className="no-reply">No reply yet</p>
-                        )}
-                      </div>
-                      <div className='concern-actions'>
-                        <Button
-                          variant="danger"
-                          onClick={() => {
-                            setSelectedConcernId(concern.id);
+                      <div className="concern-actions">
+                        <p>
+                          <h6>Teacher's Reply:</h6>
+                          {concern.teacherReply ? (
+                            <p>{concern.teacherReply}</p>
+                          ) : (
+                            <p className="no-reply">No reply yet</p>
+                          )}
+                        </p>
+                        
+                        <Button variant="danger" onClick={() => 
+                          { setSelectedConcernId(concern.id);
                             setShowDeleteModal(true);
                           }}
                         >
-                          Delete <i className='bi bi-trash'/>
+                          <i className='bi bi-trash'/>
                         </Button>
                       </div>
                     </div>

@@ -1,3 +1,12 @@
+.teacher-badge{
+    background-color: #76C7C5;
+    color: #FFF5F1;
+    padding: 7px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
 .classes-container .create-class{
     width: 25%;
     height: auto;

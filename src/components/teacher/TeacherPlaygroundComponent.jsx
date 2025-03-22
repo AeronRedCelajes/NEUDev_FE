@@ -14,14 +14,17 @@ import {
   Form
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faEllipsisV, faEye, faEyeSlash, faClock, faDownload, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faPlusSquare, faDownload, faTimes, faAdjust } from '@fortawesome/free-solid-svg-icons';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-import { TeacherNavbar } from '../TeacherNavbar';
+import { ProfilePlaygroundNavbarComponent } from '../ProfilePlaygroundNavbarComponent';
 import '../../style/student/playground.css';
 import '../../style/DarkTerminalModal.css';
 import { getProgrammingLanguages, getCurrentUserKey } from '../api/API';
+
+// 1) Import your XtermTerminal component
+import XtermTerminal from '../XtermTerminal'; 
 
 const programmingLanguageMap = {
   1: { name: 'Java', image: '/src/assets/java2.png' },
@@ -390,237 +393,194 @@ export const TeacherPlaygroundComponent = () => {
 
   return (
     <>
-      <TeacherNavbar />
-      <div className="playground">
-        <div className="playground-container">
-          <div className="playground-header">
-            <Row>
-              <Col sm={10} className="left-corner">
-                <Tabs
-                  activeKey={activeFileId}
-                  id="dynamic-file-tabs"
-                  onSelect={(k) => handleTabSelect(Number(k))}
-                  fill
-                >
-                  {files.map((file) => (
-                    <Tab
-                      key={file.id}
-                      eventKey={file.id}
-                      title={
-                        <div className="d-flex align-items-center">
-                          <span>{`${file.fileName}.${file.extension}`}</span>
-                          {files.length > 1 && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteFile(file.id);
-                              }}
-                              title="Delete file"
-                            >
-                              <FontAwesomeIcon icon={faTimes} color="red" />
-                            </Button>
+          <ProfilePlaygroundNavbarComponent/>
+          <div className="playground">
+            <div className="playground-container">
+              <div className="playground-header">
+                <div className="left-corner">
+                  <Tabs
+                    activeKey={activeFileId}
+                    id="dynamic-file-tabs"
+                    onSelect={(k) => handleTabSelect(Number(k))}
+                    fill
+                  >
+                    {files.map((file) => (
+                      <Tab
+                        key={file.id}
+                        eventKey={file.id}
+                        title={
+                          <div className="d-flex align-items-center">
+                            <span>{`${file.fileName}.${file.extension}`}</span>
+                            {files.length > 1 && (
+                              <Button
+                                className='tab-close-button'
+                                variant="link"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteFile(file.id);
+                                }}
+                                title="Delete file"
+                              >
+                                <FontAwesomeIcon icon={faTimes} color="gray" />
+                              </Button>
+                            )}
+                          </div>
+                        }
+                      />
+                    ))}
+                  </Tabs>
+                  <Button className='plus-sqaure-icon' variant='transparent' onClick={openAddFileModal}>
+                    <FontAwesomeIcon icon={faPlusSquare} size="lg" />
+                  </Button>
+                </div>
+    
+                <div className="right-corner">
+                  <Button variant="link" onClick={handleDownloadFiles} title="Download Files">
+                    <FontAwesomeIcon icon={faDownload} size="lg" />
+                  </Button>
+                  <DropdownButton
+                    className="playground-dropdown"
+                    id="language-dropdown"
+                    size="sm"
+                    title={
+                      selectedLanguage ? (
+                        <>
+                          {selectedLanguage.progLangImage ||
+                          (programmingLanguageMap[selectedLanguage.progLangID] &&
+                            programmingLanguageMap[selectedLanguage.progLangID].image) ? (
+                            <img
+                              src={
+                                selectedLanguage.progLangImage ||
+                                programmingLanguageMap[selectedLanguage.progLangID]?.image
+                              }
+                              style={{ width: '20px', marginRight: '8px' }}
+                              alt="language-icon"
+                            />
+                          ) : null}
+                          {selectedLanguage.progLangName ||
+                            programmingLanguageMap[selectedLanguage.progLangID]?.name ||
+                            'Select Language'}
+                        </>
+                      ) : (
+                        'Loading...'
+                      )
+                    }
+                  >
+                    {programmingLanguages.map((lang) => {
+                      const imageSrc =
+                        lang.progLangImage ||
+                        programmingLanguageMap[lang.progLangID]?.image;
+                      const languageName =
+                        lang.progLangName ||
+                        programmingLanguageMap[lang.progLangID]?.name;
+                      return (
+                        <Dropdown.Item
+                          key={lang.progLangID}
+                          onClick={() => handleSelectLanguage(lang)}
+                        >
+                          {imageSrc && (
+                            <img
+                              src={imageSrc}
+                              alt={`${languageName}-icon`}
+                              style={{ width: '20px', marginRight: '8px' }}
+                            />
                           )}
-                        </div>
-                      }
-                    />
-                  ))}
-                </Tabs>
-                <Button variant="link" style={{ textDecoration: 'none' }} onClick={openAddFileModal}>
-                  <span className="bi bi-plus-square-fill"></span>
-                </Button>
-                <Button variant="link" style={{ textDecoration: 'none' }} onClick={openEditFileModal} title="Edit File">
-                  <i className="bi bi-pencil"></i>
-                </Button>
-              </Col>
-              <Col sm={2} className="right-corner d-flex justify-content-end align-items-center">
-                <Button variant="link" onClick={handleDownloadFiles} title="Download Files">
-                  <FontAwesomeIcon icon={faDownload} size="lg" />
-                </Button>
-                <DropdownButton
-                  className="playground-dropdown"
-                  id="language-dropdown"
-                  size="sm"
-                  title={
-                    selectedLanguage ? (
-                      <>
-                        {selectedLanguage.progLangImage ||
-                        (programmingLanguageMap[selectedLanguage.progLangID] &&
-                          programmingLanguageMap[selectedLanguage.progLangID].image) ? (
-                          <img
-                            src={selectedLanguage.progLangImage ||
-                              programmingLanguageMap[selectedLanguage.progLangID]?.image}
-                            style={{ width: '20px', marginRight: '8px' }}
-                            alt="language-icon"
-                          />
-                        ) : null}
-                        {selectedLanguage.progLangName ||
-                          programmingLanguageMap[selectedLanguage.progLangID]?.name ||
-                          'Select Language'}
-                      </>
-                    ) : 'Loading...'
-                  }
-                >
-                  {programmingLanguages.map((lang) => {
-                    const imageSrc = lang.progLangImage || programmingLanguageMap[lang.progLangID]?.image;
-                    const languageName = lang.progLangName || programmingLanguageMap[lang.progLangID]?.name;
-                    return (
-                      <Dropdown.Item key={lang.progLangID} onClick={() => handleSelectLanguage(lang)}>
-                        {imageSrc && (
-                          <img
-                            src={imageSrc}
-                            alt={`${languageName}-icon`}
-                            style={{ width: '20px', marginRight: '8px' }}
-                          />
-                        )}
-                        {languageName}
-                      </Dropdown.Item>
-                    );
-                  })}
-                </DropdownButton>
-              </Col>
-            </Row>
-            <div className="header-border"></div>
-          </div>
-          <div className="playground-editor">
-            {/* Replacing the textarea with the Monaco Editor */}
-            <Editor
-              height="60vh"
-              language={selectedLanguage?.progLangName.toLowerCase()}
-              value={activeFile?.content || ""}
-              onChange={(newValue) => handleFileChange(newValue)}
-              theme={editorTheme}
-              options={{
-                fontSize: 14,
-                minimap: { enabled: true },
-                automaticLayout: true,
-              }}
-            />
-          </div>
-          <div className="playground-bottom">
-            <div className="d-flex gap-2">
-              <Button onClick={handleRunCode} disabled={loading}>
-                {loading ? <Spinner animation="border" size="sm" /> : 'Run Code'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <Modal
-        show={showModal}
-        onHide={handleCloseTerminal}
-        size="lg"
-        backdrop="static"
-        keyboard={false}
-        centered
-        className="dark-terminal-modal"
-      >
-        <Modal.Header closeButton className="dark-terminal-modal-header">
-          <Modal.Title>NEUDev Terminal</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="dark-terminal-modal-body">
-          <div
-            className="terminal"
-            style={{
-              backgroundColor: '#1e1e1e',
-              color: '#fff',
-              padding: '10px',
-              fontFamily: 'monospace',
-              minHeight: '250px',
-              overflowY: 'auto'
-            }}
-            onClick={handleTerminalClick}
-          >
-            {lines.map((line, idx) => (
-              <div key={idx} style={{ whiteSpace: 'pre-wrap' }}>
-                {line}
+                          {languageName}
+                        </Dropdown.Item>
+                      );
+                    })}
+                  </DropdownButton>
+                  <Button variant="link" onClick={toggleTheme} title="Toggle Theme">
+                    <FontAwesomeIcon icon={faAdjust} size="lg" />
+                  </Button>
+                </div>
+                <div className="header-border"></div>
               </div>
-            ))}
-            <div style={{ whiteSpace: 'pre-wrap' }}>
-              <span>{prompt}</span>
-              <span
-                ref={inputRef}
-                contentEditable
-                suppressContentEditableWarning
-                style={{ outline: 'none' }}
-                onInput={handleInputChange}
-                onKeyDown={handleInputKeyDown}
-              />
+    
+              {/* Code Editor */}
+              <div className="playground-editor">
+                <Editor
+                  height="70vh" // Adjust height
+                  language={selectedLanguage?.progLangName.toLowerCase()} // Set language
+                  value={activeFile?.content || ""}
+                  onChange={(newValue) => handleFileChange(newValue)}
+                  theme={editorTheme}
+                  options={{
+                    fontSize: 14,
+                    minimap: { enabled: true },
+                    automaticLayout: true,
+                  }}
+                />
+              </div>
+    
+              <div className="playground-bottom">
+                <div className="d-flex gap-2">
+                  <Button onClick={handleRunCode} disabled={loading}>
+                    {loading ? <Spinner animation="border" size="sm" /> : 'Run Code'}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-        </Modal.Body>
-      </Modal>
-      <Modal show={showAddFileModal} onHide={() => setShowAddFileModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Add File</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group>
-            <Form.Label>Filename</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter filename (without extension)"
-              value={newFileName}
-              onChange={(e) => setNewFileName(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mt-3">
-            <Form.Label>Extension</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="e.g. py, cs, java..."
-              value={newFileExtension}
-              onChange={(e) => setNewFileExtension(e.target.value)}
-            />
-            <Form.Text className="text-muted">
-              The available extensions will depend on the currently selected language.
-            </Form.Text>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAddFileModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleCreateNewFile}>
-            Create
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <Modal show={showEditFileModal} onHide={() => setShowEditFileModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit File</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group>
-            <Form.Label>Filename</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter filename (without extension)"
-              value={editFileName}
-              onChange={(e) => setEditFileName(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mt-3">
-            <Form.Label>Extension</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="e.g. py, cs, java..."
-              value={editFileExtension}
-              onChange={(e) => setEditFileExtension(e.target.value)}
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditFileModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleEditFile}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
+    
+          {/* Terminal Modal */}
+          <Modal
+            show={showModal}
+            onHide={handleCloseTerminal}
+            size="lg"
+            backdrop="static"
+            keyboard={false}
+            centered
+            className="dark-terminal-modal"
+          >
+              {wsRef.current && (
+                <XtermTerminal
+                  ws={wsRef.current}
+                  title="NEUDev Terminal"
+                  onClose={handleCloseTerminal}
+                />
+              )}
+          </Modal>
+    
+          {/* Add File Modal */}
+          <Modal show={showAddFileModal} onHide={() => setShowAddFileModal(false)} centered>
+            <Modal.Header closeButton>
+              <Modal.Title>Add File</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Form.Group>
+                <Form.Label>Filename</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter filename (without extension)"
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group className="mt-3">
+                <Form.Label>Extension</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="e.g. py, cs, java..."
+                  value={newFileExtension}
+                  onChange={(e) => setNewFileExtension(e.target.value)}
+                />
+                <Form.Text className="text-muted">
+                  The available extensions depend on the selected language.
+                </Form.Text>
+              </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowAddFileModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleCreateNewFile}>
+                Create
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </>
   );
 };
 

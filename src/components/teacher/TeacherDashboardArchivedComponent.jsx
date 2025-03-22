@@ -255,7 +255,7 @@ export const TeacherDashboardArchivedComponent = () => {
             <a href='#'><i className='bi bi-moon'></i></a>
             <span className='student-badge'>Teacher</span>
             <Dropdown align='end'>
-              <Dropdown.Toggle variant='transparent' className='profile-dropdown'>
+              <Dropdown.Toggle variant='transparent' className='dropdown-desgin'>
                 <img src={profileImage} className='profile-image' alt="Profile" />
               </Dropdown.Toggle>
               <Dropdown.Menu>
@@ -345,12 +345,12 @@ export const TeacherDashboardArchivedComponent = () => {
         </Modal>
 
         {/* Edit Class Modal */}
-        <Modal className='modal-edit-class' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='md'>
           <Modal.Header closeButton>
             <Modal.Title>Edit Class</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Form onSubmit={handleEditClassSave}>
+            <Form>
               <Form.Group controlId='formEditClassName'>
                 <Form.Label>Class Name</Form.Label>
                 <Form.Control
@@ -402,21 +402,24 @@ export const TeacherDashboardArchivedComponent = () => {
                   </div>
                 )}
               </Form.Group>
-              <Button variant='primary' className='mt-3' type="submit" disabled={isEditing}>
-                {isEditing ? "Saving..." : "Save Changes"}
-              </Button>
+              
             </Form>
           </Modal.Body>
+          <Modal.Footer onClick={handleEditClassSave}>
+            <Button variant='primary' className='mt-3' type="submit" disabled={isEditing}>
+              {isEditing ? "Saving..." : "Save Changes"}
+            </Button>
+          </Modal.Footer>
         </Modal>
 
         {/* Delete Class Modal */}
-        <Modal className='modal-delete-class' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Deletion</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Please enter your password to confirm deletion of <strong>{deleteClassData?.className}</strong>.</p>
-            <Form onSubmit={handleDeleteClassConfirm}>
+            <Form>
               <Form.Group controlId='formDeletePassword'>
                 <Form.Label>Password</Form.Label>
                 <Form.Control
@@ -427,25 +430,30 @@ export const TeacherDashboardArchivedComponent = () => {
                   required
                 />
               </Form.Group>
-              <div className='d-flex justify-content-end mt-3'>
-                <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
-                  Cancel
-                </Button>
-                <Button variant='danger' type="submit">
-                  Delete Class
-                </Button>
-              </div>
             </Form>
           </Modal.Body>
+          <Modal.Footer>
+            <div className='d-flex justify-content-end mt-3'>
+              <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
+                Cancel
+              </Button>
+              <Button variant='danger' onClick={handleDeleteClassConfirm}>
+                Delete Class
+              </Button>
+            </div>
+          </Modal.Footer>
         </Modal>
 
         {/* Unarchive Class Modal */}
-        <Modal className='modal-archive-class' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Unarchive</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Are you sure you want to unarchive <strong>{archiveClassData?.className}</strong>?</p>
+            
+          </Modal.Body>
+          <Modal.Footer>
             <div className='d-flex justify-content-end mt-3'>
               <Button variant='secondary' onClick={() => setShowArchiveModal(false)} className='me-2'>
                 Cancel
@@ -454,7 +462,7 @@ export const TeacherDashboardArchivedComponent = () => {
                 {isArchiving ? "Unarchiving..." : "Unarchive Class"}
               </Button>
             </div>
-          </Modal.Body>
+          </Modal.Footer>
         </Modal>
       </div>
     </div>
