@@ -43,10 +43,24 @@ body::-webkit-scrollbar {
 }
 
 .about-orange-border {
-  height: auto;
+  height: fit-content;
   min-height: 100%;
   background: #EB5A2B;
   clip-path: polygon(0 0, 100% 15%, 100% 100%, 0 100%);
+  position: relative;
+}
+
+.home-wrapper{
+  position: absolute; /* Adjust if needed to place it right below the border */
+  left: 50%;
+  margin-top: -5px;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  z-index: 10; /* Ensures it's in front */
+  background-color: #2C292A;
+  padding: 5px;
 }
 
 .footer-section {
@@ -55,7 +69,6 @@ body::-webkit-scrollbar {
   text-align: center;
   color: #F6F6E9;
   padding: 2vw;
-  padding-top: 40px;
 }
 
 @media (max-width: 1440px) {
@@ -132,7 +145,7 @@ body::-webkit-scrollbar {
 
   .about-orange-border {
     clip-path: polygon(0 0, 100% 4%, 100% 100%, 0 100%);
-    
+    margin-bottom: 1px;
   }
 }
 

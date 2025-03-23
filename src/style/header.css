@@ -84,36 +84,39 @@
 
 @media (max-width: 425px) {
     .header-section-title {
-        font-size: 1.5rem;
+        font-size: 1.7rem;
         font-weight: 700;
         text-align: left;
     }
 
+    .header-section-text{
+        padding-left: 0;
+    }
+
     .header-section-p{
-        font-size: 0.6rem;
+        font-size: 0.75rem;
         text-align: left;
     }
 
     .button-link {
-        font-size: 0.6rem;
+        font-size: 0.75rem;
         padding: 10px 50px;
     }
 }
 
 @media (max-width: 320px) {
     .header-section-title {
-        font-size: 1.2rem;
-        font-weight: 700;
+        font-size: 1.4rem;
         text-align: left;
     }
 
     .header-section-p{
-        font-size: 0.5rem;
+        font-size: 0.7rem;
         text-align: left;
     }
 
     .button-link {
-        font-size: 0.5rem;
+        font-size: 0.7rem;
         padding: 7px 40px;
     }
 }
