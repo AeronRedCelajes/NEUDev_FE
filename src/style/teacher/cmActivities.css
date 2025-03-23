@@ -1,64 +1,66 @@
-/* Remove all borders and focus outlines */
-
-body {
-    background-color: #CCCFDA;
-}
-.nav-tabs {
-    border-bottom: none !important;
-}
-
-/* Style tab links */
-.nav-tabs .nav-link {
-    color: #C4907B; /* Default color */
-    font-size: 15px;
-    border: none !important;
-    padding: 20px;
-    border-radius: 20px 0px 0px 0px;
-    outline: none !important;
-    box-shadow: none !important;
-    transition: color 0.3s ease, border-color 0.3s ease;
-}
-
-/* Remove blue focus border when clicking the tab */
-.nav-tabs .nav-link:focus,
-.nav-tabs .nav-link:active,
-.nav-tabs .nav-link:focus-visible,
-.nav-tabs .nav-link:focus-within {
-    outline: none !important;
-    box-shadow: none !important;
-    border: none !important;
-}
-
-/* Active tab styling */
-.nav-tabs .nav-link.active {
-    background-color: #FFF5F1 !important;
-    color: #B84C20 !important;
-    font-weight: bold !important;
-    border: none !important;
-}
-
-/* Hover effect */
-.nav-tabs .nav-link:hover {
-    border-bottom: 2px solid #b84b2086; 
-}
-
-.create-new-activity-wrapper {
+.class-wrapper {
     background-color: #CCCFDA; /* Space between navbar and button */
-    height: 20px; /* Adjust height to create space */
+    height: 130px; /* Adjust height to create space */
     align-items: center;
 }
 
 .create-new-activity-container {
     display: flex;
-    justify-content: space-between; /* key change */
-    align-items: center;           /* keep center alignment vertically */
-    background-color: #FFF5F1; 
-    padding: 10px 20px;            /* add some horizontal padding */
+    justify-content: space-between;
+    align-items: center;  
+    background-color: #fff9f7; 
+    padding: 10px 20px;     
+    position: relative;
+    padding-inline: 20px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
 }
 
+.create-new-activity-container h3{
+    color: #B84C20;
+    font-weight: 800;
+    position: relative;
+    display: inline-block;
+}
 
-  /* Button Styling */
-  .create-new-activity-button {
+.create-new-activity-container .class-id{
+    color: #bc6a4a;
+    font-size: 1.2rem;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+}
+
+.create-new-activity-container .class-id:hover{
+    color: #8a4e37;
+}
+
+.create-new-activity-container .popup{
+    position: absolute;
+    top: -20px;
+    left: 80%;
+    transform: translateX(80%);
+    background: rgba(53, 53, 53, 0.849);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    animation: fadeOut 2s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+}
+
+/* Button Styling */
+.create-new-activity-button {
     background-color: #64c5b1; /* Soft teal button */
     color: white;
     font-size: 14px;
@@ -69,13 +71,13 @@ body {
     cursor: pointer;
     transition: background 0.3s ease-in-out;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow effect */
-  }
-  
-  /* Hover Effect */
-  .create-new-activity-button:hover {
+}
+
+/* Hover Effect */
+.create-new-activity-button:hover {
     background-color: #4ea99a; /* Slightly darker teal on hover */
     border: none;
-  }
+}
 
   /* Remove black border on click */
 .create-new-activity-button:focus,
@@ -84,278 +86,167 @@ body {
     border: none; /* Ensures no border appears */
     box-shadow: none; /* Removes any browser-added shadow */
 }
-  
 
-.class-management{
+.sort-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-color: #CCCFDA;
-    height: 100vh;
 }
 
-.class-content{
-    padding: 50px;
-    width: 70% !important;
-    font-family: 'Poppins';
+.sort-container .sort-content{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 25rem;
+    background-color: #fff9f7;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
 }
 
-.class-content #tab .nav-item .nav-link{
-    color: #C4907B;
-    font-size: 15px;
-    border: none;
-    padding: 20px;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
+.sort-container span{
+    color: #333;
+    font-weight: bold;
 }
 
-.class-content #tab .nav-item .nav-link.active {
-    background-color: #FFF5F1 !important;
-    color: #B84C20 !important;
-    font-weight: bold !important;
-    border: none !important;
-}
-
-.upcoming-class-activities{
-    background-color: #FFF5F1;
-    padding: 30px;
-    border-top-right-radius: 20px;
-    border-bottom-right-radius: 20px;
-    border-bottom-left-radius: 20px;
-}
-
-.ongoing-class-activities{
-    background-color: #FFF5F1;
-    padding: 30px;
-    border-top-right-radius: 20px;
-    border-bottom-right-radius: 20px;
-    border-bottom-left-radius: 20px;
-}
-
-.completed-class-activities{
-    background-color: #FFF5F1;
-    padding: 30px;
-    border-top-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    border-bottom-left-radius: 20px;
-}
-
-.class-activities{
-    background-color: #FFF5F1;
-    border: 2px solid #9196A1;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 3px 4px rgba(89, 89, 89, 0.244);
-}
-
-.activity-details-column{
-    border-right: 2px solid #9196A1;
-}
-
-.activity-details-column .class-activity-details a{
+.sort-container button{
+    color: #4ea99a;
+    font-weight: 600;
     text-decoration: none;
 }
 
-.activity-details-column .class-activity-details h3{
-    font-weight: bold;
-    color: #2C2829;
-    margin-bottom: 0;
+.sort-container button:hover{
+    color: #30685e;
 }
 
-.class-activity-details{
-    margin-bottom: 30px;
+.activity-menu-container .activity-menu{
+    width: 120px;
+    border-radius: 10px;
+    background-color: #e4bcac;
+    padding: 5px;
 }
 
-.class-activity-details p{
-    color: #9196A1;
-    font-size: small;
-    margin-bottom: 0;
+.activity-menu-container .activity-menu-item{
+    padding-inline: 10px;
+    background-color: #e4bcac;
+    color: #ffffff;
+    border-radius: 10px;
 }
 
-.class-activity-details button{
-    border: none;
-    border-radius: 20px;
-    background-color: #E2D8D3;
-    font-size: small;
-    color: #B84C20;
-    padding-inline: 7px;
-}
-
-.class-activity-details button img{
-    height: 20px;
-}
-
-.class-activity-date{
-    font-size: 15px;
-    margin-left: 10px;
-    color: #2C2829;
-}
-
-.class-activity-date p{
-    margin-bottom: 5px;
-}
-
-.class-activity-date .bi-calendar-check{
-   color: #84C776;
-}
-
-.class-activity-date .bi-calendar-x{
-    color: #dd0a0a;
-}
-
- .class-activity-standing{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding-top: 15px;
-    color: #2C2829;
-}
-
-.class-activity-standing button{
-    height: 110px;
-    width: 110px;
-    border-radius: 50%;
-    border: 15px solid #E2D8D3;
+.activity-menu-container .activity-menu-item:hover{
     background-color: #FFF5F1;
     color: #B84C20;
-    font-weight: 600;
-}
-
-.modal-activity-details .modal-dialog .modal-content{
-    border-radius: 30px !important;
-}
-
-.modal-activity-details .modal-header{
-    background-color: #F5DAD0;
-    height: 90px;
-}
-
-.modal-activity-details .modal-activity-header{
-    display: flex;
-    flex-direction: column;
-    background-color: #F5DAD0;
-}
-
-.modal-activity-details .modal-activity-header h3{
-    color: #B84C20;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.modal-activity-details .modal-activity-header p{
-    color: #9196A1;
-    font-size: small;
-    margin-bottom: 0;
-}
-
-.modal-activity-details .modal-body{
-    background-color: #FFF5F1;
-}
-
-.modal-activity-details .modal-body p{
-    color: #2C2829;
-    font-size: small;
-    margin-bottom: 0;
-}
-
-.modal-activity-details .modal-footer{
-    display: flex;
-    justify-content: space-between;
-    background-color: #FFF5F1;
-    border-top: 2px solid #9196A1;
-}
-
-.modal-activity-details .modal-footer p{
-    color: #2C2829;
-    margin-bottom: 5px;
-    font-size: 15px;
-}
-
-.modal-activity-details .modal-footer .bi-list-ol{
-    color: #B84C20;
-    font-size: 17px;
- }
-
-.modal-activity-details .modal-footer .bi-calendar-check{
-    color: #84C776;
- }
- 
- .modal-activity-details .modal-footer .bi-calendar-x{
-     color: #dd0a0a;
- }
-
- .modal-activity-details .modal-footer button{
-    background-color: #84C776;
-    border: none;
-    border-radius: 30px;
-    padding-inline: 50px;
-    padding-block: 15px;
-    font-weight: 600;
 }
 
 /* The outer header container */
 .activity-header {
     background-color: #fdf6f6; /* or your desired off-white color */
     padding: 1rem;
-  }
-  
-  /* The main content inside the header */
-  .header-content {
+}
+
+/* The main content inside the header */
+.header-content {
     display: flex;
     align-items: flex-start; /* Align items to the top */
-  }
-  
-  /* The thin vertical red line on the left */
-  .left-indicator {
+}
+
+/* The thin vertical red line on the left */
+.left-indicator {
     width: 4px;
     background-color: #c42c2c; /* or another red shade */
     margin-right: 1rem;
-  }
-  
-  /* Wrapper that holds the title and description side-by-side with the indicator */
-  .activity-info {
+}
+
+/* Wrapper that holds the title and description side-by-side with the indicator */
+.activity-info {
     display: flex;
     flex-direction: column; /* Stack title above description */
     flex: 1;               /* Expand to fill the horizontal space */
-  }
-  
-  /* The activity title */
-  .activity-title {
+}
+
+/* The activity title */
+.activity-title {
     margin: 0;
     color: #e65800; /* or your chosen color for the title text */
-  }
-  
-  /* The points in parentheses */
-  .points {
+}
+
+/* The points in parentheses */
+.points {
     color: #e65800;
     font-weight: normal; /* Or bold, if you prefer */
-  }
-  
-  /* The description is justified */
-  .activity-description {
+}
+
+/* The description is justified */
+.activity-description {
     margin-top: 0.5rem;
     text-align: justify; /* Key: justify the text */
     color: #333;         /* A dark gray text color */
     line-height: 1.5;
-  }
-  
-  /* The three-dots menu icon on the right */
-  .menu-icon {
-    margin-left: auto; /* push this icon to the far right */
-  }
-  
-  /* Highlight the selected item in the modal */
-.custom-modal .question-item.highlighted {
-    background-color: #B84C20;
-    border-color: var(--primary-color);
-    color: white;
 }
 
-/* Style for the item description dropdown */
-.item-description-dropdown {
-    background-color: var(--light-bg);
-    border: 1px solid var(--primary-color);
-    border-radius: 10px;
-    padding: 10px;
-    margin: 5px 0 10px 0;
-    color: var(--primary-color);
-    font-size: 14px;
+/* The three-dots menu icon on the right */
+.menu-icon {
+    margin-left: auto; /* push this icon to the far right */
+}
+
+
+/* Responsive design */
+  
+@media (max-width: 768px) {
+    .create-new-activity-container h3{
+        font-size: 1.4rem;
+    }
+
+    .create-new-activity-container .class-id{
+        font-size: 1rem;
+    }
+
+    .create-new-activity-button {
+        font-size: 0.8rem;
+        padding: 8px 17px;
+    }
+
+    .sort-container span{
+        font-size: 0.9rem;
+    }
+
+    .sort-container button{
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 425px) {
+    .create-new-activity-container h3{
+        font-size: 1.1rem;
+        margin-left: -10px;
+    }
+
+    .create-new-activity-container .class-id{
+        font-size: 0.9rem;
+    }
+
+    .create-new-activity-button {
+        font-size: 0.7rem;
+        padding: 5px 8px;
+        margin-right: -10px;
+    }
+
+    .sort-container .sort-content{
+        width: 20rem;
+    }
+
+    .sort-container span{
+        font-size: 0.8rem;
+    }
+
+    .sort-container button{
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 375px) {
+
+    .sort-container .sort-content{
+        width: 18rem;
+    }
 }

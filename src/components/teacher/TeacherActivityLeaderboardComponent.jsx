@@ -43,33 +43,25 @@ const TeacherActivityLeaderboardComponent = () => {
   }, [actID]);
 
   return (
-    <div className="leaderboard-body">
+    <div className="table-body">
       <TeacherAMNavigationBarComponent />
-      <div className="leaderboard-container">
-        <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Leaderboard</h1>
-
-          {/* Refresh Button */}
-          <div className="d-flex gap-2 mb-3">
-            <button className="btn btn-info" onClick={fetchLeaderboard}>
-              Refresh
-            </button>
-          </div>
+      <div className="table-container">
+        <h1 className="table-title">Leaderboard <i className="bi bi-arrow-clockwise" onClick={fetchLeaderboard}></i></h1>
 
           {loading ? (
-            <p>Loading students...</p>
+            <p className="text-center">Loading students...</p>
           ) : (
-            <table>
+            <table className="table-content">
               <thead>
                 <tr>
-                  <th className="leaderboard-column-titles">Student Name</th>
-                  <th className="leaderboard-column-titles">Program</th>
-                  <th className="leaderboard-column-titles">Score</th>
-                  <th className="leaderboard-column-titles">Time Spent</th>
-                  <th className="leaderboard-column-titles">Rank</th>
+                  <th className="table-column-titles">Student Name</th>
+                  <th className="table-column-titles">Program</th>
+                  <th className="table-column-titles">Score</th>
+                  <th className="table-column-titles">Time Spent</th>
+                  <th className="table-column-titles">Rank</th>
                 </tr>
               </thead>
-              <tbody className="leaderboard-students">
+              <tbody className="table-column-students">
                 {leaderboard.length > 0 ? (
                   leaderboard.map((student, index) => (
                     <LeaderboardItem
@@ -94,10 +86,9 @@ const TeacherActivityLeaderboardComponent = () => {
           )}
         </div>
       </div>
-    </div>
   );
 };
-
+           
 const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }) => {
   const defaultProfileImage = "/src/assets/noy.png";
   const imageToShow =
@@ -106,10 +97,8 @@ const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }
   return (
     <tr>
       <td>
-        <div className="avatar-name">
-          <div className="avatar">
-            <img src={imageToShow} alt="Avatar" className="avatar-image" />
-          </div>
+        <div className="avatar">
+          <img src={imageToShow} alt="Avatar" className="avatar-image" />
           <span className="student-name">{name}</span>
         </div>
       </td>

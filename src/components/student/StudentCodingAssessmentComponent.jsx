@@ -134,6 +134,9 @@ export const StudentCodingAssessmentComponent = () => {
     return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
   };
 
+  // For disabled state when submitting
+  const [isDisabled, setIsDisabled] = useState(false);
+
   // --- Listen for submission events from other tabs ---
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -789,7 +792,10 @@ export const StudentCodingAssessmentComponent = () => {
   };
   
   const handleSubmitAllAndFinish = async () => {
-    if (isSubmitted) return;
+    if (isSubmitted || isDisabled) return; // Prevent multiple clicks
+
+    setIsDisabled(true); // Disable button immediately
+
     let totalTC = 0;
     let correctTC = 0;
     items.forEach(it => {
@@ -798,7 +804,7 @@ export const StudentCodingAssessmentComponent = () => {
         const itemRes = testCaseResults[it.itemID] || {};
         it.testCases.forEach(tc => {
           const r = itemRes[tc.testCaseID];
-          if (r && r.latestPass === true) correctTC++;
+          if (r && r.lockedPass === true) correctTC++;
         });
       }
     });
@@ -819,6 +825,8 @@ export const StudentCodingAssessmentComponent = () => {
     await finalizeSubmissionHandler(overallTimeSpent);
     setShowFinishAttempt(false);
     setShowSubmit(true);
+
+    console.log("Submitted!");
   };
 
   const handleDownloadFiles = async () => {
@@ -838,26 +846,26 @@ export const StudentCodingAssessmentComponent = () => {
 
   return (
     <>
-      <Navbar expand='lg' className='assessment-navbar-top'>
-        <a href='#' onClick={() => navigate(`/student/class/${classID}/activity`)}>
-          <i className='bi bi-arrow-left-circle'></i>
-        </a>
+      <Navbar className='profile-playground-navbar'>
+        <a href='#'><i className='bi bi-arrow-left-circle' onClick={() => navigate(`/student/class/${classID}/activity`)}></i></a>
         <p>Back to previous page</p>
-        <div className='assessment-navbar'>
-          <span className='ping'>23 ms</span>
-          <a href='#'><i className='bi bi-moon'></i></a>
+
+        <div className='right-navbar'>
+            <span className='ping'>20 ms</span>
+            <a href='#'><i className='bi bi-moon'></i></a>
         </div>
       </Navbar>
 
       <div className='container-fluid assessment-content'>
         <Row className='g-3'>
           <Col>
-            <div style={{ marginBottom: '1rem', fontWeight: 'bold' }}>
+            <div className='assessment-time'>
               Time Left: {formatTimeLeft(timeLeft)}
             </div>
             <div className='description-item'>
               {items.map((item, idx) => {
                 const isOpen = expandedItem === item.itemID;
+                
                 return (
                   <div key={item.itemID}>
                     <div className='container item' onClick={() => toggleItem(item.itemID)}>
@@ -880,65 +888,70 @@ export const StudentCodingAssessmentComponent = () => {
           <Col xs={7} className='col-compiler'>
             <div className='compiler-container'>
               <div className='compiler-header'>
-                <Row>
-                  <Col sm={10} className='compiler-left-corner'>
-                    <Tabs activeKey={activeFileId} id='dynamic-file-tabs' onSelect={handleTabSelect}>
-                      {files.map(file => (
-                        <Tab
-                          key={file.id}
-                          eventKey={file.id}
-                          title={
-                            <div 
-                              className={`d-flex align-items-center file-tab ${file.id === activeFileId ? 'active-tab' : ''}`}
-                              style={ file.id === activeFileId ? { borderBottom: '2px solid #007bff' } : {} }
-                            >
-                              <span>{`${file.fileName}.${file.extension}`}</span>
-                              {files.length > 1 && (
-                                <Button variant='link' size='sm'
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteFile(file.id); }}
-                                  title='Delete file'>
-                                  <FontAwesomeIcon icon={faTimes} color='red' />
+                <div className='left-corner'>
+                  <Tabs activeKey={activeFileId} id='dynamic-file-tabs' onSelect={handleTabSelect}>
+                    {files.map(file => (
+                      <Tab
+                        key={file.id}
+                        eventKey={file.id}
+                        title={
+                          <div 
+                            className={`d-flex align-items-center ${file.id === activeFileId ? 'active-tab' : ''}`}
+                          >
+                            <span>{`${file.fileName}.${file.extension}`}</span>
+                            {files.length > 1 && (
+                                <Button
+                                  className='tab-close-button'
+                                  variant="link"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteFile(file.id);
+                                  }}
+                                  title="Delete file"
+                                >
+                                  <FontAwesomeIcon icon={faTimes} color="gray" />
                                 </Button>
                               )}
-                            </div>
-                          }
-                        />
-                      ))}
-                    </Tabs>
-                    <Button variant='link' style={{ textDecoration: 'none' }} onClick={openAddFileModal} title='Add File'>
-                      <FontAwesomeIcon icon={faPlusSquare} />
-                    </Button>
-                    <Button variant='link' style={{ textDecoration: 'none' }} onClick={openEditFileModal} title='Edit File'>
-                      <i className='bi bi-pencil'></i>
-                    </Button>
-                  </Col>
-                  <Col sm={1} className='compiler-right-corner'>
-                    <DropdownButton className='compiler-dropdown' id='language-dropdown' size='sm'
-                      title={
-                        <>
-                          <img src={selectedLanguage.imgSrc} style={{ width: '17px', marginRight: '8px' }} alt='lang-icon' />
-                          {selectedLanguage.name}
-                        </>
-                      }
-                      onSelect={handleSelectLanguage}>
-                      {programmingLanguages.map(lang => (
-                        <Dropdown.Item eventKey={lang.progLangName} key={lang.progLangID}>
-                          {languageIconMap[lang.progLangName] && (
-                            <img src={languageIconMap[lang.progLangName]} alt='' style={{ width: '17px', marginRight: '8px' }} />
-                          )}
-                          {lang.progLangName}
-                        </Dropdown.Item>
-                      ))}
-                    </DropdownButton>
-                  </Col>
-                </Row>
+                          </div>
+                        }
+                      />
+                    ))}
+                  </Tabs>
+                  <Button className='plus-sqaure-icon' variant='transparent' onClick={openAddFileModal}>
+                    <FontAwesomeIcon icon={faPlusSquare} size="lg" />
+                  </Button>
+
+                  <Button className='pencil-icon' variant='transparent' onClick={openEditFileModal} title='Edit File'>
+                    <i className='bi bi-pencil'></i>
+                  </Button>
+                </div>
+
+                <div className='right-corner'>
+                  <DropdownButton className='compiler-dropdown' id='language-dropdown' size='sm'
+                    title={
+                      <>
+                        <img src={selectedLanguage.imgSrc} style={{ width: '17px', marginRight: '8px' }} alt='lang-icon' />
+                        {selectedLanguage.name}
+                      </>
+                    }
+                    onSelect={handleSelectLanguage}>
+                    {programmingLanguages.map(lang => (
+                      <Dropdown.Item eventKey={lang.progLangName} key={lang.progLangID}>
+                        {languageIconMap[lang.progLangName] && (
+                          <img src={languageIconMap[lang.progLangName]} alt='' style={{ width: '17px', marginRight: '8px' }} />
+                        )}
+                        {lang.progLangName}
+                      </Dropdown.Item>
+                    ))}
+                  </DropdownButton>
+                </div>
                 <div className='compiler-header-border'></div>
               </div>
 
-              <div style={{ padding: '1rem', minHeight: '300px' }}>
+              <div>
                 <textarea
                   className='code-editor w-100'
-                  style={{ height: '400px' }}
                   value={activeFile?.content || ''}
                   onChange={(e) => !isSubmitted && !timeExpired && handleFileChange(e.target.value)}
                   placeholder='Write your code here...'
@@ -966,12 +979,6 @@ export const StudentCodingAssessmentComponent = () => {
                       Check Code
                     </>
                   )}
-                </Button>
-                <Button variant='link' onClick={openAddFileModal}>
-                  <FontAwesomeIcon icon={faPlusSquare} />
-                </Button>
-                <Button variant='link' onClick={handleDownloadFiles}>
-                  <i className='bi bi-download'></i>
                 </Button>
               </div>
             </div>
@@ -1023,13 +1030,15 @@ export const StudentCodingAssessmentComponent = () => {
                     <p>Total Activity Score: {computeTotalScore()}/{maxPoints}</p>
                     {items.map((item, idx) => (
                       <div key={item.itemID} className='item-summary' onClick={() => toggleSummaryItem(item.itemID)} style={{ cursor: 'pointer' }}>
-                        <p>{`Item ${idx + 1}: ${item.itemName}`}</p>
-                        <p>{item.itemDesc} | <em>{item.itemType}</em></p>
-                        <p>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</p>
+                        <p className='item-name'>{`Item ${idx + 1}: ${item.itemName}`}</p>
+                        <p>{item.itemDesc} <br/> | <em>{item.itemType}</em></p>
+                        <p className='item-score'>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</p>
                       </div>
                     ))}
-                    <div className='submit-finish'>
-                      <Button onClick={handleSubmitAllAndFinish}>Submit all and Finish</Button>
+                    <div className='submit-finish'> 
+                      <Button onClick={handleSubmitAllAndFinish} disabled={isDisabled}>
+                        {isDisabled ? "Submitting..." : "Submit all and Finish"}
+                      </Button>
                     </div>
                   </Modal.Body>
                 </Modal>
@@ -1099,13 +1108,14 @@ export const StudentCodingAssessmentComponent = () => {
                     else if (r.latestPass === false) passFail = 'fail';
 
                     return (
-                      <div key={tc.testCaseID} className='test-case'>
+                      <>
+                      <div key={tc.testCaseID}>
                         <div onClick={() => 
                           setExpandedTestCases(prev => ({ 
                             ...prev, 
                             [tc.testCaseID]: !prev[tc.testCaseID] 
-                          }))} 
-                          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                          }))}
+                          className='test-case'>
                           <Button style={{
                             width: '25px',
                             height: '25px',
@@ -1125,23 +1135,25 @@ export const StudentCodingAssessmentComponent = () => {
                           <i className='bi bi-play-circle' style={{ cursor: 'pointer', marginLeft: 'auto' }}
                             onClick={(e) => { e.stopPropagation(); runSingleTestCase(tc, false); }}></i>
                         </div>
-                        {expandedTestCases[tc.testCaseID] && (
-                          <div className='test-case-details' style={{ paddingLeft: '35px' }}>
-                            {tc.isHidden 
-                              ? <p>This test case is hidden</p>
-                              : (
-                                <>
-                                  <p>Your Output: {r.latestOutput || '(none)'}</p>
-                                  <p>Expected Output: {tc.expectedOutput}</p>
-                                  <p>
-                                    Points: {finalScorePolicy === 'highest_score' ? (r.bestPoints || 0) : (r.latestPoints || 0)}/{tc.testCasePoints}
-                                  </p>
-                                </>
-                              )
-                            }
-                          </div>
-                        )}
                       </div>
+                      
+                      {expandedTestCases[tc.testCaseID] && (
+                        <div className='test-case-details'>
+                          {tc.isHidden 
+                            ? <p>This test case is hidden</p>
+                            : (
+                              <>
+                                <p>Your Output: {r.latestOutput || 'none'}</p>
+                                <p>Expected Output: {tc.expectedOutput}</p>
+                                <p>
+                                  Points: {finalScorePolicy === 'highest_score' ? (r.bestPoints || 0) : (r.latestPoints || 0)}/{tc.testCasePoints}
+                                </p>
+                              </>
+                            )
+                          }
+                        </div>
+                      )}
+                      </>
                     );
                   })
                 )}

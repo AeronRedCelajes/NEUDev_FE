@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../style/signup.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { register } from "./api/API.js";
 
 export const SignUpStudent = () => {
@@ -16,6 +16,9 @@ export const SignUpStudent = () => {
   // New states to toggle password visibility
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  //disabling the sign up button
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   // Helper function to format student number as "xx-xxxxx-xxx"
   const formatStudentNumber = (value) => {
@@ -39,25 +42,32 @@ export const SignUpStudent = () => {
   const handleSignUp = async (e) => {
     e.preventDefault();
 
+    if (isSigningUp) return;
+    setIsSigningUp(true);
+
     if (!email.endsWith("@neu.edu.ph")) {
       alert("Invalid email format! Use '@neu.edu.ph'.");
+      setIsSigningUp(false);
       return;
     }
 
     // Check for valid student number format (xx-xxxxx-xxx)
     if (!/^\d{2}-\d{5}-\d{3}$/.test(student_num)) {
       alert("Invalid Student Number format! Example: 21-12345-678");
+      setIsSigningUp(false);
       return;
     }
 
     // Check that password is at least 8 characters
     if (password.length < 8) {
       alert("Password must be at least 8 characters.");
+      setIsSigningUp(false);
       return;
     }
 
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
+      setIsSigningUp(false);
       return;
     }
 
@@ -70,10 +80,12 @@ export const SignUpStudent = () => {
         navigate("/signin");
       } else {
         alert(response.message || "Registration unsuccessful. Please try again.");
+        setIsSigningUp(false);
       }
     } catch (error) {
       console.error("Registration error:", error);
       alert("An error occurred. Please try again.");
+      setIsSigningUp(false);
     }
   };
 
@@ -220,8 +232,8 @@ export const SignUpStudent = () => {
               </div>
             </div>
 
-            <button type="submit" className="custom-button w-100">
-              Sign Up
+            <button disabled={isSigningUp} type="submit" className="sign-custom-button w-100 mt-3">
+              {isSigningUp ? "Signing Up..." : "Sign Up"}
             </button>
 
             <p className="text-center mt-3">

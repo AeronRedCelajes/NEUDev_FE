@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Modal, Button, Form } from 'react-bootstrap';
-import "../../style/teacher/cmActivities.css"; 
+import "../../style/teacher/activityItems.css"; 
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
 import { getActivityItemsByTeacher, getCurrentUserKey, getActivityProgress  } from "../api/API";
 
@@ -183,168 +183,198 @@ const TeacherActivityItemsComponent = () => {
   };
 
   return (
-    <div className="activity-items">
+    <>
       <TeacherAMNavigationBarComponent />
+      <div className="activity-items">
 
-      {activity && (
-        <ActivityHeader 
-          name={activity.name} 
-          description={activity.description}
-          actItemPoints={activity.maxPoints}
-        />
-      )}
-
-      {/* Refresh Button */}
-      <div style={{ margin: '10px 0', textAlign: 'right' }}>
-        <Button variant="secondary" onClick={fetchActivityData}>
-          Refresh Data
-        </Button>
-      </div>
-
-      <TableComponent items={items} loading={loading} onRowClick={handleRowClick} />
-
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button
-          className="try-answer-button active"
-          onClick={handleTryTest}
-        >
-          ✏️ Try Answering the Activity
-        </button>
-        {/* Optionally, you can show a small indicator if progress exists */}
-        {checkTeacherProgressStatus() === "in progress" && (
-          <span style={{ marginLeft: '10px', color: '#007bff', fontWeight: 'bold' }}>
-            In Progress
-          </span>
+        {activity && (
+          <ActivityHeader 
+            name={activity.name} 
+            description={activity.description}
+            actItemPoints={activity.maxPoints}
+          />
         )}
-        {checkTeacherProgressStatus() === "expired" && (
-          <span style={{ marginLeft: '10px', color: 'red', fontWeight: 'bold' }}>
-            Test Completed
-          </span>
-        )}
-      </div>
 
-      {/* Modal to show item details */}
-      <Modal
-        show={showDetailsModal}
-        onHide={() => setShowDetailsModal(false)}
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Item Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedItem ? (
-            <div>
-              <h5>{selectedItem.itemName}</h5>
-              <p>
-                <strong>Description:</strong> {selectedItem.itemDesc}
-              </p>
-              <p>
-                <strong>Difficulty:</strong> {selectedItem.itemDifficulty}
-              </p>
-              <p>
-                <strong>Points:</strong> {selectedItem.actItemPoints}
-              </p>
-              <p>
-                <strong>Programming Languages:</strong>{" "}
-                {selectedItem.programming_languages && selectedItem.programming_languages.length > 0 ? (
-                  selectedItem.programming_languages.map((lang, index) => {
-                    const mapping = programmingLanguageMap[lang.progLangID] || { name: lang.progLangName, image: null };
-                    return (
-                      <span key={lang.progLangID}>
-                        {mapping.image ? (
-                          <>
-                            <img 
-                              src={mapping.image} 
-                              alt={`${mapping.name} Icon`} 
-                              style={{ width: "20px", marginRight: "5px" }}
-                            />
-                            {mapping.name}
-                          </>
-                        ) : (
-                          mapping.name
-                        )}
-                        {index < selectedItem.programming_languages.length - 1 ? ", " : ""}
-                      </span>
-                    );
-                  })
-                ) : (
-                  "-"
-                )}
-              </p>
-              <h6>Test Cases (added after each successful run):</h6>
-              {selectedItem.testCases && selectedItem.testCases.length > 0 ? (
-                <Form.Group className="mb-3">
-                  {selectedItem.testCases.map((tc, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        border: "1px solid #ddd",
-                        padding: "10px",
-                        marginBottom: "10px"
-                      }}
-                    >
-                      <strong>Test Case {index + 1}:</strong>
-                      <br />
-                      <Form.Label style={{ marginTop: "5px" }}>Expected Output:</Form.Label>
-                      <AutoResizeTextarea
-                        readOnly
-                        value={tc.expectedOutput}
-                        style={{ marginBottom: "5px" }}
-                      />
-                      <Form.Label>Points:</Form.Label>
-                      <Form.Control
-                        type="number"
-                        value={tc.testCasePoints ?? ""}
-                        readOnly
-                      />
-                      <Form.Check
-                        type="checkbox"
-                        label="Hidden"
-                        checked={tc.isHidden || false}
-                        readOnly
-                        style={{ marginTop: "5px" }}
-                      />
-                    </div>
-                  ))}
-                </Form.Group>
-              ) : (
-                <p>No test cases available.</p>
-              )}
-            </div>
-          ) : (
-            <p>No item selected.</p>
+        {/* Refresh Button */}
+        <div style={{ margin: '10px 0', textAlign: 'right' }}>
+          <Button variant="secondary" onClick={fetchActivityData}>
+            Refresh Data
+          </Button>
+        </div>
+
+        <TableComponent items={items} loading={loading} onRowClick={handleRowClick}/>
+
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <button
+            className="try-answer-button active"
+            onClick={handleTryTest}
+          >
+            ✏️ Try Answering the Activity
+          </button>
+          {/* Optionally, you can show a small indicator if progress exists */}
+          {checkTeacherProgressStatus() === "in progress" && (
+            <span style={{ marginLeft: '10px', color: '#007bff', fontWeight: 'bold' }}>
+              In Progress
+            </span>
           )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          {checkTeacherProgressStatus() === "expired" && (
+            <span style={{ marginLeft: '10px', color: 'red', fontWeight: 'bold' }}>
+              Test Completed
+            </span>
+          )}
+        </div>
 
-      {/* Confirmation Modal for Test Start / Resume / Expired */}
-      <Modal
-        show={showConfirmModal}
-        onHide={handleCancelConfirm}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>{confirmModalTitle}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>{confirmModalMessage}</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCancelConfirm}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleConfirm}>
-            Yes, proceed
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
+        {/* Modal to show item details */}
+        <Modal
+          className='modal-design'
+          show={showDetailsModal}
+          onHide={() => setShowDetailsModal(false)}
+          size="md"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Item Details</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+
+            {selectedItem ? (
+              <div>
+                <Form.Group className="mb-3">
+                  <Form.Label>Item Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={selectedItem.itemName}
+                    readOnly
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={selectedItem.itemDesc}
+                    readOnly
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Difficulty</Form.Label>
+                  <Form.Control
+                    value={selectedItem.itemDifficulty}
+                    readOnly
+                  >
+                  </Form.Control>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Item Points</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={selectedItem.actItemPoints}
+                    readOnly
+                  />
+                </Form.Group>
+                <p>
+                  Programming Languages:{" "}
+                  {selectedItem.programming_languages && selectedItem.programming_languages.length > 0 ? (
+                    selectedItem.programming_languages.map((lang, index) => {
+                      const mapping = programmingLanguageMap[lang.progLangID] || { name: lang.progLangName, image: null };
+                      return (
+                        <span key={lang.progLangID}>
+                          {mapping.image ? (
+                            <>
+                              <img 
+                                src={mapping.image} 
+                                alt={`${mapping.name} Icon`} 
+                                style={{ width: "20px", marginRight: "5px" }}
+                              />
+                              {mapping.name}
+                            </>
+                          ) : (
+                            mapping.name
+                          )}
+                          {index < selectedItem.programming_languages.length - 1 ? ", " : ""}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    "-"
+                  )}
+                </p>
+                <h6>Test Cases (added after each successful run):</h6>
+                {selectedItem.testCases && selectedItem.testCases.length > 0 ? (
+                  <Form.Group className="mb-3">
+                    {selectedItem.testCases.map((tc, index) => (
+                      <div
+                        key={index}
+                        className="test-case-item"
+                      >
+                        <strong>Test Case {index + 1}:</strong>
+                        <br />
+                        <Form.Label style={{ marginTop: "5px" }}>Expected Output:</Form.Label>
+                        <AutoResizeTextarea
+                          readOnly
+                          value={tc.expectedOutput}
+                          style={{ marginBottom: "5px" }}
+                        />
+                        <Form.Label>Points:</Form.Label>
+                        <Form.Control
+                          type="number"
+                          value={tc.testCasePoints ?? ""}
+                          readOnly
+                        />
+                        <Form.Check
+                          type="checkbox"
+                          label="Hidden"
+                          checked={tc.isHidden || false}
+                          readOnly
+                          style={{ marginTop: "5px" }}
+                        />
+                      </div>
+                    ))}
+                  </Form.Group>
+                ) : (
+                  <p className='text-center'>No test cases available.</p>
+                )}
+              </div>
+            ) : (
+              <p className='text-center'>No item selected.</p>
+            )}
+            
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Confirmation Modal for Test Start / Resume / Expired */}
+        <Modal
+          className='modal-design'
+          show={showConfirmModal}
+          onHide={handleCancelConfirm}
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>{confirmModalTitle}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>{confirmModalMessage}</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCancelConfirm}>
+              Cancel
+            </Button>
+            <Button className='success-button' onClick={handleConfirm}>
+              Yes, proceed
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
+    </>
   );
 };
 
@@ -379,7 +409,7 @@ const TableComponent = ({ items, loading, onRowClick }) => {
             <th>Avg. Student Time Spent</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody style={{cursor: "pointer"}}>
           {loading ? (
             <tr>
               <td colSpan="6" className="loading-text">Loading...</td>

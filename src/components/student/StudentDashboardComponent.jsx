@@ -203,7 +203,7 @@ export const StudentDashboardComponent = () => {
             <span className='student-badge'>Student</span>
 
             {/* [CHANGED] Notification Bell */}
-            <div className='notification-bell' style={{ position: 'relative', marginRight: '20px' }}>
+            <div className='notification-bell'>
               <FontAwesomeIcon
                 icon={faBell}
                 size='lg'
@@ -211,92 +211,68 @@ export const StudentDashboardComponent = () => {
                 onClick={handleBellClick}
               />
               {unreadCount > 0 && (
-                <Badge bg='danger' pill style={{
-                  position: 'absolute',
-                  top: '-5px',
-                  right: '-5px'
-                }}>
+                <Badge bg='danger' pill className='notification-badge'>
                   {unreadCount}
                 </Badge>
               )}
               {/* Dropdown Panel */}
               {showNotifications && (
-                <div
-                  className='notification-dropdown'
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '30px',
-                    width: '300px',
-                    background: '#fff',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                    borderRadius: '4px',
-                    zIndex: 9999
-                  }}
-                >
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: '10px' }}>No Notifications</div>
-                  ) : (
-                    notifications.map((notif) => {
-                      // Parse notif.data from string to object
-                      const parsedData = JSON.parse(notif.data || '{}');
+                <div className='notification-dropdown'>
+                  <div>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: '10px' }}>No Notifications</div>
+                    ) : (
+                      notifications.map((notif) => {
+                        // Parse notif.data from string to object
+                        const parsedData = JSON.parse(notif.data || '{}');
 
-                      // [CHANGED] A function to handle deleting the notification
-                      const handleDelete = async (e) => {
-                        e.stopPropagation(); // prevent parent onClick from firing
-                        const resp = await deleteNotification(notif.id);
-                        if (!resp.error) {
-                          // Remove this notification from state
-                          const updatedList = notifications.filter(n => n.id !== notif.id);
-                          setNotifications(updatedList);
+                        // [CHANGED] A function to handle deleting the notification
+                        const handleDelete = async (e) => {
+                          e.stopPropagation(); // prevent parent onClick from firing
+                          const resp = await deleteNotification(notif.id);
+                          if (!resp.error) {
+                            // Remove this notification from state
+                            const updatedList = notifications.filter(n => n.id !== notif.id);
+                            setNotifications(updatedList);
 
-                          // Recount unread
-                          const unread = updatedList.filter(n => !n.read_at).length;
-                          setUnreadCount(unread);
-                        } else {
-                          console.error('Failed to delete notification:', resp.error);
-                        }
-                      };
+                            // Recount unread
+                            const unread = updatedList.filter(n => !n.read_at).length;
+                            setUnreadCount(unread);
+                          } else {
+                            console.error('Failed to delete notification:', resp.error);
+                          }
+                        };
 
-                      return (
-                        <div
-                          key={notif.id}
-                          style={{
-                            padding: '10px',
-                            borderBottom: '1px solid #ccc',
-                            backgroundColor: notif.isRead ? '#f9f9f9' : '#eaf3ff',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start'
-                          }}
-                          onClick={() => handleNotificationClick(notif.id)}
-                        >
-                          <div>
-                            <div><strong>{notif.type}</strong></div>
-                            <div>{parsedData.message}</div>
-                            <small style={{ color: '#666' }}>
-                              {new Date(notif.created_at).toLocaleString()}
-                            </small>
+                        return (
+                          <div
+                            key={notif.id}
+                            className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
+                            onClick={() => handleNotificationClick(notif.id)}
+                          >
+                            <div>
+                              <div><strong>{notif.type}</strong></div>
+                              <div>{parsedData.message}</div>
+                              <small className={`notification-item-dt ${notif.isRead ? 'read' : 'unread'}`}>
+                                {new Date(notif.created_at).toLocaleString()}
+                              </small>
+                            </div>
+
+                            {/* [CHANGED] Delete (X) icon/button */}
+                            <div onClick={handleDelete} style={{ marginLeft: '8px', cursor: 'pointer' }}>
+                              <FontAwesomeIcon icon={faTimes} />
+                            </div>
                           </div>
-
-                          {/* [CHANGED] Delete (X) icon/button */}
-                          <div onClick={handleDelete} style={{ marginLeft: '8px', cursor: 'pointer' }}>
-                            <FontAwesomeIcon icon={faTimes} />
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               )}
             </div>
             {/* END Notification Bell */}
 
             <Dropdown align='end'>
-              <Dropdown.Toggle variant='transparent' className='profile-dropdown'>
+              <Dropdown.Toggle variant='transparent' className='dropdown-desgin'>
                 <img src={profileImage} className='profile-image' alt="Profile" />
               </Dropdown.Toggle>
               <Dropdown.Menu>
@@ -334,7 +310,7 @@ export const StudentDashboardComponent = () => {
               ))
             ) : (
               <div className="no-classes-container">
-                <p>No enrolled classes yet.</p>
+                <p className='text-center'>No enrolled classes yet.</p>
                 <Button variant='transparent' className='join-class' onClick={() => setShowJoinClass(true)}>
                   + Join a Class
                 </Button>

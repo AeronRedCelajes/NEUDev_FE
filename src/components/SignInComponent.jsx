@@ -10,15 +10,22 @@ export const SignInComponent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
 
+  //disabling the sign up button
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     setError(null);
+
+    if (isSigningIn) return;
+    setIsSigningIn(true);
 
     try {
       const response = await login(email, password);
 
       if (!response.access_token) {
         setError(response.message || "Invalid email or password.");
+        setIsSigningIn(false);
         return;
       } else {
         alert("LogIn Successful!");
@@ -37,6 +44,9 @@ export const SignInComponent = () => {
     } catch (error) {
       console.error("Login error:", error);
       setError("An error occurred. Please try again.");
+      setIsSigningIn(false);
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -98,8 +108,8 @@ export const SignInComponent = () => {
 
             <br />
 
-            <button type="submit" className="w-100 custom-button">
-              Sign In
+            <button disabled={isSigningIn} type="submit" className="w-100 sign-custom-button">
+              {isSigningIn ? "Signing In..." : "Sign In"}
             </button>
 
             <p className="text-center mt-3">

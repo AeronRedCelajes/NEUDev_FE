@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Row, Tabs, Col, Tab, Modal, Button } from 'react-bootstrap';
 import StudentCMNavigationBarComponent from './StudentCMNavigationBarComponent';
-import "../../style/teacher/cmActivities.css";
-import { getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent, getCurrentUserKey } from "../api/API";
+import "../../style/student/class.css";
+import { getClassInfo, getStudentActivities, finalizeSubmission, getActivityProgress, getActivityItemsByStudent} from "../api/API";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCaretDown, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
@@ -39,7 +39,8 @@ const Timer = ({ openDate, closeDate }) => {
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const formatted = `${hours.toString().padStart(2, '0')}:${minutes
+          .toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         setTimeLeft(formatted);
         setIsTimeLow(diff <= 10 * 60 * 1000);
       }
@@ -59,9 +60,6 @@ export const StudentClassComponent = () => {
   const navigate = useNavigate();
   const { classID } = useParams();
 
-  // Retrieve current user ID from session data.
-  const userID = getCurrentUserKey() || 'default';
-
   const [contentKey, setContentKey] = useState('ongoing');
   const [ongoingActivities, setOngoingActivities] = useState([]);
   const [completedActivities, setCompletedActivities] = useState([]);
@@ -76,6 +74,20 @@ export const StudentClassComponent = () => {
   const [expiredAttempt, setExpiredAttempt] = useState(false);
   const [sortField, setSortField] = useState("openDate");
   const [sortOrder, setSortOrder] = useState("asc");
+
+  // -------------------- Lifecycle: Fetch Class Info --------------------
+  useEffect(() => {
+    async function fetchClassInfo() {
+      const response = await getClassInfo(classID);
+      if (!response.error) {
+        setClassInfo(response);
+      } else {
+        console.error("❌ Failed to fetch class info:", response.error);
+      }
+    }
+    fetchClassInfo();
+  }, [classID]);
+
 
   // Fetch the latest activities every 5 seconds
   useEffect(() => {
@@ -122,8 +134,7 @@ export const StudentClassComponent = () => {
   const syncProgressFromServer = async (actID) => {
     try {
       const progressResponse = await getActivityProgress(actID);
-      // Update the key to include the userID.
-      const key = `activityState_${actID}_${userID}`;
+      const key = `activityState_${actID}`;
       if (
         progressResponse &&
         progressResponse.progress &&
@@ -140,8 +151,7 @@ export const StudentClassComponent = () => {
             ...parsedLocal,
             ...serverProgress,
             endTime: parsedLocal.endTime, // retain local timer if already set
-            // Merge itemTimes using the new key.
-            draftItemTimes: parsedLocal.draftItemTimes || serverProgress.draftItemTimes
+            itemTimes: parsedLocal.itemTimes || serverProgress.itemTimes // merge itemTimes
           };
         } else {
           mergedProgress = serverProgress;
@@ -194,8 +204,7 @@ export const StudentClassComponent = () => {
 
   // Check local storage for progress info and return a formatted time if available
   const checkLocalStorageForActivity = (actID) => {
-    // Include the userID in the key here as well.
-    const key = `activityState_${actID}_${userID}`;
+    const key = `activityState_${actID}`;
     const saved = localStorage.getItem(key);
     if (!saved) {
       return null;
@@ -269,31 +278,44 @@ const handleActivityClick = async (activity) => {
     console.log("[handleActivityClick] Saved attempt expired. Initiating auto-submission.");
     setExpiredAttempt(true);
 
-    const key = `activityState_${activity.actID}_${userID}`;
+    const key = `activityState_${activity.actID}`;
     const saved = localStorage.getItem(key);
     if (saved) {
       const parsed = JSON.parse(saved);
       console.log("[handleActivityClick] Parsed saved state:", parsed);
 
-      // Convert actDuration to milliseconds.
+      // 2) Convert the actDuration string to ms so we can clamp final time
       const maxDurationMs = parseHHMMSStoMs(activity.actDuration);
 
-      // Ensure we have all items.
-      if (!activity.items || activity.items.length === 0) {
-        console.warn("[handleActivityClick] Activity items are missing. Fetching from API...");
-        const resp = await getActivityItemsByStudent(activity.actID);
-        if (resp && resp.items && resp.items.length > 0) {
-          activity.items = resp.items;
-        } else {
-          console.error("[handleActivityClick] No activity items found from API.");
-          setModalTitle("Submission Error");
-          setModalMessage("No valid submission items found. Please try reloading the page or contact support.");
-          setShowModal(true);
-          return;
+      // Get itemID from saved state or fallback
+      let itemID = parsed.selectedItem;
+      if (!itemID) {
+        // If items are missing, try fetching them
+        if (!activity.items || activity.items.length === 0) {
+          console.warn("[handleActivityClick] Activity items are missing. Fetching from API...");
+          const resp = await getActivityItemsByStudent(activity.actID);
+          if (resp && resp.items && resp.items.length > 0) {
+            activity.items = resp.items;
+          } else {
+            console.error("[handleActivityClick] No activity items found from API.");
+            setModalTitle("Submission Error");
+            setModalMessage("No valid submission item found. Please try reloading the page or contact support.");
+            setShowModal(true);
+            return;
+          }
         }
+        itemID = activity.items[0].itemID;
       }
 
-      // Grab the code from local storage (assuming overall activity code applies for every item).
+      if (!itemID) {
+        console.error("[handleActivityClick] No valid itemID found for auto-submission.");
+        setModalTitle("Submission Error");
+        setModalMessage("No valid submission item found. Please try reloading the page or contact support.");
+        setShowModal(true);
+        return;
+      }
+      
+      // Grab the code from local storage, if any
       let code = "";
       if (parsed.files && parsed.activeFileId !== undefined) {
         const fileObj = parsed.files[parsed.activeFileId];
@@ -302,33 +324,34 @@ const handleActivityClick = async (activity) => {
         }
       }
 
-      // Retrieve and parse test case results into an object.
-      let rawResults = parsed.draftTestCaseResults || parsed.testCaseResults || {};
-      if (typeof rawResults === "string") {
-        try {
-          rawResults = JSON.parse(rawResults);
-        } catch (e) {
-          rawResults = {};
-        }
-      }
-
-      // Calculate elapsed time (clamped by actDuration).
+      // 3) Calculate raw elapsed ms since the user started
       let rawElapsedMs = Date.now() - (parsed.startTime || Date.now());
       if (rawElapsedMs < 0) rawElapsedMs = 0;
+
+      // 4) Clamp timeSpent so it never exceeds activity actDuration
       const finalElapsedMs = Math.min(rawElapsedMs, maxDurationMs);
+
+      // 5) Convert to seconds for your finalizeSubmission API
       const timeSpentSeconds = Math.floor(finalElapsedMs / 1000);
 
-      // Build the submissions array for ALL items.
-      const submissions = activity.items.map((item) => ({
-        itemID: item.itemID,
-        codeSubmission: code,
-        score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
-        itemTimeSpent: timeSpentSeconds,
-        // Each item gets its own test case results from rawResults keyed by itemID.
-        testCaseResults: JSON.stringify(rawResults[item.itemID] || {}),
-        timeRemaining: parsed.draftTimeRemaining || null,
-        selectedLanguage: parsed.draftSelectedLanguage || null,
-      }));
+      // Build the submissions array
+      let submissions = [];
+      if (activity.items && activity.items.length > 0) {
+        submissions = activity.items.map((item) => ({
+          itemID: item.itemID,
+          codeSubmission: code,
+          score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
+          timeSpent: timeSpentSeconds
+        }));
+      } else {
+        // Fallback submission if no items loaded
+        submissions = [{
+          itemID: itemID,
+          codeSubmission: code,
+          score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
+          timeSpent: timeSpentSeconds
+        }];
+      }
 
       console.log("[handleActivityClick] Generated submissions array:", submissions);
       const submissionData = { submissions };
@@ -347,6 +370,7 @@ const handleActivityClick = async (activity) => {
       }
       localStorage.removeItem(key);
       console.log("[handleActivityClick] Removed localStorage key:", key);
+
     } else {
       console.log("[handleActivityClick] No saved attempt found in localStorage.");
       setModalTitle("Expired");
@@ -372,6 +396,158 @@ const handleActivityClick = async (activity) => {
   setShowTakeModal(true);
 };
 
+
+  // function parseHHMMSStoMs(durationStr) {
+  //   // durationStr example: "HH:MM:SS" = "00:01:00"
+  //   const [hh, mm, ss] = durationStr.split(":").map(Number);
+  //   const hoursInMs = (hh || 0) * 3600000;
+  //   const minsInMs = (mm || 0) * 60000;
+  //   const secsInMs = (ss || 0) * 1000;
+  //   return hoursInMs + minsInMs + secsInMs;
+  // }
+
+  // const handleActivityClick = async (activity) => {
+  //   console.log("[handleActivityClick] Activity clicked:", activity.actTitle, "ID:", activity.actID);
+  //   // Sync progress from DB before taking/resuming an activity.
+  //   await syncProgressFromServer(activity.actID);
+
+  //   const now = new Date();
+  //   const activityOpen = new Date(activity.openDate);
+  //   const activityClose = new Date(activity.closeDate);
+
+  //   if (activity.actAttempts > 0 && (activity.attemptsTaken || 0) >= activity.actAttempts) {
+  //     console.log("[handleActivityClick] Maximum attempts reached.");
+  //     setModalTitle("Maximum Attempts Reached");
+  //     setModalMessage("You have already taken the maximum number of attempts for this activity.");
+  //     setShowModal(true);
+  //     return;
+  //   }
+
+  //   if (now < activityOpen) {
+  //     console.log("[handleActivityClick] Activity not yet started.");
+  //     setModalTitle("Activity Not Yet Started");
+  //     setModalMessage("This activity is upcoming and will start on " + formatDateString(activity.openDate) + ".");
+  //     setShowModal(true);
+  //     return;
+  //   }
+
+  //   if (now > activityClose) {
+  //     console.log("[handleActivityClick] Activity finished.");
+  //     setModalTitle("Activity Finished");
+  //     setModalMessage("This activity is finished and can no longer be accessed.");
+  //     setShowModal(true);
+  //     return;
+  //   }
+
+  //   const timeLeftStr = checkLocalStorageForActivity(activity.actID);
+  //   console.log("[handleActivityClick] timeLeftStr:", timeLeftStr);
+    
+  //   if (timeLeftStr === "expired") {
+  //     console.log("[handleActivityClick] Saved attempt expired. Initiating auto-submission.");
+  //     setExpiredAttempt(true);
+  //     const key = `activityState_${activity.actID}`;
+  //     const saved = localStorage.getItem(key);
+  //     if (saved) {
+  //       const parsed = JSON.parse(saved);
+  //       console.log("[handleActivityClick] Parsed saved state:", parsed);
+        
+  //       // Try to get itemID from saved state
+  //       let itemID = parsed.selectedItem;
+  //       // If not available, check if the activity object has items loaded
+  //       if (!itemID) {
+  //         // If items are missing, fetch them from the API
+  //         if (!activity.items || activity.items.length === 0) {
+  //           console.warn("[handleActivityClick] Activity items are missing. Fetching from API...");
+  //           const resp = await getActivityItemsByStudent(activity.actID);
+  //           if (resp && resp.items && resp.items.length > 0) {
+  //             activity.items = resp.items;
+  //           } else {
+  //             console.error("[handleActivityClick] No activity items found from API.");
+  //             setModalTitle("Submission Error");
+  //             setModalMessage("No valid submission item found. Please try reloading the page or contact support.");
+  //             setShowModal(true);
+  //             return;
+  //           }
+  //         }
+  //         // Now try to fallback to the first item
+  //         itemID = activity.items[0].itemID;
+  //       }
+  //       if (!itemID) {
+  //         console.error("[handleActivityClick] No valid itemID found for auto-submission.");
+  //         setModalTitle("Submission Error");
+  //         setModalMessage("No valid submission item found. Please try reloading the page or contact support.");
+  //         setShowModal(true);
+  //         return;
+  //       }
+        
+  //       // Retrieve the code from the active file, if available.
+  //       let code = "";
+  //       if (parsed.files && parsed.activeFileId !== undefined) {
+  //         const fileObj = parsed.files[parsed.activeFileId];
+  //         if (fileObj) {
+  //           code = fileObj.content;
+  //         }
+  //       }
+        
+  //       // Build the submissions array.
+  //       let submissions = [];
+  //       if (activity.items && activity.items.length > 0) {
+  //         submissions = activity.items.map((item) => ({
+  //           itemID: item.itemID,
+  //           codeSubmission: code,
+  //           score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
+  //           timeSpent: Math.floor((Date.now() - (parsed.startTime || Date.now())) / 1000) || 0
+  //         }));
+  //       } else {
+  //         // Fallback submission if no items are loaded.
+  //         submissions = [{
+  //           itemID: itemID,
+  //           codeSubmission: code,
+  //           score: parsed.draftScore !== undefined ? parsed.draftScore : 0,
+  //           timeSpent: Math.floor((Date.now() - (parsed.startTime || Date.now())) / 1000) || 0
+  //         }];
+  //       }
+        
+  //       console.log("[handleActivityClick] Generated submissions array:", submissions);
+  //       const submissionData = { submissions };
+  //       console.log("[handleActivityClick] Final submission payload:", submissionData);
+        
+  //       // Call API to finalize submission.
+  //       const result = await finalizeSubmission(activity.actID, submissionData);
+  //       if (!result.error) {
+  //         console.log("[handleActivityClick] Auto-submission successful:", result);
+  //         setModalTitle("Time Expired - Attempt Submitted");
+  //         setModalMessage("Your allotted time for this activity has expired and your attempt has been submitted automatically.");
+  //       } else {
+  //         console.error("[handleActivityClick] Auto-submission error:", result.error, result.details);
+  //         setModalTitle("Submission Error");
+  //         setModalMessage("An error occurred while submitting your attempt automatically.");
+  //       }
+  //       localStorage.removeItem(key);
+  //       console.log("[handleActivityClick] Removed localStorage key:", key);
+  //     } else {
+  //       console.log("[handleActivityClick] No saved attempt found in localStorage.");
+  //       setModalTitle("Expired");
+  //       setModalMessage("No saved attempt found.");
+  //     }
+  //     setShowModal(true);
+  //     return;
+  //   } else if (timeLeftStr) {
+  //     console.log("[handleActivityClick] Valid saved attempt found. Resuming attempt.");
+  //     setIsResuming(true);
+  //     setResumeTimeLeft(timeLeftStr);
+  //     setExpiredAttempt(false);
+  //   } else {
+  //     console.log("[handleActivityClick] No saved attempt detected. Starting new attempt.");
+  //     setIsResuming(false);
+  //     setResumeTimeLeft("00:00:00");
+  //     setExpiredAttempt(false);
+  //   }
+    
+  //   setSelectedActivityForAssessment(activity);
+  //   setShowTakeModal(true);
+    
+  // };
 
   const renderLanguages = (languagesArray) => {
     if (!Array.isArray(languagesArray) || languagesArray.length === 0) {
@@ -421,12 +597,26 @@ const handleActivityClick = async (activity) => {
     navigate(`/student/class/${classID}/activity`);
   };
 
+   // -------------------- Class Info --------------------
+    const [classInfo, setClassInfo] = useState(null);
+
   return (
     <>
       <StudentCMNavigationBarComponent />
-      <div className='class-management'>
-        <div className='container class-content'>
-          <div style={{ margin: "20px 0" }}>
+      <div className="class-wrapper"></div>
+      <div className="class-info">
+        {/* Dynamic header using fetched classInfo */}
+        <h3>
+          {classInfo 
+            ? classInfo.className   // ✅ Correct syntax
+            : "Loading class..."}
+        </h3>
+
+      </div>
+      <div className='class-management-container'>
+        {/* Sorting Controls for Activities */}
+        <div className='sort-container'>
+          <div className='sort-content'>
             <span>Sort by: </span>
             <Button variant="link" onClick={handleSortByOpenDate}>
               Open Date{" "}
@@ -453,7 +643,9 @@ const handleActivityClick = async (activity) => {
               )}
             </Button>
           </div>
+        </div>
 
+        <div className='container class-content'>
           <Tabs defaultActiveKey={contentKey} id="tab" onSelect={(k) => setContentKey(k)} fill>
             <Tab eventKey="upcoming" title="Upcoming"></Tab>
             <Tab eventKey="ongoing" title="Ongoing"></Tab>
@@ -463,7 +655,7 @@ const handleActivityClick = async (activity) => {
           {contentKey === "upcoming" && (
             <div className='upcoming-class-activities'>
               {sortedUpcomingActivities.length === 0 ? (
-                <p>No upcoming activities found.</p>
+                <p className='text-center'>No upcoming activities found.</p>
               ) : (
                 sortedUpcomingActivities.map((activity) => {
                   const languages = activity.programmingLanguages || activity.programming_languages || [];
@@ -475,32 +667,32 @@ const handleActivityClick = async (activity) => {
                       style={{ cursor: "pointer" }}
                     >
                       <Row>
-                        <Col className='activity-details-column'>
+                        <Col lg={7} xl={7} xxl={7} className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>{activity.actTitle}</h3>
                             <p><strong>Teacher:</strong> {activity.teacherName}</p>
                             <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-check'></i>{" "}
                               Open Date: {formatDateString(activity.openDate)}
                             </p>
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-x'></i>{" "}
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div style={{ marginTop: "5px" }}>
+                            
+                            <div className='class-activity-info'>
+                              <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                              <br/>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Attempts: </strong>
                               {activity.actAttempts === 0 
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
@@ -508,19 +700,19 @@ const handleActivityClick = async (activity) => {
                         </Col>
                         <Col className='activity-stats'>
                           <div className='score-chart'>
-                            <h4>{activity.rank ?? "-"}</h4>
+                            <h5>{activity.rank ?? "-"}</h5>
                             <p>Rank</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>
+                            <h5>
                               {activity.overallScore !== null 
                                 ? `${activity.overallScore} / ${activity.maxPoints ?? "-"}` 
                                 : `- / ${activity.maxPoints ?? "-"}`}
-                            </h4>
+                            </h5>
                             <p>Overall Score</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>{activity.actDuration ? activity.actDuration : "-"}</h4>
+                            <h5>{activity.actDuration ? activity.actDuration : "-"}</h5>
                             <p>Duration</p>
                           </div>
                         </Col>
@@ -535,7 +727,7 @@ const handleActivityClick = async (activity) => {
           {contentKey === "ongoing" && (
             <div className='ongoing-class-activities'>
               {sortedOngoingActivities.length === 0 ? (
-                <p>No ongoing activities found.</p>
+                <p className='text-center'>No ongoing activities found.</p>
               ) : (
                 sortedOngoingActivities.map((activity) => {
                   const languages = activity.programmingLanguages || activity.programming_languages || [];
@@ -547,7 +739,7 @@ const handleActivityClick = async (activity) => {
                       style={{ cursor: "pointer" }}
                     >
                       <Row>
-                        <Col className='activity-details-column'>
+                        <Col lg={7} xl={7} xxl={7} className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>
                               {activity.actTitle}
@@ -555,20 +747,13 @@ const handleActivityClick = async (activity) => {
                                 const status = checkLocalStorageForActivity(activity.actID);
                                 if (status === "expired") {
                                   return (
-                                    <span style={{ color: "red", fontWeight: "bold", marginLeft: "8px" }}>
+                                    <span className='expired-tag'>
                                       Expired Attempt #{((selectedActivityForAssessment?.attemptsTaken || 0) + 1)}
                                     </span>
                                   );
                                 } else if (status) {
                                   return (
-                                    <span style={{ 
-                                      backgroundColor: "#ffc107", 
-                                      color: "#000", 
-                                      padding: "2px 6px", 
-                                      borderRadius: "4px", 
-                                      fontSize: "0.8em", 
-                                      marginLeft: "8px" 
-                                    }}>
+                                    <span className='in-progess-tag'>
                                       In Progress
                                     </span>
                                   );
@@ -579,26 +764,26 @@ const handleActivityClick = async (activity) => {
                             <p><strong>Teacher:</strong> {activity.teacherName}</p>
                             <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-check'></i>{" "}
                               Open Date: {formatDateString(activity.openDate)}
                             </p>
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-x'></i>{" "}
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div style={{ marginTop: "5px" }}>
+                            
+                            <div className='class-activity-info'>
+                              <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                              <br/>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Attempts: </strong>
                               {activity.actAttempts === 0 
                                 ? "Unlimited" 
                                 : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
-                            </div>
-                            <div>
+                              <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
@@ -606,19 +791,19 @@ const handleActivityClick = async (activity) => {
                         </Col>
                         <Col className='activity-stats'>
                           <div className='score-chart'>
-                            <h4>{activity.rank ?? "-"}</h4>
+                            <h5>{activity.rank ?? "-"}</h5>
                             <p>Rank</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>
+                            <h5>
                               {activity.overallScore !== null 
                                 ? `${activity.overallScore} / ${activity.maxPoints ?? "-"}` 
                                 : `- / ${activity.maxPoints ?? "-"}`}
-                            </h4>
+                            </h5>
                             <p>Overall Score</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>{activity.actDuration ? activity.actDuration : "-"}</h4>
+                            <h5>{activity.actDuration ? activity.actDuration : "-"}</h5>
                             <p>Duration</p>
                           </div>
                         </Col>
@@ -633,7 +818,7 @@ const handleActivityClick = async (activity) => {
           {contentKey === "completed" && (
             <div className='completed-class-activities'>
               {sortedCompletedActivities.length === 0 ? (
-                <p>No completed activities found.</p>
+                <p className='text-center'>No completed activities found.</p>
               ) : (
                 sortedCompletedActivities.map((activity) => {
                   const languages = activity.programmingLanguages || activity.programming_languages || [];
@@ -645,25 +830,32 @@ const handleActivityClick = async (activity) => {
                       style={{ cursor: "pointer" }}
                     >
                       <Row>
-                        <Col className='activity-details-column'>
+                        <Col lg={7} xl={7} xxl={7} className='activity-details-column'>
                           <div className='class-activity-details'>
                             <h3>{activity.actTitle}</h3>
                             <p><strong>Teacher:</strong> {activity.teacherName}</p>
+                            <p className="activity-description">{activity.actDesc}</p>
                             {renderLanguages(languages)}
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-check'></i>{" "}
                               Open Date: {formatDateString(activity.openDate)}
                             </p>
-                            <p>
+                            <p className='class-activity-date'>
                               <i className='bi bi-calendar-x'></i>{" "}
                               Close Date: {formatDateString(activity.closeDate)}
                             </p>
-                            <h6><strong>Difficulty:</strong> {activity.actDifficulty || "-"}</h6>
-                            <div style={{ marginTop: "5px" }}>
+                            
+                            <div className='class-activity-info'>
+                              <strong>Difficulty:</strong> {activity.actDifficulty || "-"}
+                              <br/>
                               <strong>Time Left: </strong>
                               <Timer openDate={activity.openDate} closeDate={activity.closeDate} />
-                            </div>
-                            <div>
+                              <br/>
+                              <strong>Attempts: </strong>
+                              {activity.actAttempts === 0 
+                                ? "Unlimited" 
+                                : `${activity.attemptsTaken || 0} / ${activity.actAttempts}`}
+                              <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                             </div>
@@ -671,19 +863,19 @@ const handleActivityClick = async (activity) => {
                         </Col>
                         <Col className='activity-stats'>
                           <div className='score-chart'>
-                            <h4>{activity.rank ?? "-"}</h4>
+                            <h5>{activity.rank ?? "-"}</h5>
                             <p>Rank</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>
+                            <h5>
                               {activity.overallScore !== null 
                                 ? `${activity.overallScore} / ${activity.maxPoints ?? "-"}` 
                                 : `- / ${activity.maxPoints ?? "-"}`}
-                            </h4>
+                            </h5>
                             <p>Overall Score</p>
                           </div>
                           <div className='score-chart'>
-                            <h4>{activity.actDuration ? activity.actDuration : "-"}</h4>
+                            <h5>{activity.actDuration ? activity.actDuration : "-"}</h5>
                             <p>Duration</p>
                           </div>
                         </Col>
@@ -698,6 +890,7 @@ const handleActivityClick = async (activity) => {
       </div>
       
       <Modal 
+        className='modal-design'
         show={showModal} 
         backdrop='static' 
         keyboard={false} 
@@ -711,13 +904,14 @@ const handleActivityClick = async (activity) => {
           <p>{modalMessage}</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={() => setShowModal(false)}>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
           </Button>
         </Modal.Footer>
       </Modal>
       
       <Modal 
+        className="modal-design"
         show={showTakeModal} 
         backdrop='static' 
         keyboard={false} 
@@ -776,7 +970,7 @@ const handleActivityClick = async (activity) => {
               Cancel
             </Button>
             <Button 
-              variant="primary" 
+              className='success-button' 
               onClick={() => {
                 navigate(`/student/class/${classID}/activity/${selectedActivityForAssessment.actID}/assessment`);
               }}

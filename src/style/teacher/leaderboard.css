@@ -3,242 +3,201 @@
 ::-webkit-scrollbar {
     width: 0px;   
     background: transparent;  
-  }
+}
   
-  .leaderboard-body {
-    overflow-y: scroll;  
-    scrollbar-width: none; 
-    -ms-overflow-style: none;  
-  }
-  
-  .leaderboard-body {
-    scrollbar-width: none;
-  }
-
-.navbar-center {
+.navbar {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  width: 100%;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 50%;
-  transform: translate(-50%, -50%);
+  background-color: #FFF5F1;
+  padding: 10px 20px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.navbar-center .nav-tabs .nav-link {
-  color: #eab8a7;
+.back-button {
+  background: none;
   border: none;
+  color: #a14f2a;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.nav-links a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: #B84C20;
+  font-weight: bold;
   border-bottom: 2px solid transparent;
-  font-weight: normal;
-  transition: color 0.3s ease, border-color 0.3s ease;
   padding-bottom: 5px;
+}
+
+.nav-links a:hover,
+.nav-links a:focus {
+  border-bottom: 4px solid #B84C20;
+}
+
+.teacher-info {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.teacher-btn {
+  background-color: #5fd4cf;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 15px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+}
+
+.bi-arrow-clockwise{
+  font-size: 2rem;
+  color: #72757e;
+  cursor: pointer;
+}
+
+.bi-arrow-clockwise:hover{
+  color: #515359;
+}
+
+.table-body {
+  overflow-y: scroll;  
+  scrollbar-width: none; 
+  -ms-overflow-style: none;  
+  scrollbar-width: none;
+  background-color: #CCCFDA;
+  min-height: 100vh;
+}
+
+.table-container {
+  background-color: #FFF5F1;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  margin-top: 150px;
+  max-width: 1200px;
+  overflow: hidden;
+}
+
+.table-title {
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 20px;
+  color: #B84C20;
+  background-color: #F5DAD0;
+}
+
+.table-content{
+  margin: 0 auto;
+  text-align: center;
+  width: 100%;
+}
+
+.submission-details{
+  background-color: #ffffff;
+  color: #9196A1 !important;
+}
+
+.submission-details:hover{
+  background-color: #ffffff !important;
+}
+
+.submission-details .attempt-table{
+  margin: 0 auto;
+  text-align: center;
+  width: 100%;
+  background-color: #ffffff;
+}
+
+.submission-details .attempt-table th{
+  color: #595959 !important;
+}
+
+.submission-details .attempt-table td{
+  color: #ca6841 !important;
+}
+
+.table-content .submission-details .attempt-table .attempt-table-head tr:hover{
+  background-color: #ffffff !important;
+}
+
+.table-content .submission-details .attempt-table .attempt-table-head tr:hover{
+  background-color: #ffffff !important;
+}
+
+.table-column-students .submission-details .attempt-table .attempt-table-body tr {
+  border-bottom: 1px solid #ffffff;   
+}
+
+.table-content th,
+.table-content td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 10px 0;
+  color:#B84C20;
+}
+
+.table-content td {
+  font-weight: 600;
+}
+
+.table-column-titles{
+  color: #413732 !important;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.table-column-students tr {
+  border-bottom: 1px solid #9196A1;   
+  transition: background 0.3s ease, border-color 0.3s ease; 
+}
+
+.table-column-students tr:hover {
+  background-color: #F5DAD0;
+  border-left-color: #B84C20;
+  border-right-color: #F5DAD0;          
+}
+
+.table-column-students tr:last-child {
   border-bottom: none;
 }
 
-.navbar-center .nav-tabs .nav-link.active {
-  background-color: transparent !important;
-  color: #B84C20 !important;
-  font-weight: bold !important;
-  border-bottom: 5px solid #B84C20 !important;
+.table-content th:first-child,
+.table-content td:first-child {
+  padding-left: 15px;
 }
 
-.navbar-center .nav-tabs .nav-link:focus,
-.navbar-center .nav-tabs .nav-link:active {
-  outline: none !important;
-  box-shadow: none !important;
+.avatar{
+  text-align: left;
+  margin-left: 20px;
 }
 
-.navbar-center .nav-tabs .nav-link:hover {
-  border-style: none;
+.avatar .avatar-image {
+  width: 35px;
+  height: 35px;
+  background-color: #ccc;
+  border-radius: 50%;
+  overflow: hidden; 
 }
-  
-  .leaderboard-body {
-    font-family: Poppins, sans-serif;
-    background-color: #CCCFDA;
-    text-align: center;
-    min-height: 100vh;
-  }
-  
-.leaderboard-container {
-    max-width: 1044px;
-    margin: 20px auto;
-    background-color: #FFF5F1;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #FFF5F1;
-    padding: 10px 20px;
-    border-bottom: 2px solid #e5e7eb;
-  }
-  
-  .back-button {
-    background: none;
-    border: none;
-    color: #a14f2a;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .nav-links a {
-    margin: 0 10px;
-    text-decoration: none;
-    color: #B84C20;
-    font-weight: bold;
-    border-bottom: 2px solid transparent;
-    padding-bottom: 5px;
-  }
-  
-  .nav-links a:hover,
-  .nav-links a:focus {
-    border-bottom: 4px solid #B84C20;
-  }
-  
-  .teacher-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .teacher-btn {
-    background-color: #5fd4cf;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 15px;
-    cursor: pointer;
-    color: white;
-    font-weight: bold;
-  }
-  
-  .leaderboard-title {
-    padding: 20px;
-    color: #B84C20;
-    margin-bottom: 20px;
-    background-color: #F5DAD0;
-    font-weight: bold;
-  }
 
-  .submission-title {
-    padding: 20px;
-    color: #B84C20;
-    margin-bottom: 20px;
-    background-color: #F5DAD0;
-    font-weight: bold;
-    text-align: center;
-  }
+.avatar .student-name{
+  margin-left: 10px;
+  font-weight: 700;
+}
 
-table {
-    width: 100%;
-    padding: 20px;
-    border-collapse: collapse;
-    background-color: #FFF5F1;
-  }
-  
- td,th {
-    padding: 15px 65px;
-    text-align: center;
-    color: #B84C20;
-    font-size: 16px;
-    font-weight: bold;
-  }
-
-  .leaderboard-column-titles {
-    text-align: center;
-    padding: 20px;
-    color: #a14f2a;
-    font-size: 25px;
-  }
-
-.avatar-name {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .avatar {
-    width: 35px;
-    height: 35px;
-    background-color: #ccc;
-    border-radius: 50%;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center; /* Ensures the image covers the container without distortion */
-  }
-  
-  .avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; 
-  }
-  
-  .score-circle {
-    width: 50px;
-    height: 50px;
-    background-color: #fdd9c0;
-    border: 5px solid #ccc;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    color: #a14f2a;
-    margin: auto;
-  }
-
-.leaderboard-students tr {
-    border-bottom: 2px solid #9196A1;   
-    border-left: 15px solid transparent; 
-    border-right: 15px solid transparent;
-    padding: 15px 20px;
-    transition: background 0.3s ease, border-color 0.3s ease; 
-  }
-  
-  .leaderboard-students tr:hover {
-    background-color: #F5DAD0;
-    border-left-color: #B84C20;
-    border-right-color: #F5DAD0;          
-  }
-  
-  .leaderboard-students tr:last-child {
-    border-bottom: none;
-  }
-
-  .horizontal-scrollbar {
-    width: 1200px;       /* or 100% with a fixed min-width, if you prefer */
-    max-width: 100%;
-    overflow-x: scroll;  /* 'scroll' ensures a scrollbar is always shown */
-    margin: 0 auto;
-  
-    /* For Firefox specifically */
-    scrollbar-width: thin; 
-    scrollbar-color: #888 #f1f1f1;
-  }
-  
-  /* For Chrome, Safari, Edge (WebKit/Blink) */
-  .horizontal-scrollbar::-webkit-scrollbar {
-    height: 8px;             /* scrollbar thickness */
-  }
-  
-  .horizontal-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;     /* track color */
-  }
-  
-  .horizontal-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #888;  /* thumb color */
-    border-radius: 4px;      
-    border: 2px solid #f1f1f1;
-  }
-  
-  .horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: #555;  
-  }
+.score-circle {
+  width: 50px;
+  height: 50px;
+  background-color: #fdd9c0;
+  border: 5px solid #ccc;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: #a14f2a;
+  margin: auto;
+}

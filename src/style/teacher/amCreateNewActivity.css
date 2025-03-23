@@ -13,7 +13,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
 html, body {
-    height: 100%;
     min-height: fit-content;
     margin: 0;
     padding: 0;
@@ -21,27 +20,40 @@ html, body {
     font-family: 'Poppins';
 }
 
+.whole-container{
+    background-color: #CCCFDA;
+    min-height: 100vh; /* Ensures it grows with content */
+    display: flex;
+    flex-direction: column;
+}
+
 .create-activity-content {
-    padding: 20px;
     border-radius: 20px;
     max-width: 800px;
     margin: 20px auto;
-    background-color: (#E2E4EB); 
+    padding-bottom: 20px;
+    margin-bottom: 10vh;
+    background-color:#ffffff; 
+    overflow: hidden;
+}
+
+.create-activity-container{
+    background-color: #fffaf8;
 }
 
 /*TITLE */
 .create-activity-container h2, .choose-question-panel h3 {
     color: var(--primary-color);
     text-align: center;
-    margin-bottom: 20px;
+    margin-block: 20px;
     font-weight: bold;
-    font-size: 30px;
 }
 
 /* 2 COLUMNS */
 .create-activity-form {
     padding: 20px;
-    background-color: var(--primary-bg);
+    padding-inline: 40px;
+    background-color: #fffaf8;
     border-radius: 20px;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -50,10 +62,9 @@ html, body {
 
 /* Title and Description Styling :text: */
 .create-activity-form .create-activity-title {
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 20px;
     padding: 10px;
-    background-color: var(--primary-bg);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     grid-column: 1 / -1;
     font-family: 'Poppins';
@@ -66,16 +77,7 @@ html, body {
 }
 
 textarea {
-    border: 2px solid var(--primary-color);
-    border-radius: 20px;
-    padding: 10px;
-    background-color: var(--primary-bg);
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
-    grid-column: 1 / -1;
-    position: relative;
     height: 150px;
-    font-family: 'Poppins';
 }
 
 textarea:focus {
@@ -88,36 +90,15 @@ textarea:focus {
 .description-section {
     grid-column: 1 / -1;
     margin-bottom: 15px;
-    padding: 0;
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 20px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    background-color: var(--primary-bg);
-}
-
-.description-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    padding: 5px;
-    border-bottom: 2px solid var(--primary-color);
-    background-color: var(--primary-bg);
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
+    overflow: hidden;
 }
-
-.description-toolbar i {
-    cursor: pointer;
-    color: var(--primary-color);
-    padding: 5px;
-}
-
-.description-toolbar i:hover {
-    color: #a8431b;
-} 
 
 .description-section textarea {
-    background-color: var(--primary-bg);
     border: none;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
@@ -133,9 +114,7 @@ textarea:focus {
 
 /* Difficulty Section Styling */
 .difficulty-section {
-    grid-column: 2; 
-    background-color: var(--primary-bg);
-    padding: 15px;
+    grid-column: 2;
     display: flex;
     flex-direction: column;
     gap: 5px; 
@@ -146,21 +125,19 @@ textarea:focus {
 /* Styling for Select Dropdown (Difficulty Section Styling) */
 .difficulty-section select,
 .difficulty-section input[type="date"] {
-    padding: 10px;
-    border: 2px solid var(--primary-color);
-    border-radius: 25px;
-    background-color: var(--primary-bg);
+    padding-left: 20px;
+    border: 1px solid var(--primary-color);
+    border-radius: 10px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     font-family: 'Poppins';
-    font-size: 1em;
+    font-size: 1rem;
     cursor: pointer;
-    width: 200px;
+    width: 67%;
     transition: all 0.3s ease;
 }
 
 /* Dropdown Menu Styling */
 select option {
-    background-color: var(--primary-bg);
     color: var(--primary-color);
     padding: 10px;
     transition: background-color 0.3s, color 0.3s;
@@ -184,56 +161,52 @@ Form.Control, select, input[type="date"] {
     border: 2px solid var(--primary-color);
     border-radius: 20px;
     padding: 10px;
-    background-color: var(--primary-bg);
     width: 100%;
     box-sizing: border-box;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.date-time-item input[type="datetime-local"] {
+    padding: 10px 15px;
+}
+
+.date-time-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.open-date  i {
+    color:#84C776;
+}
+
+.due-date  i {
+    color:#B84C20;
+}
 
 
 
-/* SET QUESTION 3 */
+/* SET QUESTION 3 MODAL*/
 .question-section {
     display: inline-block;
     vertical-align: top;
     padding: 0;
-    text-align: center;
     color: var(--primary-color);
     font-weight: bold;
-    font-size: 19px;
+    font-size: 1.2rem;
     max-width: 550px;
-    font-family: 'Poppins';
     border-radius: 10px;
-    background-color: var(--primary-bg);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
 /* Part set question 3/ title*/
-.question-section h4 {
-    font-size: 0.9em;
-    padding: 10px;
-    margin: 0;
-    text-align: center;
-    font-weight: 700;
-    background-color: var(--highlight-color);
-    border-bottom: 2px solid var(--primary-color);
-    width: 100%;
-    box-sizing: border-box;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-}
 
-.question-section h4 {
-    background-color: var(--highlight-color);
-    border-bottom: 2px solid var(--primary-color);
+.question-section h5 {
     padding: 10px;
-    margin: 0;
     text-align: center;
     font-weight: 600; 
     font-size: 1em; 
-    color: var(--primary-color);
+    color: #312d2a;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
 }
@@ -254,31 +227,23 @@ Form.Control, select, input[type="date"] {
     font-size: 0.85em;
     border-radius: 50px;
     font-family: 'Poppins';
-    background-color: var(--primary-bg);
     border: 1px solid var(--primary-color);
-    margin: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 } 
 
 /* Fix background and border */
 .question-section {
-    background-color: var(--primary-bg);
-    border: 1 px solid var(--primary-color);
-    box-shadow: 1 5px 6px rgba(0, 0, 0, 0.1);
-    padding: 1px;
+    margin-bottom: 60px;
 }
 
 /*sa box sa loob */
 .question-section input[type="text"] {
-    background-color: var(--primary-bg);
     border: 1px solid var(--primary-color);
-    padding: 10px;
-    font-size: 0.9em;
+    padding-left: 15px;
+    padding-block: 5px;
+    font-size: 0.8em;
     border-radius: 25px;
-    font-family: 'Poppins';
-    font-weight: 500; 
-    margin: 10px 0; 
-    width: 100%;
+    margin: 2px 10px;
     box-sizing: border-box;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 } 
@@ -291,7 +256,32 @@ Form.Control, select, input[type="date"] {
     outline: none;
 }
 
+.activity .form-label{ 
+    color: #312d2a;
+    font-weight: 600;
+    font-size: 1rem;
+}
 
+.activity .form-control, 
+.activity .form-select {
+    padding-left: 10px;
+    border: 1px solid var(--primary-color);
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.activity .form-check{ 
+    font-size: 0.95rem;
+}
+
+.activity .form-check-input:checked {
+    background-color: #B84C20; /* Change to your preferred color */
+    border-color: #ffffff;
+  }
 
 /* Modal Styling */
 .choose-question-panel {
@@ -336,214 +326,260 @@ Form.Control, select, input[type="date"] {
     text-align: center;
 }
 
-
-
-
-/*modal */
-
-.custom-modal .modal-dialog {
-    position: fixed;
-    top: 5%;
-    right: 0;
-    margin: 0;
-    height: 90vh;
-    width: 30%;
-    transform: translateX(100%); /* Start hidden */
-    transition: transform 0.4s ease-in-out;
-    z-index: 1050; /* Ensure it appears above everything */
-}
-
-.custom-modal.show .modal-dialog {
-    transform: translateX(0); /* Slide-in effect */
-}
-
-/* Ensure modal content does not create a white block */
-.custom-modal-content {
-    background-color: var(--highlight-color);
-    position: fixed;
-    right: 0;
-    top: 5%;
-    height: 90vh;
-    width: 30%;
-    transition: transform 0.4s ease-in-out;
-    box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
-    border-radius: 20px 0 0 20px;
-    overflow: hidden;
-    z-index: 1051;
-}
-
-.custom-modal .modal-header {
-    background-color: var(--highlight-color);
-    color: var(--primary-color);
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    padding: 15px;
-    font-weight: bold;
-}
-
-.custom-modal .modal-title {
-    margin-left: 30%;
-}
-
-.custom-modal .modal-body {
-    background-color: var(--highlight-color);
-    color: var(--primary-color);
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    padding: 15px;
-    font-weight: bold;
-}
-
-
-/* Fix modal backdrop */
-.custom-modal-backdrop {
-    background-color: var(--highlight-color);
-    backdrop-filter: blur(5px);
-    z-index: 1049;
-}
-
-/* Styling for question buttons in modal */
-.custom-modal .question-item {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 1vh;
-    border: 2px solid var(--primary-color);
-    border-radius: 25px;
-    background-color: var(--primary-bg);
-    color: var(--primary-color);
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.custom-modal .question-item:hover {
-    background-color: var(--highlight-color);
-    color: white;
-}
-
-/* Close button styling */
-.custom-modal .modal-footer button {
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 15px;
-    padding: 8px 20px;
-    margin-right: 36%;
-    transition: background-color 0.3s ease;
-}
-
-.custom-modal .modal-footer button:hover {
-    background-color: #a8431b;
-}
-
-/* Center the button and style it properly */
-.custom-save-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: fit-content;
-    padding: 8px 15px;
-    background-color: var(--primary-color);
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 15px;
-    transition: background-color 0.3s ease;
-    cursor: pointer;
-    gap: 8px;
-}
-
-.custom-save-btn:hover {
-    background-color: #a8431b;
-}
-
-.custom-save-btn i {
-    font-size: 18px;
-    color: white;
-}
-
-.custom-create-class-btn {
+.create-activity-btn {
     background-color: #84C776 !important;
     border: none !important;
     border-radius: 25px!important;
     width: 12rem;
     height: 40px;
-    font-size: 18px!important; /* Adjust this to change the font size */
+    font-size: 1rem;
+    font-weight: 600 !important;
+    text-align: center !important;
+}
+
+.create-activity-btn:hover{
+    background-color: #669b5b !important;
+}
+
+
+/*modal */
+
+.custom-modal .modal-header{
+    background-color: var(--highlight-color);
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.custom-modal-content .modal-body{
+    background-color: #fffaf8;
+}
+
+.custom-modal-content .modal-title{
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.item-creator label{
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.item-creator select{
+    width: 50%;
+    padding-block: 5px;
     margin-bottom: 20px;
-    margin-left: 40%;
-}
-
-.custom-create-class-btn:hover{
-    background-color: #83c77699 !important;
-}
-
-.custom-create-class-btn i {
-    font-size: 18px; /* Inherits the button's font size */
-    margin-right: 8px; /* Adjust spacing between icon and text */
-}
-
-
-.create-activity-container{
-    background-color: var(--primary-bg);
-}
-
-
-.date-time-item input[type="datetime-local"] {
-    width: 100%;
-    padding: 10px 15px;
-    font-size: 14px;
-    border: 2px solid #B84C20; /* Match border color */
-    border-radius: 25px; /* Fully rounded edges */
-    outline: none;
-    background-color: transparent;
-    text-align: center; /* Center text */
-    transition: all 0.3s ease-in-out;
     cursor: pointer;
 }
 
-.date-time-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center the label */
-    gap: 8px;
-}
-
-.label-with-icon {
+.sort-section{
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    text-align: center;
+    justify-content: center;
+    margin-top: 10px;
 }
 
-.label-with-icon i {
-    font-size: 18px;
+.sort-section span{
+    font-size: 1rem;
+    font-weight: 600;
 }
 
-.open-date  i {
-color:#84C776;
+.sort-section button{
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #72757e;
 }
 
-.due-date  i {
-    color:#B84C20;
-    }
-
-
-/* Highlight the selected item in the modal */
-.custom-modal .question-item.highlighted {
-    background-color: #B84C20;
-    border-color: var(--primary-color);
-    color: white;
+.sort-section button:hover{
+    color: #515359;
 }
 
-/* Style for the item description dropdown */
-.item-description-dropdown {
-    background-color: var(--light-bg);
+/* Styling rgb(57, 110, 100)stion buttons in modal */
+.custom-modal .question-item {
+    width: 100%;
+    padding: 10px;
     border: 1px solid var(--primary-color);
     border-radius: 10px;
-    padding: 10px;
-    margin: 5px 0 10px 0;
+    background-color: var(--primary-bg);
     color: var(--primary-color);
-    font-size: 14px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-modal .highlighted {
+    background-color: #F5DAD0;
+    border: 1px solid white;
+}
+
+.custom-modal .question-item:hover {
+    background-color: #F5DAD0;
+    color: var(--primary-color);
+    border: 1px solid white;
+}
+
+/* Close button styling */
+.custom-modal .modal-footer{
+    background-color: var(--primary-bg);
+    color: var(--primary-color);
+    border-top: 1px solid var(--primary-color);
+}
+
+.custom-modal .modal-footer button {
+    color: white;
+    font-weight: 600;
+    border-radius: 15px;
+    padding: 8px 20px;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .save-item{
+    background-color: #84C776;
+}
+
+.modal-footer .save-item:hover{
+    background-color: #6ea363;
+}
+
+@media (max-width: 768px) {
+    .create-activity-form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .create-activity-content {
+        padding: 20px;
+        border-radius: 20px;
+        width: 80%;
+    }
+
+    /*TITLE */
+    .create-activity-container h2, .choose-question-panel h3 {
+        font-size: 1.5rem;
+    }
+
+    /* Title and Description Styling :text: */
+    .create-activity-form .create-activity-title {
+        font-size: 0.9rem;
+    }
+
+    .description-section textarea {
+        font-size: 0.9rem;
+    }
+
+    /* Styling for Select Dropdown (Difficulty Section Styling) */
+    .difficulty-section select,
+    .difficulty-section input[type="date"] {
+        font-size: 0.9rem;
+        width: 45%;
+        margin-top: -50px;
+    }
+
+    /*DATE OPEN AND CLOSE style */
+    .date-time-item input[type="datetime-local"] {
+        font-size: 0.8rem !important;
+    }
+
+    .question-section h5 {
+        font-size: 1rem;
+    }
+
+    .question-section input[type="text"] {
+        font-size: 0.85rem;
+    } 
+
+    .activity .form-label{
+        font-size: 0.9rem;
+    }
+
+    .activity .form-control, 
+    .activity .form-select {
+        padding-left: 10px;
+        border: 1px solid var(--primary-color);
+        border-radius: 10px;
+        background-color: var(--primary-bg);
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        font-size: 0.9rem;
+    }
+
+    .activity .form-text{
+        font-size: 0.8rem;
+    }
+
+    .activity .form-check{ 
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 425px) {
+    .create-activity-content {
+        padding: 10px;
+        width: 90%;
+    }
+
+    /*TITLE */
+    .create-activity-container h2, .choose-question-panel h3 {
+        font-size: 1.4rem;
+    }
+
+    .create-activity-container h2{
+        margin-bottom: 5px;
+    }
+
+    .difficulty-section select,
+    .difficulty-section input[type="date"] {
+        font-size: 0.85rem;
+        width: 85%;
+    }
+
+    /*DATE OPEN AND CLOSE style */
+    .date-time-item input[type="datetime-local"] {
+        width: 100% !important;
+    }
+
+    /*modal */
+    .custom-modal-content .modal-title{
+        font-size: 1.1rem;
+    }
+
+    .item-creator label{
+        font-size: 0.9rem;
+    }
+
+    .item-creator select{
+        width: 50%;
+        font-size: 0.85rem;
+    }
+
+    .sort-section span{
+        font-size: 0.9rem;
+    }
+
+    .sort-section button{
+        font-size: 0.9rem;
+        padding-inline: 5px;
+    }
+
+    /* Styling rgb(57, 110, 100)stion buttons in modal */
+    .custom-modal .question-item {
+        font-size: 0.9rem;
+    }
+
+    .custom-modal .modal-footer button {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .sort-section span{
+        font-size: 0.85rem;
+    }
+
+    .sort-section button{
+        font-size: 0.85rem;
+        
+    }
 }

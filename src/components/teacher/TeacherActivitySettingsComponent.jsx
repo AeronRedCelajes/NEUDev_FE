@@ -103,11 +103,11 @@ const TeacherActivitySettingsComponent = () => {
   };
 
   return (
-    <div className="activity-settings">
+    <>
       <TeacherAMNavigationBarComponent />
 
       {!loading && activity ? (
-        <>
+        <div className="activity-settings">
           <ActivityHeader name={activity.name} points={activity.maxPoints} />
           <div className="activity-page">
             {/* Left Column */}
@@ -131,11 +131,12 @@ const TeacherActivitySettingsComponent = () => {
               </div>
             </div>
           </div>
-        </>
+          </div>
       ) : (
-        <p>Loading activity settings...</p>
+        <p className="text-center">Loading activity settings...</p>
       )}
-    </div>
+      
+    </>
   );
 };
 

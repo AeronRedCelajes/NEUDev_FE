@@ -88,19 +88,18 @@ export const StudentBulletinComponent = () => {
     const fetchConcerns = async () => {
       if (!classID) return;
       const response = await getConcerns(classID);
-      //console.log("All concerns response:", response); // Debug log
+      // console.log("All concerns response:", response); // Debug log
+      
       if (response.error) {
         console.error("Error fetching concerns:", response.error);
       } else {
-        // Filter concerns by matching studentID.
+        // Filter concerns using the flat studentID property
         const filteredConcerns = response.filter(concern =>
-          concern.student && String(concern.student.studentID) === String(studentID)
+          String(concern.studentID) === String(studentID)
         );
         const mappedConcerns = filteredConcerns.map(concern => ({
           id: concern.id,
-          name: concern.student
-            ? `${concern.student.firstname} ${concern.student.lastname}`
-            : "Unknown",
+          name: "You", // Since the API returns a flat structure, we can display "You"
           dateCreated: new Date(concern.created_at).toLocaleDateString(),
           timeCreated: new Date(concern.created_at).toLocaleTimeString(),
           message: concern.concern,
@@ -109,9 +108,10 @@ export const StudentBulletinComponent = () => {
         setConcerns(mappedConcerns);
       }
     };
-
+  
     fetchConcerns();
   }, [classID, studentID]);
+  
 
   // Handler for posting a new concern.
   const handlePostConcern = async () => {
@@ -173,13 +173,16 @@ export const StudentBulletinComponent = () => {
       console.error("Error during deletion:", error);
       alert("Error during deletion: " + error.message);
     }
+
+    
   };
 
 
-
+  
   return (
     <>
       <StudentCMNavigationBarComponent />
+      <div className="class-wrapper"></div>
       <div className='bulletin-content'>
         <div className='container-fluid bulletin-header'>
           <div className='bulletin-search'>
@@ -191,9 +194,8 @@ export const StudentBulletinComponent = () => {
           </div>
         </div>
 
-        <Row>
-          <Col></Col>
-          <Col xs={7}>
+        <Row className='announcement-container'>
+          <Col xs={12} md={12} lg={9}>
             <div className='announcement'>
               <div className='announcement-header'>
                 <h5>Teacher's Announcements</h5>
@@ -212,20 +214,20 @@ export const StudentBulletinComponent = () => {
                   </Card>
                 )
               ) : (
-                <p>No Announcement</p>
+                <p className='text-center pt-4'>No Announcement</p>
               )}
             </div>
           </Col>
-          <Col xs={3}>
+          <Col xs={12} md={7} lg={3}>
             <div className='concern'>
               <div className='concern-header'>
                 <h5>Your Concerns</h5>
               </div>
-              <Button onClick={() => setShowPostConcern(true)}>Send a concern</Button>
+              <Button className='send-concern' onClick={() => setShowPostConcern(true)}>Send a concern</Button>
 
               {/* Concern Modal */}
               <Modal
-                className='post-concern'
+                className='modal-design'
                 show={showPostConcern}
                 onHide={() => setShowPostConcern(false)}
                 backdrop='static'
@@ -240,7 +242,6 @@ export const StudentBulletinComponent = () => {
                 </Modal.Header>
                 <Modal.Body>
                   <Form.Group controlId="concernTextArea">
-                    <Form.Label>Your Concern</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={4}
@@ -254,7 +255,7 @@ export const StudentBulletinComponent = () => {
                   <Button variant="secondary" onClick={() => setShowPostConcern(false)}>
                     Cancel
                   </Button>
-                  <Button variant="primary" onClick={handlePostConcern}>
+                  <Button className='success-button' onClick={handlePostConcern}>
                     Post Concern
                   </Button>
                 </Modal.Footer>
@@ -262,10 +263,10 @@ export const StudentBulletinComponent = () => {
 
               {/* Delete Confirmation Modal */}
               <Modal
+                className='modal-design'
                 show={showDeleteModal}
                 onHide={() => setShowDeleteModal(false)}
                 size="md"
-                centered
               >
                 <Modal.Header closeButton>
                   <Modal.Title>Confirm Delete</Modal.Title>
@@ -285,35 +286,33 @@ export const StudentBulletinComponent = () => {
 
               {/* Render list of concerns */}
               <div className='concern-body'>
-                {concerns.length > 0 ? (
-                  concerns.map((concern) =>
+                {concerns.length > 0 ? (concerns.map((concern) =>
                     <div className='concern-details' key={concern.id}>
                       <h6>{concern.name}</h6>
                       <p>Posted on {concern.dateCreated} {concern.timeCreated}</p>
                       <p className='concern-message'>{concern.message}</p>
-                      <div className="teacher-reply-section">
-                        <h6>Teacher's Reply:</h6>
-                        {concern.teacherReply ? (
-                          <p>{concern.teacherReply}</p>
-                        ) : (
-                          <p className="no-reply">No reply yet</p>
-                        )}
-                      </div>
-                      <div className='concern-actions'>
-                        <Button
-                          variant="danger"
-                          onClick={() => {
-                            setSelectedConcernId(concern.id);
+                      <div className="concern-actions">
+                        <p>
+                          <h6>Teacher's Reply:</h6>
+                          {concern.teacherReply ? (
+                            <p>{concern.teacherReply}</p>
+                          ) : (
+                            <p className="no-reply">No reply yet</p>
+                          )}
+                        </p>
+                        
+                        <Button variant="danger" onClick={() => 
+                          { setSelectedConcernId(concern.id);
                             setShowDeleteModal(true);
                           }}
                         >
-                          Delete <i className='bi bi-trash'/>
+                          <i className='bi bi-trash'/>
                         </Button>
                       </div>
                     </div>
                   )
                 ) : (
-                  <p>No concerns posted yet.</p>
+                  <p className='text-center'>No concerns posted yet.</p>
                 )}
               </div>
             </div>

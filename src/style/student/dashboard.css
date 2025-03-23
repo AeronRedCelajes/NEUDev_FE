@@ -5,7 +5,6 @@
     background-color: #f0f0f1;
     width: 100vw;
     max-width: 100%;
-    padding: 90px;
 }
 
 .sidebar {
@@ -111,6 +110,52 @@
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 500;
+}
+
+.notification-bell{
+    color: #413732;
+    font-size: 1rem;
+    position: relative;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -10px;
+    right: -20px;
+}
+
+.notification-dropdown{
+    position: absolute;
+    right: 0;
+    top: 30px;
+    width: 300px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border: 1px solid #ccc;
+    background-color: #fffbf9;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 9999;
+}
+
+.notification-item{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 0.9rem;
+    padding: 10px;
+    padding-left: 15px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.notification-item.read {
+    background-color: rgb(227, 227, 227);
+    color: #464646;
+}
+
+.notification-item.unread {
+    background-color: #fffbf9;
 }
 
 .dashboard-navbar .dropdown-toggle{
@@ -389,6 +434,7 @@
     .classes-container .class-card{
         width: 48%;
     }
+
 }
 
 @media (max-width: 768px) {
@@ -402,11 +448,11 @@
     }
 
     .sidebar.open {
-        width: 150px;
+        width: 155px;
     }
 
     .sidebar .nav-link {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
     
     .sidebar .sidebar-icon{
@@ -450,19 +496,20 @@
     }
 }
 
-@media (max-width: 710px) {
+@media (max-width: 680px) {
     .classes-container .class-card{
         width: 90%;
     }
+
+    .classes-container .join-class{
+        width: 100%;
+    }
+    
 }
 
 @media (max-width: 576px) {
     .navbar-top {
         padding: 5px 0 !important;
-    }
-    
-    .profile-dropdown {
-        margin-right: -20px;
     }
 
     .student-badge {
@@ -495,11 +542,11 @@
     }
 
     .sidebar .nav-link {
-        font-size: 0.75rem;
+        font-size: 0.9rem;
     }
     
     .sidebar .sidebar-icon{
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 
     .no-classes-container .join-class{
@@ -509,6 +556,10 @@
 }
 
 @media (max-width: 425px) {
+    .profile-dropdown {
+        margin-right: -20px;
+    }
+    
     .student-badge {
         padding: 5px 11px;
         font-size: 0.7rem;

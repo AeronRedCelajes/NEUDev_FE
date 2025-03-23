@@ -14,8 +14,7 @@ import {
   deleteItem,
   getItemTypes,
   getProgrammingLanguages,
-  verifyPassword,
-  getSessionData
+  verifyPassword
 } from "../api/API.js";
 
 /**
@@ -224,8 +223,7 @@ export default function TeacherItemBankComponent() {
   async function fetchItems(itemTypeID) {
     setLoading(true);
     try {
-      const sessionData = getSessionData();
-      const teacherID = sessionData.userID;
+      const teacherID = sessionStorage.getItem("userID");
       // Passing both scope and teacherID in the query object
       const response = await getItems(itemTypeID, { scope: itemScope, teacherID });
       if (!response || response.error || !Array.isArray(response)) {
@@ -242,9 +240,7 @@ export default function TeacherItemBankComponent() {
 
   async function handleDelete() {
     if (!itemData.itemID) return;
-    const sessionData = getSessionData();
-    const teacherEmail = sessionData.email;
-
+    const teacherEmail = sessionStorage.getItem("user_email");
     if (!teacherEmail) {
       alert("Teacher email not found. Please log in again.");
       return;
@@ -308,8 +304,7 @@ export default function TeacherItemBankComponent() {
         : []
     };
     if (showCreateModal && itemScope === "personal") {
-      const sessionData = getSessionData();
-      payload.teacherID = sessionData.userID;
+      payload.teacherID = sessionStorage.getItem("userID");
     }
     let resp;
     if (showCreateModal) {
@@ -544,7 +539,7 @@ export default function TeacherItemBankComponent() {
 
   // -------------------- Render --------------------
   return (
-    <div className="activity-items">
+    <div className="item-bank-container">
       <ProfilePlaygroundNavbarComponent />
 
       {/* Header */}
@@ -627,7 +622,7 @@ export default function TeacherItemBankComponent() {
               <th>ACTIONS</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="item-table-body">
             {loading && items.length === 0 ? (
               <tr>
                 <td colSpan="7" style={{ textAlign: "center" }}>
@@ -645,10 +640,10 @@ export default function TeacherItemBankComponent() {
                 const progLangArray = item.programming_languages || [];
                 return (
                   <tr key={item.itemID}>
-                    <td>{item.itemName}</td>
-                    <td>{item.itemDifficulty}</td>
-                    <td>{item.itemPoints || "-"}</td>
-                    <td>
+                    <td data-label="Item Name">{item.itemName}</td>
+                    <td data-label="Difficulty">{item.itemDifficulty}</td>
+                    <td data-label="Points">{item.itemPoints || "-"}</td>
+                    <td data-label="Languages">
                       {progLangArray.length > 0
                         ? progLangArray.map((langObj, idx) => {
                             const langName = langObj.progLangName;
@@ -674,63 +669,67 @@ export default function TeacherItemBankComponent() {
                         : "-"}
                     </td>
                     {isConsoleApp && (
-                      <td>
+                      <td data-label="Test Cases">
                         {item.test_cases && item.test_cases.length > 0
                           ? `${item.test_cases.length} test case(s)`
                           : "No test cases"}
                       </td>
                     )}
-                    <td>{getDisplayDateString(item)}</td>
-                    <td>
-                      <button
-                        className="edit-btn"
-                        onClick={() => {
-                          const plIDs = (item.programming_languages || []).map(l => l.progLangID);
-                          setItemData({
-                            itemID: item.itemID,
-                            itemName: item.itemName,
-                            itemDesc: item.itemDesc,
-                            itemDifficulty: item.itemDifficulty,
-                            progLangIDs: plIDs,
-                            testCases: (item.test_cases || []).map(tc => ({
-                              expectedOutput: tc.expectedOutput,
-                              testCasePoints: tc.testCasePoints ?? "",
-                              isHidden: tc.isHidden ?? false
-                            })),
-                            itemPoints: item.itemPoints || 0
-                          });
-                          setTerminalLines([]);
-                          setTerminalPartialLine("");
-                          setTerminalUserInput("");
-                          setTestLangID(plIDs.length > 0 ? plIDs[0] : null);
-                          setShowEditModal(true);
-                        }}
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => {
-                          const plIDs = (item.programming_languages || []).map(l => l.progLangID);
-                          setItemData({
-                            itemID: item.itemID,
-                            itemName: item.itemName,
-                            itemDesc: item.itemDesc,
-                            itemDifficulty: item.itemDifficulty,
-                            progLangIDs: plIDs,
-                            testCases: (item.test_cases || []).map(tc => ({
-                              expectedOutput: tc.expectedOutput,
-                              testCasePoints: tc.testCasePoints ?? "",
-                              isHidden: tc.isHidden ?? false
-                            })),
-                            itemPoints: item.itemPoints || 0
-                          });
-                          setDeletePassword("");
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        🗑️ Delete
-                      </button>
+                    <td data-label="Created Date">{getDisplayDateString(item)}</td>
+                    <td data-label="Actions" className="action-cell">
+                      <div className="actions-button">
+                        <button
+                          className="edit-btn"
+                          onClick={() => {
+                            const plIDs = (item.programming_languages || []).map(l => l.progLangID);
+                            setItemData({
+                              itemID: item.itemID,
+                              itemName: item.itemName,
+                              itemDesc: item.itemDesc,
+                              itemDifficulty: item.itemDifficulty,
+                              progLangIDs: plIDs,
+                              testCases: (item.test_cases || []).map(tc => ({
+                                expectedOutput: tc.expectedOutput,
+                                testCasePoints: tc.testCasePoints ?? "",
+                                isHidden: tc.isHidden ?? false
+                              })),
+                              itemPoints: item.itemPoints || 0
+                            });
+                            setTerminalLines([]);
+                            setTerminalPartialLine("");
+                            setTerminalUserInput("");
+                            setTestLangID(plIDs.length > 0 ? plIDs[0] : null);
+                            setShowEditModal(true);
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                  
+                      
+                        <button
+                          className="delete-btn"
+                          onClick={() => {
+                            const plIDs = (item.programming_languages || []).map(l => l.progLangID);
+                            setItemData({
+                              itemID: item.itemID,
+                              itemName: item.itemName,
+                              itemDesc: item.itemDesc,
+                              itemDifficulty: item.itemDifficulty,
+                              progLangIDs: plIDs,
+                              testCases: (item.test_cases || []).map(tc => ({
+                                expectedOutput: tc.expectedOutput,
+                                testCasePoints: tc.testCasePoints ?? "",
+                                isHidden: tc.isHidden ?? false
+                              })),
+                              itemPoints: item.itemPoints || 0
+                            });
+                            setDeletePassword("");
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -742,6 +741,7 @@ export default function TeacherItemBankComponent() {
       
       {/* -------------------- Create/Edit Modal -------------------- */}
       <Modal
+        className="modal-design"
         show={showCreateModal || showEditModal}
         onHide={() => {
           setShowCreateModal(false);
@@ -749,7 +749,7 @@ export default function TeacherItemBankComponent() {
         }}
         backdrop="static" 
         keyboard={false}
-        size="lg"
+        size="md"
       >
         <Modal.Header closeButton>
           <Modal.Title>
@@ -803,6 +803,7 @@ export default function TeacherItemBankComponent() {
               <Form.Group className="mb-3">
                 <Form.Label>Total Item Points (auto-calculated from test cases)</Form.Label>
                 <Form.Control
+                  className='bg-light'
                   type="number"
                   value={
                     itemData.testCases.reduce(
@@ -810,7 +811,7 @@ export default function TeacherItemBankComponent() {
                       0
                     )
                   }
-                  readOnly
+                  disabled
                 />
               </Form.Group>
             ) : (
@@ -897,18 +898,17 @@ export default function TeacherItemBankComponent() {
                   <Form.Label>Test Cases (added after each successful run)</Form.Label>
                   {(itemData.testCases || []).map((tc, index) => (
                     <div
+                      className="test-case-item"
                       key={index}
-                      style={{
-                        border: "1px solid #ddd",
-                        padding: "10px",
-                        marginBottom: "10px"
-                      }}
                     >
+                      <Form.Label>Test Case {index + 1}</Form.Label>
                       <AutoResizeTextarea
                         readOnly
                         value={tc.expectedOutput}
                         style={{ marginBottom: "5px" }}
                       />
+
+                      <Form.Label>Points</Form.Label>
                       <Form.Control
                         type="number"
                         placeholder="Enter points for this test case"
@@ -953,8 +953,8 @@ export default function TeacherItemBankComponent() {
                   />
                 </Form.Group>
 
-                <div style={{ marginBottom: "1rem" }}>
-                  <Button variant="info" onClick={handleRunCode} disabled={compiling}>
+                <div>
+                  <Button className="run-code-button" onClick={handleRunCode} disabled={compiling}>
                     {compiling ? <Spinner animation="border" size="sm" /> : "Run Code"}
                   </Button>
                 </div>
@@ -972,7 +972,7 @@ export default function TeacherItemBankComponent() {
           >
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleCreateOrUpdate}>
+          <Button className="success-button" onClick={handleCreateOrUpdate}>
             {showCreateModal ? "Add" : "Save"}
           </Button>
         </Modal.Footer>
@@ -980,9 +980,9 @@ export default function TeacherItemBankComponent() {
 
       {/* -------------------- Delete Confirmation Modal with Password -------------------- */}
       <Modal
+        className="modal-design"
         show={showDeleteModal}
         onHide={() => setShowDeleteModal(false)}
-        centered
       >
         <Modal.Header closeButton>
           <Modal.Title>Delete Item</Modal.Title>

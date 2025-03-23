@@ -45,11 +45,29 @@ const StudentCMNavigationBarComponent = () => {
   };
 
   return (
-    <Navbar expand="lg" className="class-navbar-top">
-      {/* ✅ Back to Class List */}
-      <i className="bi bi-arrow-left-circle" onClick={() => navigate("/student/dashboard")}></i>
-      <p>Dashboard</p>
+    <>
+      <Navbar className="class-navbar-top">
+        {/* ✅ Back to Class List */}
+        <i className="bi bi-arrow-left-circle" onClick={() => navigate("/student/dashboard")}></i>
+        <p>Dashboard</p>
 
+        {/* ✅ Profile & Logout */}
+        <div className="dashboard-navbar">
+          <span className="ping">20 ms</span>
+          <a href="#"><i className="bi bi-moon"></i></a>
+          <span className="student-badge">Student</span>
+          <Dropdown align="end">
+            <Dropdown.Toggle variant="transparent" className="profile-dropdown">
+              <img src={profileImage} className="profile-image" alt="Profile" />
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => navigate("/student/profile")}>Profile</Dropdown.Item>
+              <Dropdown.Item onClick={handleLogout}>Log Out</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      </Navbar>
+      
       {/* ✅ Navigation Tabs */}
       <div className="navbar-center">
         <Tabs activeKey={getActiveTab()} onSelect={handleSelect} id="cm-tabs" fill>
@@ -57,23 +75,7 @@ const StudentCMNavigationBarComponent = () => {
           <Tab eventKey="student-bulletin" title="Bulletin"></Tab>
         </Tabs>
       </div>
-
-      {/* ✅ Profile & Logout */}
-      <div className="dashboard-navbar">
-        <span className="ping">20 ms</span>
-        <a href="#"><i className="bi bi-moon"></i></a>
-        <span className="student-badge">Student</span>
-        <Dropdown align="end">
-          <Dropdown.Toggle variant="transparent" className="profile-dropdown">
-            <img src={profileImage} className="profile-image" alt="Profile" />
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => navigate("/student/profile")}>Profile</Dropdown.Item>
-            <Dropdown.Item onClick={handleLogout}>Log Out</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-      </div>
-    </Navbar>
+    </>
   );
 };
 

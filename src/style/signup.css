@@ -10,13 +10,12 @@
 }
 
 .signup-form button{
-    margin-top: 20px;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .signup-form p{
     margin-top: 10px;
-    font-size: smaller;
+    font-size: 0.9rem;
     text-align: center;
     color: #828282;
 }
@@ -33,12 +32,12 @@
 }
 
 .st-signup-form .form-group{
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .st-signup-form input,
 .st-signup-form select{
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 }
 
 @media (max-width: 1440px) {

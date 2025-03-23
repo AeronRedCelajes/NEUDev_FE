@@ -29,24 +29,24 @@ const StudentActivityLeaderboardComponent = () => {
   };
 
   return (
-    <div className="leaderboard-body">
+    <div className="table-body">
       <StudentAMNavigationBarComponent />
-      <div className="leaderboard-container">
-        <div className="leaderboard-header">
-          <h1 className="leaderboard-title">Leaderboard</h1>
+      <div className="table-container">
+        <div className="table-header">
+          <h1 className="table-title">Leaderboard</h1>
           {loading ? (
-            <p>Loading students...</p>
+            <p className="text-center">Loading students...</p>
           ) : (
             <table>
               <thead>
                 <tr>
-                  <th className="leaderboard-column-titles">Student Name</th>
-                  <th className="leaderboard-column-titles">Program</th>
-                  <th className="leaderboard-column-titles">Average Score</th>
-                  <th className="leaderboard-column-titles">Rank</th>
+                  <th className="table-column-titles">Student Name</th>
+                  <th className="table-column-titles">Program</th>
+                  <th className="table-column-titles">Average Score</th>
+                  <th className="table-column-titles">Rank</th>
                 </tr>
               </thead>
-              <tbody className="leaderboard-students">
+              <tbody className="table-column-students">
                 {students.length > 0 ? (
                   students.map((student, index) => (
                     <LeaderboardItem

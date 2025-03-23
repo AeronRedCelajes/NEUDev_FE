@@ -10,7 +10,7 @@
     color: #ED5931;
 }
 
-.custom-button {
+.sign-custom-button {
     background-color: #ed5b2d;
     color: white;
     padding: 10px 20px;
@@ -22,9 +22,17 @@
     transition: background-color 0.3s ease;
 }
 
-.custom-button:hover {
-    background-color: #ed5a2dd6;
-    color: #ffdacb;
+.sign-custom-button:disabled {
+    background-color: rgb(212, 65, 20);
+    color: #ffffff;
+    cursor: not-allowed;
+}
+
+
+
+.sign-custom-button:hover {
+    background-color: rgb(212, 65, 20);
+    color: #ffffff;
 }
 
 @media (max-width: 1024px) {
@@ -71,14 +79,18 @@
     }
 
     .signin-form-container{
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.9);
     }
 
     .signin-form label{
         font-size: 1rem;
     }
 
-    .signin-form input,
+    .signin-form input{
+        font-size: 0.9rem;
+        border: 1px solid #b0b0b0;
+    }
+
     .signin-form .custom-button{
         font-size: 0.9rem;
     }
@@ -103,16 +115,5 @@
     .signin-form input,
     .signin-form .custom-button{
         font-size: 0.75rem;
-    }
-}
-
-@media (max-width: 320px) {
-    .signin-form label{
-        font-size: 0.8rem;
-    }
-
-    .signin-form input,
-    .signin-form .custom-button{
-        font-size: 0.7rem;
     }
 }

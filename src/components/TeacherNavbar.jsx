@@ -111,7 +111,7 @@ export const TeacherNavbar = () => {
 //   };
 
 // THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
-const handleBellClick = () => {
+  const handleBellClick = () => {
     setShowNotifications(!showNotifications);
   };
 

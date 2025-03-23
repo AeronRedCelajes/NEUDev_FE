@@ -21,11 +21,11 @@
 
 .profile-playground-navbar p{
     margin: auto 0;
-    font-size: 17px;
+    font-size: 1rem;
     color: #B84C20;
 }
 
-.dashboard-navbar {
+.right-navbar {
     display: flex;
     align-items: center;
     margin-left: auto;
@@ -36,4 +36,29 @@
 .ping {
     color: #B84C20;
     font-size: smaller;
+}
+
+.right-navbar i{
+    margin-right: 20px;
+    color: #B84C20;
+}
+
+@media (max-width: 425px) {
+    .profile-playground-navbar {
+        height: 50px;
+    }
+    
+    .profile-playground-navbar .bi-arrow-left-circle{
+        padding-left: 10px;
+    }
+
+    .profile-playground-navbar p{
+        font-size: 0.95rem;
+    }
+
+    .right-navbar i{
+        margin-right: 10px;
+        color: #B84C20;
+    }
+    
 }

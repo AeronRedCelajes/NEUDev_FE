@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "react-bootstrap";
 import TeacherAMNavigationBarComponent from "./TeacherAMNavigationBarComponent";
 import "../../style/teacher/leaderboard.css";
 import { getActivitySubmissionByTeacher } from "../api/API";
@@ -47,33 +48,26 @@ const TeacherActivitySubmissionComponent = () => {
   };
   
   return (
-    <div className="submission-body">
+    <div className="table-body">
       <TeacherAMNavigationBarComponent />
-      <div className="submission-container">
-        <div className="submission-header">
-          <h1 className="submission-title">Activity Submissions</h1>
-
-          {/* Refresh Button */}
-          <div className="d-flex gap-2 mb-3">
-            <button className="btn btn-info" onClick={fetchSubmissions}>
-              Refresh
-            </button>
-          </div>
+      <div className="table-container">
+        <div className="table-header">
+          <h1 className="table-title">Activity Submissions <i className="bi bi-arrow-clockwise" onClick={fetchSubmissions}></i></h1>
 
           {loading ? (
-            <p>Loading submissions...</p>
+            <p className="text-center">Loading submissions...</p>
           ) : (
-            <table>
+            <table className="table-content">
               <thead>
                 <tr>
-                  <th className="leaderboard-column-titles">Student Name</th>
-                  <th className="leaderboard-column-titles">Program</th>
-                  <th className="leaderboard-column-titles">Final Score</th>
-                  <th className="leaderboard-column-titles">Time Spent</th>
-                  <th className="leaderboard-column-titles">Attempts</th>
+                  <th className="table-column-titles">Student Name</th>
+                  <th className="table-column-titles">Program</th>
+                  <th className="table-column-titles">Final Score</th>
+                  <th className="table-column-titles">Time Spent</th>
+                  <th className="table-column-titles">Attempts</th>
                 </tr>
               </thead>
-              <tbody className="leaderboard-students">
+              <tbody className="table-column-students">
                 {submissions.length > 0 ? (
                   submissions.map((submission, index) => (
                     <SubmissionItem
@@ -112,19 +106,11 @@ const SubmissionItem = ({ submission, actID, classID }) => {
     <>
       <tr className="submission-summary" onClick={toggleExpanded}>
         <td>
-          <div className="avatar-name">
-            <div className="avatar">
-              <img
-                src={
-                  submission.profileImage &&
+          <div className="avatar">
+            <img src={submission.profileImage &&
                   submission.profileImage.trim() !== ""
                     ? submission.profileImage
-                    : "/src/assets/noy.png"
-                }
-                alt="Avatar"
-                className="avatar-image"
-              />
-            </div>
+                    : "/src/assets/noy.png"} alt="Avatar" className="avatar-image" />
             <span className="student-name">{submission.studentName}</span>
           </div>
         </td>
@@ -132,22 +118,22 @@ const SubmissionItem = ({ submission, actID, classID }) => {
         <td>{submission.overallScore}</td>
         <td>{convertSecondsToHMS(submission.overallTimeSpent)}</td>
         <td>
-          <button
-            className="expand-btn"
+          <Button
+            variant="secondary"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(!expanded);
             }}
           >
             {expanded ? "Hide Attempts" : "Show Attempts"}
-          </button>
+          </Button>
         </td>
       </tr>
       {expanded && submission.attempts && (
         <tr className="submission-details">
           <td colSpan="5">
-            <table className="attempts-table">
-              <thead>
+            <table className="attempt-table">
+              <thead className="attempt-table-head">
                 <tr>
                   <th>Attempt #</th>
                   <th>Score</th>
@@ -155,15 +141,15 @@ const SubmissionItem = ({ submission, actID, classID }) => {
                   <th>Review</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="attempt-table-body">
                 {submission.attempts.map((attempt, idx) => (
                   <tr key={idx}>
                     <td>{attempt.attemptNo}</td>
                     <td>{attempt.totalScore}</td>
                     <td>{convertSecondsToHMS(attempt.totalTimeSpent)}</td>
                     <td>
-                      <button
-                        className="review-btn"
+                      <Button
+                        variant="secondary"
                         onClick={() => {
                           // Navigate to the review page route:
                           // /teacher/class/:classID/activity/:actID/review
@@ -174,7 +160,7 @@ const SubmissionItem = ({ submission, actID, classID }) => {
                         }}
                       >
                         Review
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
