@@ -13,18 +13,14 @@ export const ProfilePlaygroundNavbarComponent = () => {
         setUserType(storedUserType);
     }, []);
 
-    const handleDashboardClick = () => {
-        if (userType === "teacher") {
-            navigate('/teacher/dashboard');
-        } else {
-            navigate('/student/dashboard');
-        }
+    const handleBackClick = () => {
+        navigate(-1);
     };
 
     return (
         <>
             <Navbar className='profile-playground-navbar'>
-                <a href='#'><i className='bi bi-arrow-left-circle' onClick={handleDashboardClick}></i></a>
+                <a href='#'><i className='bi bi-arrow-left-circle' onClick={handleBackClick}></i></a>
                 <p>Dashboard</p>
 
                 <div className='right-navbar'>

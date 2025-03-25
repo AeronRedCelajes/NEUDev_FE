@@ -148,22 +148,22 @@ const TeacherCMNavigationBarComponent = () => {
                 <FontAwesomeIcon icon={faDesktop} className='sidebar-icon' /> Dashboard
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className={`nav-item ${getActiveTab() === "activity" ? "active" : ""}`} onClick={() => navigate("/teacher/class/:classID/activity")}>
+            <Nav.Item className={`nav-item ${getActiveTab() === "activity" ? "active" : ""}`} onClick={() => navigate(`/teacher/class/${classID}/activity`)}>
               <Nav.Link href='#' className='nav-link'>
                 <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Activities
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className={`nav-item ${getActiveTab() === "class-participants" ? "active" : ""}`} onClick={() => navigate('/teacher/class/:classID/class-participants')}>
+            <Nav.Item className={`nav-item ${getActiveTab() === "class-participants" ? "active" : ""}`} onClick={() => navigate(`/teacher/class/${classID}/class-participants`)}>
               <Nav.Link href='#' className='nav-link' >
                 <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Class Participants
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className={`nav-item ${getActiveTab() === "classrecord" ? "active" : ""}`} onClick={() => navigate('/teacher/class/:classID/classrecord')}>
+            <Nav.Item className={`nav-item ${getActiveTab() === "classrecord" ? "active" : ""}`} onClick={() => navigate(`/teacher/class/${classID}/classrecord`)}>
               <Nav.Link href='#' className='nav-link'>
                 <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Class Record
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className={`nav-item ${getActiveTab() === "teacher-bulletin" ? "active" : ""}`} onClick={() => navigate('/teacher/class/:classID/teacher-bulletin')}>
+            <Nav.Item className={`nav-item ${getActiveTab() === "teacher-bulletin" ? "active" : ""}`} onClick={() => navigate(`/teacher/class/${classID}/teacher-bulletin`)}>
               <Nav.Link href='#' className='nav-link'>
                 <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Bulletin
               </Nav.Link>
@@ -182,7 +182,6 @@ const TeacherCMNavigationBarComponent = () => {
               <span className='ping'>20 ms</span>
               <span className='teacher-badge'>Teacher</span>
 
-              {/* Notification Bell */}
               <div className='notification-bell'>
                 <FontAwesomeIcon
                   icon={faBell}
