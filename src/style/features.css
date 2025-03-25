@@ -13,6 +13,7 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
   text-align: center;
   padding-bottom: 50px;
+  gap: 30px;
   max-width: 100%;
 }
 
@@ -31,7 +32,6 @@
 .main-feature p {
   font-size: 12px;
   color: #707070;
-  width: 350px;
   margin: 0 auto;
 }
 
@@ -92,154 +92,156 @@
   margin: 0 auto;
 }
 
-@media (max-width: 1440px) {
-.main-feature-container{
-  gap: 30px;
-}
-}
 @media (max-width: 1024px) {
-.main-feature-title h2 {
-  font-size: 1.5rem;
-}
+  .main-feature-title h2 {
+    font-size: 1.7rem;
+  }
 
-.main-feature h3 {
-  font-size: 0.7rem;
-}
+  .main-feature h3 {
+    font-size: 0.8rem;
+  }
 
-.main-feature p {
-  font-size: 0.6rem;
-  width: 250px;
-}
+  .main-feature p {
+    font-size: 0.7rem;
+  }
 
-.feature-desc{
-  padding-left: 100px;
-}
+  .feature-desc{
+    padding-left: 100px;
+  }
 
-.feature-desc h3{
-  font-size: 1.4rem;
-}
+  .feature-desc h3{
+    font-size: 1.4rem;
+  }
 
-.feature-desc .feature-text-left{
-  font-size: 0.7rem;
-}
+  .feature-desc .feature-text-left{
+    font-size: 0.75rem;
+  }
 
-.feature-desc .feature-text-right{
-  font-size: 0.7rem;
-}
+  .feature-desc .feature-text-right{
+    font-size: 0.75rem;
+  }
 }
 
 @media (max-width: 768px) {
-.main-feature-title h2 {
-  font-size: 1.2rem;
-  padding-bottom: 10px;
+  .main-feature-title h2 {
+    font-size: 1.3rem;
+    padding-bottom: 10px;
+  }
+
+  .main-feature h3 {
+    font-size: 0.75rem;
+  }
+
+  .main-feature p {
+    font-size: 0.65rem;
+  }
+
+  .feature-desc{
+    padding-left: 0;
+  }
+
+  .feature-desc h3{
+    font-size: 1.2rem;
+  }
+
+  .feature-desc .feature-text-left{
+    font-size: 0.75rem;
+  }
+
+  .feature-desc .feature-text-right{
+    font-size: 0.75rem;
+  }
+
+  .feature-2 img{
+
+    margin-right: 30px;
+  }
 }
 
-.main-feature h3 {
-  font-size: 0.6rem;
-}
-
-.main-feature p {
-  font-size: 0.5rem;
-  width: 210px;
-}
-
-.feature-desc{
-  padding-left: 75px;
-}
-
-.feature-desc h3{
-  font-size: 1.2rem;
-}
-
-.feature-desc .feature-text-left{
-  font-size: 0.6rem;
-}
-
-.feature-desc .feature-text-right{
-  font-size: 0.6rem;
-}
-}
-
-@media (max-width: 728px) {
+@media (max-width: 733px) {
 .main-feature-container{
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
   gap: 10px;
 }
 
 }
 
 @media (max-width: 576px) {
-.main-feature-title h2 {
-  font-size: 1.2rem;
-}
+  .main-feature-container{
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 10px;
+  }
 
-.main-feature h3 {
-  font-size: 0.7rem;
-}
+  .main-feature-title h2 {
+    font-size: 1.2rem;
+  }
 
-.main-feature p {
-  font-size: 0.6rem;
-  width: 300px;
-  margin-bottom: 20px;
-}
+  .main-feature h3 {
+    font-size: 0.7rem;
+  }
 
-.feature-desc{
-  padding-left: 0;
-}
+  .main-feature p {
+    font-size: 0.65rem;
+    width: 300px;
+    margin-bottom: 20px;
+  }
 
-.feature-desc h3{
-  font-size: 1rem;
-}
+  .feature-desc{
+    padding-left: 0;
+  }
 
-.feature-desc .feature-text-left{
-  font-size: 0.7rem;
-}
+  .feature-desc h3{
+    font-size: 1rem;
+  }
 
-.feature-desc .feature-text-right{
-  font-size: 0.7rem;
-}
+  .feature-desc .feature-text-left{
+    font-size: 0.7rem;
+  }
 
-.feature {
-  gap: 40px;
-}
+  .feature-desc .feature-text-right{
+    font-size: 0.7rem;
+  }
 
-.feature-1 img{
-  display: none;
-}
+  .feature {
+    gap: 40px;
+  }
 
-.feature-2 img{
-  display: none;
-}
+  .feature-1 img{
+    width: 100%;
+  }
+  
 
-.feature-3 img{
-  display: none;
-}
+  .feature-2 img{
+    width: 50%;
+  }
+
+  .feature-3 img{
+    width: 70%;
+  }
+
 }
 
 @media (max-width: 425px) {
-.main-feature-title h2 {
-  font-size: 1.1rem;
-}
+  .main-feature-title h2 {
+    font-size: 1.1rem;
+  }
 
-.main-feature h3 {
-  font-size: 0.6rem;
-}
+  .feature-1{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.main-feature p {
-  font-size: 0.5rem;
-  width: 200px;
-  margin-bottom: 15px;
-}
+  .feature-1 img{
+    width: 120%;
+  }
+  
 
-.feature-desc h3{
-  font-size: 0.9rem;
-}
+  .feature-2 img{
+    width: 90%;
+  }
 
-.feature-desc .feature-text-left{
-  font-size: 0.6rem;
-}
-
-.feature-desc .feature-text-right{
-  font-size: 0.6rem;
-}
+  .feature-3 img{
+    width: 90%;
+  }
 }

@@ -335,11 +335,11 @@ const TeacherActivityItemsComponent = () => {
                     ))}
                   </Form.Group>
                 ) : (
-                  <p>No test cases available.</p>
+                  <p className='text-center'>No test cases available.</p>
                 )}
               </div>
             ) : (
-              <p>No item selected.</p>
+              <p className='text-center'>No item selected.</p>
             )}
             
             </Form>

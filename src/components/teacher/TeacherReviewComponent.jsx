@@ -251,7 +251,7 @@ const TeacherReviewComponent = () => {
     return (
       <div className="text-center mt-5">
         <Spinner animation="border" />
-        <p>Loading submission data...</p>
+        <p className="text-center">Loading submission data...</p>
       </div>
     );
   }

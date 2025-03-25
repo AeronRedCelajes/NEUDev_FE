@@ -133,7 +133,7 @@ const TeacherActivitySettingsComponent = () => {
           </div>
           </div>
       ) : (
-        <p>Loading activity settings...</p>
+        <p className="text-center">Loading activity settings...</p>
       )}
       
     </>

@@ -655,7 +655,7 @@ const handleActivityClick = async (activity) => {
           {contentKey === "upcoming" && (
             <div className='upcoming-class-activities'>
               {sortedUpcomingActivities.length === 0 ? (
-                <p>No upcoming activities found.</p>
+                <p className='text-center'>No upcoming activities found.</p>
               ) : (
                 sortedUpcomingActivities.map((activity) => {
                   const languages = activity.programmingLanguages || activity.programming_languages || [];
@@ -727,7 +727,7 @@ const handleActivityClick = async (activity) => {
           {contentKey === "ongoing" && (
             <div className='ongoing-class-activities'>
               {sortedOngoingActivities.length === 0 ? (
-                <p>No ongoing activities found.</p>
+                <p className='text-center'>No ongoing activities found.</p>
               ) : (
                 sortedOngoingActivities.map((activity) => {
                   const languages = activity.programmingLanguages || activity.programming_languages || [];
@@ -818,7 +818,7 @@ const handleActivityClick = async (activity) => {
           {contentKey === "completed" && (
             <div className='completed-class-activities'>
               {sortedCompletedActivities.length === 0 ? (
-                <p>No completed activities found.</p>
+                <p className='text-center'>No completed activities found.</p>
               ) : (
                 sortedCompletedActivities.map((activity) => {
                   const languages = activity.programmingLanguages || activity.programming_languages || [];

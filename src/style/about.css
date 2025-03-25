@@ -64,12 +64,12 @@
 .team-card .role{
     color: #CBCBCB;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
 }
 
 .team-card .card-text{
     color: #9D9D9D;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-align: justify;
     margin-top: -8px;
     flex-grow: 1;
@@ -102,6 +102,8 @@
     height: 25px;
 }
 
+
+
 @media (max-width: 1024px) {
     .header{
         font-size: 1.8rem;
@@ -122,15 +124,15 @@
     }
     
     .team-card .card-name {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
     
     .team-card .role{
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
     
     .team-card .card-text{
-        font-size: 0.6rem;
+        font-size: 0.65rem;
     }
     
     .team-card .social-links img {
@@ -166,11 +168,10 @@
 
     .description{
         padding-inline: 30px;
-        font-size: 0.65rem;
     }
     
     .team-card .team-img {
-        height: 115px;
+        height: 170px;
     }
 }
 
@@ -181,11 +182,11 @@
     }
     
     .team-card .team-img {
-        height: 100px;
+        height: 150px;
     }
 
     .team-card .card-name {
-        font-size: 0.6rem;
+        font-size: 0.7rem;
     }
     
     .team-card .card-body{
@@ -193,12 +194,12 @@
     }
 
     .team-card .role{
-        font-size: 0.6rem;
+        font-size: 0.7rem;
         margin-top: -5px;
     }
     
     .team-card .card-text{
-        font-size: 0.55rem;
+        font-size: 0.65rem;
         margin-top: -10px;
     }
 
@@ -214,15 +215,16 @@
 @media (max-width: 320px) {
     .team-card {
         border-radius: 10px !important;
-        width: 125%;
+        width: 150%;
+        margin-left: -15px;
     }
     
     .team-card .team-img {
-        height: 100px;
+        height: 130px;
     }
 
     .team-card .card-name {
-        font-size: 0.55rem;
+        font-size: 0.65rem;
         font-weight: 600;
     }
     
@@ -231,12 +233,12 @@
     }
 
     .team-card .role{
-        font-size: 0.55rem;
+        font-size: 0.65rem;
         margin-top: 0;
     }
     
     .team-card .card-text{
-        font-size: 0.5rem;
+        font-size: 0.6rem;
         margin-top: -10px;
     }
 }

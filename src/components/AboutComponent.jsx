@@ -13,7 +13,7 @@ export const AboutComponent = () => {
 
       <div className='container-fluid team-container'>
         <div className='row g-0 team-row'>
-          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
+          <div className='col-6 col-sm-4 col-md-3 col-lg-2'>
               <div className='card team-card'>
                   <img className="team-img" src='/src/assets/hana2.png' alt="Hannah Condada"/>
                   <div className="card-name">HANNAH CONDADA</div>
@@ -29,7 +29,7 @@ export const AboutComponent = () => {
               </div>
           </div>
 
-          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
+          <div className='col-6 col-sm-4 col-md-3 col-lg-2'>
               <div className='card team-card'>
                   <img className="team-img" src='/src/assets/angelica2.png' alt="Angelica Mae Manliguez"/>
                   <div className="card-name">ANGELICA MAE MANLIGUEZ</div>
@@ -45,7 +45,7 @@ export const AboutComponent = () => {
               </div>
           </div>
 
-          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
+          <div className='col-6 col-sm-4 col-md-3 col-lg-2'>
             <div className='card team-card'>
               <img className="team-img" src='/src/assets/erikka2.png' alt="Erikka"/>
               <div className="card-name">ERIKKA MARIELLE ENAJE</div>
@@ -61,7 +61,7 @@ export const AboutComponent = () => {
             </div>
           </div>
 
-          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
+          <div className='col-6 col-sm-4 col-md-3 col-lg-2'>
               <div className='card team-card'>
                   <img className="team-img" src='/src/assets/noy2.png' alt="Noriel Achero"/>
                   <div className="card-name">NORIEL ARCHERO</div>
@@ -77,9 +77,9 @@ export const AboutComponent = () => {
               </div>
           </div>
           
-          <div className='col-5 col-sm-3 col-md-3 col-lg-2'>
+          <div className='col-6 col-sm-4 col-md-3 col-lg-2'>
               <div className='card team-card'>
-                  <img className="team-img" src='/src/assets/aeron.png' alt="Noriel Achero"/>
+                  <img className="team-img" src='/src/assets/red.png' alt="Noriel Achero"/>
                   <div className="card-name">AERON RED CELAJES</div>
                   <div className='card-body'>
                       <p className='role'>Lead Back-End Developer</p>
@@ -92,9 +92,9 @@ export const AboutComponent = () => {
                   </div>
               </div>
           </div>
-
         </div>
       </div>
+      
     </>
   )
 }

@@ -11,7 +11,7 @@ export const HeaderComponent = () => {
     return (
         <>
             <div className='row g-5'>
-                <div className='col-md-8 col-lg-8'>
+                <div className='col-12 col-sm-12 col-md-8 col-lg-8'>
                     <div className="header-section-text">
                         <p className='header-section-title'>Welcome to NEUDev<br></br>—where code meets clarity</p>
                         <p className='header-section-p'>NEUDev streamlines evaluations with automated, consistent code analysis. From pinpointing improvements to offering smart optimizations and detailed feedback, it’s coding clarity at its finest.</p>

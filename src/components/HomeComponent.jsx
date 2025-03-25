@@ -29,6 +29,8 @@ export const HomeComponents = () => {
                         </div>
                     </div>
 
+                    <div className='home-wrapper'></div>
+
                     <div className='footer-section'>
                         <FooterComponent/>
                     </div>

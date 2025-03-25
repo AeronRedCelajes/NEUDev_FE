@@ -68,7 +68,7 @@ const TeacherAMNavigationBarComponent = () => {
           <a href="#"><i className="bi bi-moon"></i></a>
           <span className="student-badge">Teacher</span>
           <Dropdown align="end">
-            <Dropdown.Toggle variant="transparent" className="profile-dropdown">
+            <Dropdown.Toggle variant="transparent" className="dropdown-desgin">
               <img src={profileImage} className="profile-image" alt="Profile" />
             </Dropdown.Toggle>
             <Dropdown.Menu>
