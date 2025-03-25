@@ -51,6 +51,7 @@
     color: #B84C20;
     background-color: #F5DAD0;
     border-left: 7px solid #B84C20;
+    font-weight: 600;
 }
 
 .sidebar .nav-item.active:hover {
@@ -421,11 +422,11 @@
     }
 
     .sidebar {
-        width: 170px;
+        width: 205px;
     }
 
     .sidebar.open{
-        width: 170px;
+        width: 205px;
     }
 
     .no-classes-container .join-class{
@@ -446,14 +447,6 @@
     .student-badge {
         padding: 6px 13px;
         font-size: 0.75rem;
-    }
-
-    .sidebar {
-        width: 150px;
-    }
-
-    .sidebar.open {
-        width: 155px;
     }
 
     .sidebar .nav-link {
