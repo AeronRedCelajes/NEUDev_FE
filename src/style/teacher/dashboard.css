@@ -255,9 +255,24 @@
 }
 
 /* 🎯 Responsive Fixes */
+@media (max-width: 1200px) {
+    .teacher-badge {
+        padding: 6px 13px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+}
+
 @media (max-width: 992px) {
     .classes-container .class-card{
         width: 47%;
+    }
+}
+
+@media (max-width: 768px) {
+    .teacher-badge {
+        padding: 6px 13px;
+        font-size: 0.75rem;
     }
 }
 
@@ -270,5 +285,23 @@
         width: 80%;
         height: auto;
     }
+}
 
+@media (max-width: 576px) {
+    .teacher-badge {
+        padding: 7px 13px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 425px) {
+    .teacher-badge {
+        padding: 5px 11px;
+    }
+}
+
+@media (max-width: 320px) {
+    .teacher-badge {
+        padding: 5px 11px;
+    }
 }

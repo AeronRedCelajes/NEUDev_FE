@@ -346,7 +346,8 @@
 
 @media (max-width: 1200px) {
     .dashboard-navbar {
-        margin-right: 0;
+        margin-right: 5px;
+        gap: 10px;
     }
 
     .student-badge {
@@ -415,6 +416,10 @@
 }
 
 @media (max-width: 1024px) {
+    .notification-bell{
+        margin-right: -5px;
+    }
+
     .sidebar {
         width: 170px;
     }
@@ -515,7 +520,6 @@
     .student-badge {
         padding: 7px 13px;
         font-size: 0.75rem;
-        margin-right: -10px;
     }
 
     .dashboard-content {
@@ -556,15 +560,12 @@
 }
 
 @media (max-width: 425px) {
-    .profile-dropdown {
-        margin-right: -20px;
+    .dashboard-navbar{
+        margin-right: 0 !important;
     }
     
     .student-badge {
         padding: 5px 11px;
-        font-size: 0.7rem;
-        margin-left: 15px;
-        margin-right: -10px;
     }
 
     .no-classes-container .join-class{
@@ -580,9 +581,6 @@
 @media (max-width: 320px) {
     .student-badge {
         padding: 5px 11px;
-        font-size: 0.7rem;
-        margin-left: 15px;
-        margin-right: -10px;
     }
 
     .dashboard-content h4{

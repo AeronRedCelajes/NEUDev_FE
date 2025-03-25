@@ -199,7 +199,6 @@ export const StudentDashboardComponent = () => {
 
           <div className='dashboard-navbar'>
             <span className='ping'>20 ms</span>
-            <a href='#'><i className='bi bi-moon'></i></a>
             <span className='student-badge'>Student</span>
 
             {/* [CHANGED] Notification Bell */}

@@ -301,7 +301,6 @@ export const TeacherDashboardComponent = () => {
           </Button>
           <div className='dashboard-navbar'>
             <span className='ping'>20 ms</span>
-            <a href='#'><i className='bi bi-moon'></i></a>
             <span className='teacher-badge'>Teacher</span>
 
             {/* Notification Bell */}
@@ -354,7 +353,7 @@ export const TeacherDashboardComponent = () => {
               )}
             </div>
             <Dropdown align='end'>
-              <Dropdown.Toggle variant='transparent' className='dropdown-desgin'>
+              <Dropdown.Toggle variant='transparent' className='profile-dropdown'>
                 <img src={profileImage} className='profile-image' alt="Profile" />
               </Dropdown.Toggle>
               <Dropdown.Menu>

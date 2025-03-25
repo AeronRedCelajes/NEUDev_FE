@@ -32,7 +32,7 @@
   overflow: hidden;
 }
 
-.dashboard-navbar {
+.class-navbar-top .dashboard-navbar {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -153,16 +153,16 @@
     width: 21rem;
   }
 
-  .dashboard-navbar{
+  .class-navbar-top .dashboard-navbar{
     margin-right: 15px;
   }
 
-  .dashboard-navbar i{
+  .class-navbar-top .dashboard-navbar i{
     margin-right: -15px;
     font-size: 0.9rem;
   }
 
-  .dashboard-navbar .ping{
+  .class-navbar-top .dashboard-navbar .ping{
     font-size: 0.8rem;
   }
 }
@@ -176,7 +176,7 @@
     width: 20rem;
   }
 
-  .dashboard-navbar .student-badge{
+  .class-navbar-top .dashboard-navbar .student-badge{
     margin-right: -15px;
   }
 }

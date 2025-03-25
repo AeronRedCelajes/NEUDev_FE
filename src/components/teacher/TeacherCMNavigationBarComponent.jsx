@@ -64,7 +64,6 @@ const TeacherCMNavigationBarComponent = () => {
         {/* ✅ Profile & Logout */}
         <div className="dashboard-navbar">
           <span className="ping">20 ms</span>
-          <a href="#"><i className="bi bi-moon"></i></a>
           <span className="student-badge">Teacher</span>
           <Dropdown align="end">
             <Dropdown.Toggle variant="transparent" className="dropdown-desgin">
