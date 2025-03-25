@@ -186,11 +186,6 @@ const TeacherClassManagementClassRecordComponent = () => {
               {sortCriteria === "lastname" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
 
-            <Button variant="link" onClick={() => sortStudents("averageScore")}>
-              Sort by Total Score{" "}
-              {sortCriteria === "averageScore" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-            </Button>
-
             <i className="bi bi-arrow-clockwise" onClick={fetchAllData}></i>
           </div>
 
