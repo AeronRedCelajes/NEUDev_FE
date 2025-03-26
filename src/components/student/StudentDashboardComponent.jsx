@@ -79,7 +79,7 @@ export const StudentDashboardComponent = () => {
     // POLLING: setInterval to fetch notifications every 10 seconds
     const interval = setInterval(() => {
       fetchUserNotifications();
-    }, 10000);
+    }, 5000);
 
     // Cleanup on unmount
     return () => clearInterval(interval);
