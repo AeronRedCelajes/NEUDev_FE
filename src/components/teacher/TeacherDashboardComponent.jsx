@@ -9,283 +9,289 @@ import { logout, getProfile, createClass, getClasses, updateClass, deleteClass, 
   markNotificationAsRead, 
   deleteNotification } from '../api/API.js';
 
-export const TeacherDashboardComponent = () => {
-  const defaultProfileImage = '/src/assets/noy.png';
-  const [profileImage, setProfileImage] = useState(defaultProfileImage);
-  const [className, setClassName] = useState("");
-  const [classSection, setClassSection] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [showCreateClass, setShowCreateClass] = useState(false);
-  const [classes, setClasses] = useState([]);
-  const [instructorName, setInstructorName] = useState("");
-
-  //Notification
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  // State for editing a class (including cover photo)
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editClassData, setEditClassData] = useState({
-    id: null,
-    className: "",
-    classSection: "",
-    // Will hold the File object if a new file is chosen, or a URL if already stored.
-    classCoverPhoto: "",
-    // For preview display in the modal
-    classCoverPreview: ""
-  });
-  const [isEditing, setIsEditing] = useState(false);
-
-  // State for deleting a class
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteClassData, setDeleteClassData] = useState(null);
-  const [deletePassword, setDeletePassword] = useState("");
-
-  // State for archiving a class
-  const [showArchiveModal, setShowArchiveModal] = useState(false);
-  const [archiveClassData, setArchiveClassData] = useState(null);
-  const [isArchiving, setIsArchiving] = useState(false);
-
-  const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await getProfile();
-        console.log("🔍 API Response (Profile):", response);
-        if (response) {
-          setProfileImage(response.profileImage || defaultProfileImage);
-          setInstructorName(`${response.firstname} ${response.lastname}`);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching profile:", error);
-      }
-    };
-
-    const fetchClasses = async () => {
-      const response = await getClasses();
-      console.log("📥 Fetched Classes (Filtered for Teacher):", response);
-      if (!response.error) {
-        const updatedClasses = response.map(cls => ({
-          ...cls,
-          instructorName: instructorName
-        }));
-        setClasses(updatedClasses);
-      } else {
-        console.error("❌ Failed to fetch classes:", response.error);
-      }
-    };
-
-    // Fetch notifications on mount
-    const fetchUserNotifications = async () => {
-      const resp = await getNotifications();
-      if (!resp.error && Array.isArray(resp)) {
-        // Store all notifications in state
-        setNotifications(resp);
-        // Count unread by checking isRead === false
-        const unread = resp.filter(n => !n.isRead).length;
-        setUnreadCount(unread);
-      }
-    };
-
-    fetchProfile();
-    fetchClasses();
-    fetchUserNotifications();
-
-    // POLLING: setInterval to fetch notifications every 10 seconds
-    const interval = setInterval(() => {
-      fetchUserNotifications();
-    }, 10000);
-
-    // Cleanup on unmount
-    return () => clearInterval(interval);
-
-  }, [instructorName]);
-
-  const handleBellClick = () => {
-      setShowNotifications(!showNotifications);
-    };
+  export const TeacherDashboardComponent = () => {
+    const defaultProfileImage = '/src/assets/noy.png';
+    const [profileImage, setProfileImage] = useState(defaultProfileImage);
+    const [className, setClassName] = useState("");
+    const [classSection, setClassSection] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
+    const [showCreateClass, setShowCreateClass] = useState(false);
+    const [classes, setClasses] = useState([]);
+    const [instructorName, setInstructorName] = useState("");
   
-  /**
-   * Mark a single notification as read, then update state.
-   */
-  const handleNotificationClick = async (notificationId) => {
-    // Mark as read on the server
-    await markNotificationAsRead(notificationId);
-
-    // Update local state to set isRead = true
-    const updatedList = notifications.map(n =>
-      n.id === notificationId ? { ...n, isRead: true } : n
-    );
-    setNotifications(updatedList);
-
-    // Recalculate how many are unread
-    const newUnreadCount = updatedList.filter(n => !n.isRead).length;
-    setUnreadCount(newUnreadCount);
-
-    // (Optional) If you want to do something else, like navigate somewhere:
-    // navigate('/some-other-page');
+    // State for editing a class (including cover photo)
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editClassData, setEditClassData] = useState({
+      id: null,
+      className: "",
+      classSection: "",
+      // Will hold the File object if a new file is chosen, or a URL if already stored.
+      classCoverPhoto: "",
+      // For preview display in the modal
+      classCoverPreview: ""
+    });
+    const [isEditing, setIsEditing] = useState(false);
+  
+    // State for deleting a class
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteClassData, setDeleteClassData] = useState(null);
+    const [deletePassword, setDeletePassword] = useState("");
+  
+    // State for archiving a class
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [archiveClassData, setArchiveClassData] = useState(null);
+    const [isArchiving, setIsArchiving] = useState(false);
+  
+    const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  
+    // [CHANGED] State for notifications
+      const [notifications, setNotifications] = useState([]);
+      const [unreadCount, setUnreadCount] = useState(0);
+      const [showNotifications, setShowNotifications] = useState(false); // controls dropdown visibility
+  
+    useEffect(() => {
+      const fetchProfile = async () => {
+        try {
+          const response = await getProfile();
+          console.log("🔍 API Response (Profile):", response);
+          if (response) {
+            setProfileImage(response.profileImage || defaultProfileImage);
+            setInstructorName(`${response.firstname} ${response.lastname}`);
+          }
+        } catch (error) {
+          console.error("❌ Error fetching profile:", error);
+        }
+      };
+  
+      const fetchClasses = async () => {
+        const response = await getClasses();
+        console.log("📥 Fetched Classes (Filtered for Teacher):", response);
+        if (!response.error) {
+          const updatedClasses = response.map(cls => ({
+            ...cls,
+            instructorName: instructorName
+          }));
+          setClasses(updatedClasses);
+        } else {
+          console.error("❌ Failed to fetch classes:", response.error);
+        }
+      };
+  
+      // Fetch notifications on mount
+      const fetchUserNotifications = async () => {
+        const resp = await getNotifications();
+        if (!resp.error && Array.isArray(resp)) {
+          // Store all notifications in state
+          setNotifications(resp);
+          // Count unread by checking isRead === false
+          const unread = resp.filter(n => !n.isRead).length;
+          setUnreadCount(unread);
+        }
+      };
+  
+      fetchProfile();
+      fetchClasses();
+      fetchUserNotifications();
+  
+      // POLLING: setInterval to fetch notifications every 10 seconds
+      const interval = setInterval(() => {
+        fetchUserNotifications();
+      }, 10000);
+  
+      // Cleanup on unmount
+      return () => clearInterval(interval);
+  
+    }, [instructorName]);
+  
+  // THIS IS THE FUNCTION IF YOU WANT TO MAKE ALL NOTIF TO BE CONSIDERED ALL READ
+  //   const handleBellClick = async () => {
+  //     setShowNotifications(!showNotifications);
+  //     if (!showNotifications && unreadCount > 0) {
+  //       // Mark all unread notifications as read
+  //       for (let n of notifications) {
+  //         if (!n.isRead) {
+  //           await markNotificationAsRead(n.id);
+  //         }
+  //       }
+  //       const resp = await getNotifications();
+  //       if (!resp.error && Array.isArray(resp)) {
+  //         setNotifications(resp);
+  //       }
+  //       setUnreadCount(0);
+  //     }
+  //   };
+  
+  // THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
+  const handleBellClick = () => {
+    setShowNotifications(!showNotifications);
   };
-
-  /**
-   * Delete a notification entirely.
-   */
-  const handleDeleteNotification = async (e, notificationId) => {
-    e.stopPropagation(); // prevent parent onClick from firing
-    const resp = await deleteNotification(notificationId);
-    if (!resp.error) {
-      // Remove from local state
-      const updatedList = notifications.filter(n => n.id !== notificationId);
+  
+    /**
+     * Mark a single notification as read, then update state.
+     */
+    const handleNotificationClick = async (notificationId) => {
+      // Mark as read on the server
+      await markNotificationAsRead(notificationId);
+  
+      // Update local state to set isRead = true
+      const updatedList = notifications.map(n =>
+        n.id === notificationId ? { ...n, isRead: true } : n
+      );
       setNotifications(updatedList);
-
-      // Recalculate unread
+  
+      // Recalculate how many are unread
       const newUnreadCount = updatedList.filter(n => !n.isRead).length;
       setUnreadCount(newUnreadCount);
-    } else {
-      console.error('Failed to delete notification:', resp.error);
-    }
-  };
   
-  const handleLogout = async () => {
-    const result = await logout();
-    if (!result.error) {
-      alert("✅ Logout successful");
-      window.location.href = "/home";
-    } else {
-      alert("❌ Logout failed. Try again.");
-    }
-  };
-
-  const handleClassCreate = async (e) => {
-    e.preventDefault();
-    if (!className.trim() || !classSection.trim()) {
-      alert("⚠️ Please enter both class name and section.");
-      return;
-    }
-    setIsCreating(true);
-    const classData = { className, classSection };
-    console.log("📤 Sending Class Data:", classData);
-    const response = await createClass(classData);
-    if (response.error) {
-      alert(`❌ Class creation failed: ${response.error}`);
-    } else {
-      alert("✅ Class created successfully!");
-      setShowCreateClass(false);
-      setClassName("");
-      setClassSection("");
-      setClasses([...classes, { ...response, instructorName }]);
-    }
-    setIsCreating(false);
-  };
-
-  // Open the edit modal and load class data including cover photo
-  const handleEditClass = (classItem, event) => {
-    event.stopPropagation();
-    setEditClassData({
-      id: classItem.id || classItem.classID,
-      className: classItem.className,
-      classSection: classItem.classSection,
-      // Use the stored relative path if available, fallback to a default cover.
-      classCoverPhoto: classItem.classCoverImage || '/src/assets/defaultCover.png',
-      classCoverPreview: classItem.classCoverImage || '/src/assets/defaultCover.png'
-    });
-    setShowEditModal(true);
-  };
-
-  // Save changes including the updated cover photo
-  const handleEditClassSave = async (e) => {
-    e.preventDefault();
-    if (!editClassData.className.trim() || !editClassData.classSection.trim()) {
-      alert("⚠️ Please enter both class name and section.");
-      return;
-    }
-    setIsEditing(true);
-    const response = await updateClass(editClassData.id, editClassData);
-    if (response.error) {
-      alert(`❌ Failed to update class: ${response.error}`);
-      setIsEditing(false);
-      return;
-    }
-    const updatedClasses = classes.map(cls => {
-      if ((cls.id || cls.classID) === editClassData.id) {
-        return { ...cls, ...editClassData, instructorName };
-      }
-      return cls;
-    });
-    setClasses(updatedClasses);
-    alert("✅ Class updated successfully!");
-    setShowEditModal(false);
-    setIsEditing(false);
-  };
-
-  // Open the delete modal and set the class to delete
-  const handleDeleteClass = (classItem, event) => {
-    event.stopPropagation();
-    setDeleteClassData(classItem);
-    setShowDeleteModal(true);
-  };
-
-  // Delete the class after verifying the teacher's password
-  const handleDeleteClassConfirm = async (e) => {
-    e.preventDefault();
-    if (!deletePassword.trim()) {
-      alert("⚠️ Please enter your password to confirm deletion.");
-      return;
-    }
-    const teacherEmail = sessionStorage.getItem("user_email");
-    const verifyResponse = await verifyPassword(teacherEmail, deletePassword);
-    if (verifyResponse.error) {
-      alert(`❌ Password verification failed: ${verifyResponse.error}`);
-      return;
-    }
-    const classID = deleteClassData.id || deleteClassData.classID;
-    const deleteResponse = await deleteClass(classID);
-    if (deleteResponse.error) {
-      alert(`❌ Failed to delete class: ${deleteResponse.error}`);
-      return;
-    }
-    const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
-    setClasses(updatedClasses);
-    alert(`✅ ${deleteClassData.className} deleted successfully!`);
-    setShowDeleteModal(false);
-    setDeletePassword("");
-    setDeleteClassData(null);
-  };
-
-  // Open the archive modal and set the class to archive
-  const handleArchiveClass = (classItem, event) => {
-    event.stopPropagation();
-    setArchiveClassData(classItem);
-    setShowArchiveModal(true);
-  };
-
-  // Confirm archive action – update activeClass field to false
-  const handleArchiveClassConfirm = async (e) => {
-    e.preventDefault();
-    if (!archiveClassData) return;
-    setIsArchiving(true);
-    const classID = archiveClassData.id || archiveClassData.classID;
-    const archiveData = {
-      className: archiveClassData.className,
-      classSection: archiveClassData.classSection,
-      activeClass: false
+      // (Optional) If you want to do something else, like navigate somewhere:
+      // navigate('/some-other-page');
     };
-    const response = await updateClass(classID, archiveData);
-    if (response.error) {
-      alert(`❌ Failed to archive class: ${response.error}`);
+  
+    const handleLogout = async () => {
+      const result = await logout();
+      if (!result.error) {
+        alert("✅ Logout successful");
+        window.location.href = "/home";
+      } else {
+        alert("❌ Logout failed. Try again.");
+      }
+    };
+  
+    const handleClassCreate = async (e) => {
+      e.preventDefault();
+      if (!className.trim() || !classSection.trim()) {
+        alert("⚠️ Please enter both class name and section.");
+        return;
+      }
+      setIsCreating(true);
+      const classData = { className, classSection };
+      console.log("📤 Sending Class Data:", classData);
+      const response = await createClass(classData);
+      if (response.error) {
+        alert(`❌ Class creation failed: ${response.error}`);
+      } else {
+        alert("✅ Class created successfully!");
+        setShowCreateClass(false);
+        setClassName("");
+        setClassSection("");
+        setClasses([...classes, { ...response, instructorName }]);
+      }
+      setIsCreating(false);
+    };
+  
+    // Open the edit modal and load class data including cover photo
+    const handleEditClass = (classItem, event) => {
+      event.stopPropagation();
+      setEditClassData({
+        id: classItem.id || classItem.classID,
+        className: classItem.className,
+        classSection: classItem.classSection,
+        // Use the stored relative path if available, fallback to a default cover.
+        classCoverPhoto: classItem.classCoverImage || '/src/assets/defaultCover.png',
+        classCoverPreview: classItem.classCoverImage || '/src/assets/defaultCover.png'
+      });
+      setShowEditModal(true);
+    };
+  
+    // Save changes including the updated cover photo
+    const handleEditClassSave = async (e) => {
+      e.preventDefault();
+      if (!editClassData.className.trim() || !editClassData.classSection.trim()) {
+        alert("⚠️ Please enter both class name and section.");
+        return;
+      }
+      setIsEditing(true);
+    
+      // Call updateClass and wait for the response. The response includes the updated cover image URL.
+      const response = await updateClass(editClassData.id, editClassData);
+      if (response.error) {
+        alert(`❌ Failed to update class: ${response.error}`);
+        setIsEditing(false);
+        return;
+      }
+    
+      // Update the state using the response (which has the updated classCoverImage URL)
+      const updatedClasses = classes.map((cls) => {
+        if ((cls.id || cls.classID) === editClassData.id) {
+          return { ...cls, ...response, instructorName };
+        }
+        return cls;
+      });
+      setClasses(updatedClasses);
+    
+      alert("✅ Class updated successfully!");
+      setShowEditModal(false);
+      setIsEditing(false);
+    };
+  
+    // Open the delete modal and set the class to delete
+    const handleDeleteClass = (classItem, event) => {
+      event.stopPropagation();
+      setDeleteClassData(classItem);
+      setShowDeleteModal(true);
+    };
+  
+    // Delete the class after verifying the teacher's password
+    const handleDeleteClassConfirm = async (e) => {
+      e.preventDefault();
+      if (!deletePassword.trim()) {
+        alert("⚠️ Please enter your password to confirm deletion.");
+        return;
+      }
+      const sessionData = getSessionData();
+      const teacherEmail = sessionData.email;
+      const verifyResponse = await verifyPassword(teacherEmail, deletePassword);
+      if (verifyResponse.error) {
+        alert(`❌ Password verification failed: ${verifyResponse.error}`);
+        return;
+      }
+      const classID = deleteClassData.id || deleteClassData.classID;
+      const deleteResponse = await deleteClass(classID);
+      if (deleteResponse.error) {
+        alert(`❌ Failed to delete class: ${deleteResponse.error}`);
+        return;
+      }
+      const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
+      setClasses(updatedClasses);
+      alert(`✅ ${deleteClassData.className} deleted successfully!`);
+      setShowDeleteModal(false);
+      setDeletePassword("");
+      setDeleteClassData(null);
+    };
+  
+    // Open the archive modal and set the class to archive
+    const handleArchiveClass = (classItem, event) => {
+      event.stopPropagation();
+      setArchiveClassData(classItem);
+      setShowArchiveModal(true);
+    };
+  
+    // Confirm archive action – update activeClass field to false
+    const handleArchiveClassConfirm = async (e) => {
+      e.preventDefault();
+      if (!archiveClassData) return;
+      setIsArchiving(true);
+      const classID = archiveClassData.id || archiveClassData.classID;
+      const archiveData = {
+        className: archiveClassData.className,
+        classSection: archiveClassData.classSection,
+        activeClass: false
+      };
+      const response = await updateClass(classID, archiveData);
+      if (response.error) {
+        alert(`❌ Failed to archive class: ${response.error}`);
+        setIsArchiving(false);
+        return;
+      }
+      alert("✅ Class archived successfully!");
+      const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
+      setClasses(updatedClasses);
+      setShowArchiveModal(false);
+      setArchiveClassData(null);
       setIsArchiving(false);
-      return;
-    }
-    alert("✅ Class archived successfully!");
-    const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
-    setClasses(updatedClasses);
-    setShowArchiveModal(false);
-    setArchiveClassData(null);
-    setIsArchiving(false);
-  };
+    };
 
   return (
     <div className='dashboard'>
