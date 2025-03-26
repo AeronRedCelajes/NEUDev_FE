@@ -46,9 +46,11 @@ import  TeacherCodingAssessmentComponent from "./components/teacher/TeacherCodin
 
 import  TeacherReviewComponent from "./components/teacher/TeacherReviewComponent.jsx";
 
+import { AlertProvider } from './components/AlertContext';
 
 function App() {
     return (
+        <AlertProvider>
         <Router>
             <LogoutListener />
             <Routes>
@@ -107,6 +109,7 @@ function App() {
 
             </Routes>
         </Router>
+        </AlertProvider>
     );
 }
 
