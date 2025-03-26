@@ -5,14 +5,14 @@ import { faDesktop, faLaptopCode, faBars, faBell, faTimes } from "@fortawesome/f
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import "../../style/teacher/cmNavigationBar.css";
 import { getProfile, logout, markNotificationAsRead, deleteNotification } from "../api/API"; // ✅ Import API function
-
+import { useAlert } from "../AlertContext"; 
 
 const TeacherCMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID } = useParams(); // ✅ Get classID from URL
-  const [profileImage, setProfileImage] = useState("/src/assets/default.png"); // Default image
-
+  const [profileImage, setProfileImage] = useState("/src/assets/noy.png"); // Default image
+  const { openAlert } = useAlert();
   //Notification
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -29,7 +29,7 @@ const TeacherCMNavigationBarComponent = () => {
   const fetchProfile = async () => {
     const response = await getProfile();
     if (!response.error) {
-      setProfileImage(response.profileImage || "/src/assets/default.png");
+      setProfileImage(response.profileImage || "/src/assets/noy.png");
     }
   };
 
@@ -47,15 +47,29 @@ const TeacherCMNavigationBarComponent = () => {
     navigate(`/teacher/class/${classID}/${key}`);
   };
 
-  const handleLogout = async () => {
-    const result = await logout();
-    if (!result.error) {
-        alert("✅ Logout successful");
-        window.location.href = "/home";
-    } else {
-        alert("❌ Logout failed. Try again.");
-    }
-  };
+    const handleLogout = async () => {
+      const result = await logout();
+      if (!result.error) {
+        //alert("✅ Logout successful");
+        openAlert({
+          message: "Logout successful",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+          onAfterClose: () => { window.location.href = "/home";
+          },
+        });
+       
+      } else {
+        //alert("❌ Logout failed. Try again.");
+        openAlert({
+          message: "Logout failed. Try again.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 3000,
+          onAfterClose: () => {
+          },
+        });
+      }
+    };
 
   const handleBellClick = () => {
       setShowNotifications(!showNotifications);

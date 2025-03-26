@@ -11,7 +11,7 @@ const TeacherAMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID, actID } = useParams(); // ✅ Get classID from URL
-  const [profileImage, setProfileImage] = useState("/src/assets/default.png"); // Default image
+  const [profileImage, setProfileImage] = useState("/src/assets/noy.png"); // Default image
 
   //Notification
   const [notifications, setNotifications] = useState([]);
@@ -29,7 +29,7 @@ const TeacherAMNavigationBarComponent = () => {
   const fetchProfile = async () => {
     const response = await getProfile();
     if (!response.error) {
-      setProfileImage(response.profileImage || "/src/assets/default.png");
+      setProfileImage(response.profileImage || "/src/assets/noy.png");
     }
   };
 
@@ -44,22 +44,28 @@ const TeacherAMNavigationBarComponent = () => {
   };
 
   // ✅ Navigate between activity management tabs
-  const handleSelect = (key) => {
-    navigate(`/teacher/class/${classID}/activity/${actID}/${key}`);
-  };
-
-  const handleLogout = async () => {
+ const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
-        alert("✅ Logout successful");
-        window.location.href = "/home";
+      //alert("✅ Logout successful");
+      openAlert({
+        message: "Logout successful",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => { window.location.href = "/home";
+        },
+      });
+     
     } else {
-        alert("❌ Logout failed. Try again.");
+      //alert("❌ Logout failed. Try again.");
+      openAlert({
+        message: "Logout failed. Try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+        onAfterClose: () => {
+        },
+      });
     }
-  };
-
-  const handleBellClick = () => {
-    setShowNotifications(!showNotifications);
   };
   
   /**
