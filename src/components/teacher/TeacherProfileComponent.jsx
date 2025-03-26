@@ -33,8 +33,6 @@ export const TeacherProfileComponent = () => {
 
   // Fetch teacher profile on component mount
   useEffect(() => {
-    const session = getSessionData();
-    console.log("👀 Teacher Profile Session Data:", session);
     const fetchProfile = async () => {
       const data = await getProfile();
       if (!data.error) {

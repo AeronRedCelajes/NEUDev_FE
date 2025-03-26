@@ -63,9 +63,6 @@ export const TeacherDashboardComponent = () => {
     const [showNotifications, setShowNotifications] = useState(false); // controls dropdown visibility
 
   useEffect(() => {
-      // Check session data right when TeacherDashboardComponent mounts
-  const session = getSessionData();
-  console.log("👀 Session Data on Teacher Dashboard mount:", session);
     const fetchProfile = async () => {
       try {
         const response = await getProfile();
