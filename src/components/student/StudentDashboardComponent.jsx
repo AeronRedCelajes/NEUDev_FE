@@ -199,7 +199,6 @@ export const StudentDashboardComponent = () => {
 
           <div className='dashboard-navbar'>
             <span className='ping'>20 ms</span>
-            <a href='#'><i className='bi bi-moon'></i></a>
             <span className='student-badge'>Student</span>
 
             {/* [CHANGED] Notification Bell */}
@@ -301,7 +300,7 @@ export const StudentDashboardComponent = () => {
                   <Card.Img variant='top' src={classItem.classCoverImage || '/src/assets/univ.png'} />
                   <Card.Body>
                     <Card.Text>
-                      <strong><h6>{classItem.className}</h6></strong>
+                      <strong className='class-name'>{classItem.className}</strong><br />
                       <strong>Section:</strong> {classItem.classSection} <br />
                       <strong>Teacher:</strong> {classItem.teacherName}
                     </Card.Text>
