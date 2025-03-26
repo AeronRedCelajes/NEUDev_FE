@@ -94,26 +94,24 @@ const TeacherClassManagementClassRecordComponent = () => {
 
   // Export to CSV
   const exportToExcel = () => {
-    // 1) Build the header row
+    // 1) Build the header row with each activity name as a header
     const headers = ["Student Name"];
-    activities.forEach((act, index) => {
-      headers.push(`Activity #${index + 1} Name`);
-      headers.push(`Activity #${index + 1} Score`);
+    activities.forEach((act) => {
+      headers.push(`${act.actTitle}`);
     });
     headers.push("Total Score", "Avg Score Percentage");
-
+  
     // 2) Build CSV lines
     const csvLines = [];
-    csvLines.push(headers.join(",")); // e.g. "Student Name,Activity #1 Name,Activity #1 Score,..."
-
+    csvLines.push(headers.join(",")); // e.g. "Student Name,Python activity,Python activity 2,..."
+  
     students.forEach((student) => {
       const rowData = [];
       // Student name
       rowData.push(`"${student.lastname}, ${student.firstname}"`);
-
-      // For each activity: name + score
-      activities.forEach((act, index) => {
-        rowData.push(`"${act.actTitle}"`);
+  
+      // For each activity: score only
+      activities.forEach((act) => {
         const record = student.activities
           ? student.activities.find((a) => a.actID === act.actID)
           : null;
@@ -124,7 +122,7 @@ const TeacherClassManagementClassRecordComponent = () => {
             : "-";
         rowData.push(`"${scoreStr}"`);
       });
-
+  
       // Total Score
       let totalScoreStr = "-";
       if (
@@ -133,9 +131,9 @@ const TeacherClassManagementClassRecordComponent = () => {
       ) {
         totalScoreStr = `${student.totalScore}/${student.totalMaxScore}`;
       }
-
+  
       // Average Percentage
-      let avgPerc = "0.00%"; // Default to "0.00%" if no score
+      let avgPerc = "0.00%";
       if (
         student.totalScore !== undefined &&
         student.totalMaxScore !== undefined &&
@@ -144,28 +142,29 @@ const TeacherClassManagementClassRecordComponent = () => {
         const percent = (student.totalScore / student.totalMaxScore) * 100;
         avgPerc = `${percent.toFixed(2)}%`;
       }
-
+  
       rowData.push(`"${totalScoreStr}"`, `"${avgPerc}"`);
       csvLines.push(rowData.join(","));
     });
-
+  
     // 3) Combine lines into a single CSV string, add BOM for Excel
     const csvString = "\uFEFF" + csvLines.join("\r\n");
-
+  
     // 4) Create a Blob from the CSV and download it
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     const blobUrl = URL.createObjectURL(blob);
-
+  
     const link = document.createElement("a");
     link.href = blobUrl;
     link.setAttribute("download", `${className || "class_record"}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
+  
     // Optionally revoke the object URL
     setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   };
+  
 
   return (
     <div className="leaderboard-body">
@@ -200,95 +199,82 @@ const TeacherClassManagementClassRecordComponent = () => {
           {loading ? (
             <p>Loading class record...</p>
           ) : (
-<div className="horizontal-scrollbar">
-              <table className="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Student Name</th>
-                    {activities.map((act, index) => (
-                      <React.Fragment key={act.actID}>
-                        <th>Activity #{index + 1} Name</th>
-                        <th>Activity #{index + 1} Score</th>
-                      </React.Fragment>
-                    ))}
-                    <th>Total Score</th>
-                    <th>Avg Score Percentage</th>
+        <div className="horizontal-scrollbar">
+        <table className="table table-striped">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              {activities.map((act) => (
+                <th key={act.actID}>{act.actTitle}</th>
+              ))}
+              <th>Total Score</th>
+              <th>Avg Score Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {students.length > 0 ? (
+              students.map((student) => {
+                let totalScoreStr = "-";
+                if (
+                  student.totalScore !== undefined &&
+                  student.totalMaxScore !== undefined
+                ) {
+                  totalScoreStr = `${student.totalScore}/${student.totalMaxScore}`;
+                }
+                let avgPerc = "0.00%";
+                if (
+                  student.totalScore !== undefined &&
+                  student.totalMaxScore !== undefined &&
+                  student.totalMaxScore > 0
+                ) {
+                  const percent = (student.totalScore / student.totalMaxScore) * 100;
+                  avgPerc = `${percent.toFixed(2)}%`;
+                }
+                return (
+                  <tr key={student.studentID}>
+                    <td>
+                      <div className="avatar-name">
+                        <div className="avatar">
+                          <img
+                            src={
+                              student.profileImage || "/src/assets/profile_default.png"
+                            }
+                            alt="Avatar"
+                            className="avatar-image"
+                          />
+                        </div>
+                        <span className="student-name">
+                          {student.lastname}, {student.firstname}
+                        </span>
+                      </div>
+                    </td>
+                    {activities.map((act) => {
+                      const record = student.activities
+                        ? student.activities.find((a) => a.actID === act.actID)
+                        : null;
+                      const actualScore = record
+                        ? record.overallScore ?? record.finalScore
+                        : null;
+                      const scoreStr =
+                        actualScore !== null && actualScore !== undefined
+                          ? `${actualScore}/${act.maxPoints}`
+                          : "-";
+                      return <td key={act.actID}>{scoreStr}</td>;
+                    })}
+                    <td>{totalScoreStr}</td>
+                    <td>{avgPerc}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {students.length > 0 ? (
-                    students.map((student) => {
-                      // e.g. 19/30
-                      let totalScoreStr = "-";
-                      if (
-                        student.totalScore !== undefined &&
-                        student.totalMaxScore !== undefined
-                      ) {
-                        totalScoreStr = `${student.totalScore}/${student.totalMaxScore}`;
-                      }
-
-                      // e.g. 63.33%
-                      let avgPerc = "0.00%";
-                      if (
-                        student.totalScore !== undefined &&
-                        student.totalMaxScore !== undefined &&
-                        student.totalMaxScore > 0
-                      ) {
-                        const percent = (student.totalScore / student.totalMaxScore) * 100;
-                        avgPerc = `${percent.toFixed(2)}%`;
-                      }
-
-                      return (
-                        <tr key={student.studentID}>
-                          <td>
-                            <div className="avatar-name">
-                              <div className="avatar">
-                                <img
-                                  src={student.profileImage || "/src/assets/profile_default.png"}
-                                  alt="Avatar"
-                                  className="avatar-image"
-                                />
-                              </div>
-                              <span className="student-name">
-                                {student.lastname}, {student.firstname}
-                              </span>
-                            </div>
-                          </td>
-                          {activities.map((act) => {
-                            const record = student.activities
-                              ? student.activities.find((a) => a.actID === act.actID)
-                              : null;
-                            const actualScore = record
-                              ? record.overallScore ?? record.finalScore
-                              : null;
-                            const scoreStr =
-                              actualScore !== null && actualScore !== undefined
-                                ? `${actualScore}/${act.maxPoints}`
-                                : "-";
-                            return (
-                              <React.Fragment key={act.actID}>
-                                <td>{act.actTitle}</td>
-                                <td>{scoreStr}</td>
-                              </React.Fragment>
-                            );
-                          })}
-                          <td>{totalScoreStr}</td>
-                          <td>{avgPerc}</td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={activities.length * 2 + 2}
-                        style={{ textAlign: "center" }}
-                      >
-                        No students enrolled in this class.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={activities.length + 3} style={{ textAlign: "center" }}>
+                  No students enrolled in this class.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
             </div>
           )}
         </div>
