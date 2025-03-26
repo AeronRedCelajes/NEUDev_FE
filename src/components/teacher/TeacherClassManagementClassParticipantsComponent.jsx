@@ -22,14 +22,20 @@ const LeaderboardItem = ({
     <tr>
       <td>{index}</td> {/* Numbering Column */}
       <td>
-        <div className="avatar">
-          <img src={avatarUrl || "/src/assets/profile_default.png"} alt="Avatar" className="avatar-image" />
+        <div className="avatar-name">
+          <div className="avatar">
+            <img
+              src={avatarUrl || "/src/assets/profile_default.png"}
+              alt="Avatar"
+              className="avatar-image"
+            />
+          </div>
           <span className="student-name">{name}</span>
         </div>
       </td>
       <td>{studentNumber}</td>
       <td className="unenroll-cell">
-        <Button variant="danger" onClick={onUnenrollClick}>
+        <Button variant="danger" size="sm" onClick={onUnenrollClick}>
           Unenroll
         </Button>
       </td>
@@ -168,37 +174,48 @@ const TeacherClassManagementClassParticipantsComponent = () => {
   };
 
   return (
-    <div className="table-body">
+    <div className="leaderboard-body">
       <TeacherCMNavigationBarComponent />
-      <div className="table-container">
-        <div className="table-header">
-          <h1 className="table-title">
+      <div className="leaderboard-container">
+        <div className="leaderboard-header">
+          <h1 className="leaderboard-title">
             Students in {className || "Loading..."}
           </h1>
 
           {/* Add a Refresh button here */}
-          <div className='sort-section mb-3'>
-            <Button variant="link" onClick={() => sortStudents("lastname")}>
+          <div className="d-flex gap-2 mb-3">
+            <Button variant="info" onClick={fetchAllData}>
+              Refresh
+            </Button>
+
+            {/* Sorting Buttons */}
+            <Button variant="primary" onClick={() => sortStudents("lastname")}>
               Sort by Last Name{" "}
               {sortCriteria === "lastname" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </Button>
-
-            <i className="bi bi-arrow-clockwise" onClick={fetchAllData}></i>
+            <Button
+              variant="success"
+              className="ms-2"
+              onClick={() => sortStudents("averageScore")}
+            >
+              Sort by Score{" "}
+              {sortCriteria === "averageScore" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+            </Button>
           </div>
 
           {loading ? (
-            <p className="text-center">Loading students...</p>
+            <p>Loading students...</p>
           ) : (
-            <table className="table-content">
+            <table>
               <thead>
                 <tr>
-                  <th className="table-column-titles">#</th> {/* Numbering Column */}
-                  <th className="table-column-titles">Student Name</th>
-                  <th className="table-column-titles">Student Number</th>
-                  <th className="table-column-titles">Unenroll</th>
+                  <th>#</th> {/* Numbering Column */}
+                  <th>Student Name</th>
+                  <th>Student Number</th>
+                  <th>Unenroll</th>
                 </tr>
               </thead>
-              <tbody className="table-column-students">
+              <tbody>
                 {students.length > 0 ? (
                   students.map((student, index) => (
                     <LeaderboardItem
@@ -225,12 +242,11 @@ const TeacherClassManagementClassParticipantsComponent = () => {
 
       {/* Unenroll Confirmation Modal */}
       <Modal
-        className="modal-design"
         show={showUnenrollModal}
         onHide={() => setShowUnenrollModal(false)}
         backdrop="static"
         keyboard={false}
-        size="md"
+        size="lg"
       >
         <Modal.Header closeButton>
           <Modal.Title>Unenroll Student</Modal.Title>
@@ -253,18 +269,15 @@ const TeacherClassManagementClassParticipantsComponent = () => {
                 required
               />
             </Form.Group>
-            
+            {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
+            <Button variant="danger" type="submit" disabled={isProcessing}>
+              {isProcessing ? "Processing..." : "Unenroll"}
+            </Button>
+            <Button variant="secondary" onClick={() => setShowUnenrollModal(false)}>
+              Cancel
+            </Button>
           </Form>
         </Modal.Body>
-        <Modal.Footer>
-          {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
-          <Button variant="danger" type="submit" disabled={isProcessing}>
-            {isProcessing ? "Processing..." : "Unenroll"}
-          </Button>
-          <Button variant="secondary" onClick={() => setShowUnenrollModal(false)}>
-            Cancel
-          </Button>
-        </Modal.Footer>
       </Modal>
     </div>
   );
