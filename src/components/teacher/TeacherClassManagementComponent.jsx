@@ -11,7 +11,8 @@ import {
   getItems,
   getItemTypes, 
   getProgrammingLanguages,
-  verifyPassword
+  verifyPassword,
+  getSessionData
 } from "../api/API"; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faEllipsisV, faEye, faEyeSlash, faClock } from '@fortawesome/free-solid-svg-icons';
@@ -263,7 +264,8 @@ export const TeacherClassManagementComponent = () => {
   };
 
   const handleConfirmDelete = async () => {
-    const teacherEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const teacherEmail = sessionData.email;
     if (!teacherEmail) {
       alert("Teacher email not found. Please log in again.");
       return;

@@ -289,12 +289,11 @@
     transition: filter 0.3s ease-in-out;
 }
 
-.class-card .card-text h6{
+.class-card .card-text .class-name{
     color: #ebebeb;
     font-size: 0.95rem;
-    font-weight: 700;
+    display: block;
     text-align: center;
-    margin-bottom: 15px;
 }
 
 .class-card .card-text{
@@ -395,7 +394,7 @@
         height: 9rem;
     }
     
-    .class-card .card-text h6{
+    .class-card .card-text .class-name{
         font-size: 0.8rem;
     }
     
@@ -473,7 +472,7 @@
         height: 8rem;
     }
     
-    .class-card .card-text h6{
+    .class-card .card-text .class-name{
         font-size: 0.75rem;
     }
     

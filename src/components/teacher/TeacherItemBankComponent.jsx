@@ -14,7 +14,8 @@ import {
   deleteItem,
   getItemTypes,
   getProgrammingLanguages,
-  verifyPassword
+  verifyPassword,
+  getSessionData
 } from "../api/API.js";
 
 /**
@@ -131,6 +132,9 @@ export default function TeacherItemBankComponent() {
   // -------------------- New State for Date Sorting --------------------
   const [dateSortOrder, setDateSortOrder] = useState("desc");
 
+  //disabling the button once clicked
+  const [isClicked, setIsClicked] = useState(false);
+
   // WebSocket references for terminal
   const wsRef = useRef(null);
   const inputRef = useRef(null);
@@ -173,6 +177,8 @@ export default function TeacherItemBankComponent() {
 
   useEffect(() => {
     if (showCreateModal || showEditModal) {
+      setIsClicked(false);
+
       if (itemData.progLangIDs.length > 0) {
         setTestLangID(itemData.progLangIDs[0]);
       } else {
@@ -223,7 +229,8 @@ export default function TeacherItemBankComponent() {
   async function fetchItems(itemTypeID) {
     setLoading(true);
     try {
-      const teacherID = sessionStorage.getItem("userID");
+      const sessionData = getSessionData();
+      const teacherID = sessionData.userID;
       // Passing both scope and teacherID in the query object
       const response = await getItems(itemTypeID, { scope: itemScope, teacherID });
       if (!response || response.error || !Array.isArray(response)) {
@@ -240,7 +247,9 @@ export default function TeacherItemBankComponent() {
 
   async function handleDelete() {
     if (!itemData.itemID) return;
-    const teacherEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const teacherEmail = sessionData.email;
+
     if (!teacherEmail) {
       alert("Teacher email not found. Please log in again.");
       return;
@@ -263,16 +272,21 @@ export default function TeacherItemBankComponent() {
   }
 
   async function handleCreateOrUpdate() {
+
+    setIsClicked(true);
+
     if (
       !itemData.itemName.trim() ||
       !itemData.itemDesc.trim() ||
       itemData.progLangIDs.length === 0
     ) {
       alert("Please fill in all required fields (name, description, at least one language).");
+      setIsClicked(false);
       return;
     }
     if (isConsoleApp && (itemData.testCases || []).length === 0) {
       alert("Please add at least one test case for this item.");
+      setIsClicked(false);
       return;
     }
     if (isConsoleApp) {
@@ -280,6 +294,7 @@ export default function TeacherItemBankComponent() {
         const tc = itemData.testCases[i];
         if (tc.testCasePoints === "" || isNaN(Number(tc.testCasePoints)) || Number(tc.testCasePoints) < 0) {
           alert(`Please enter a valid points value for test case ${i + 1}.`);
+          setIsClicked(false);
           return;
         }
       }
@@ -304,7 +319,8 @@ export default function TeacherItemBankComponent() {
         : []
     };
     if (showCreateModal && itemScope === "personal") {
-      payload.teacherID = sessionStorage.getItem("userID");
+      const sessionData = getSessionData();
+      payload.teacherID = sessionData.userID;
     }
     let resp;
     if (showCreateModal) {
@@ -312,6 +328,7 @@ export default function TeacherItemBankComponent() {
     } else if (showEditModal) {
       if (!itemData.itemID) {
         alert("No item selected to update.");
+        setIsClicked(false);
         return;
       }
       resp = await updateItem(itemData.itemID, payload);
@@ -320,8 +337,10 @@ export default function TeacherItemBankComponent() {
       fetchItems(selectedItemType);
       setShowCreateModal(false);
       setShowEditModal(false);
+      setIsClicked(false);
     } else {
       alert(resp.error);
+      setIsClicked(false);
     }
   }
 
@@ -972,8 +991,8 @@ export default function TeacherItemBankComponent() {
           >
             Cancel
           </Button>
-          <Button className="success-button" onClick={handleCreateOrUpdate}>
-            {showCreateModal ? "Add" : "Save"}
+          <Button disabled={isClicked} className="success-button" onClick={handleCreateOrUpdate}>
+            {isClicked ? (showCreateModal ? "Adding..." : "Saving...") : showCreateModal ? "Add" : "Save"}
           </Button>
         </Modal.Footer>
       </Modal>

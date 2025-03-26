@@ -4,56 +4,77 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDesktop, faLaptopCode, faBars, faBell, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import "../../style/teacher/cmNavigationBar.css";
-import { getProfile, logout, markNotificationAsRead, deleteNotification } from "../api/API"; // ✅ Import API function
+import { getProfile, logout, getStudentClasses, markNotificationAsRead, deleteNotification, getNotifications } from "../api/API"; // ✅ Import API function
 
 const StudentCMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID } = useParams(); // ✅ Get classID from URL
-  const [profileImage, setProfileImage] = useState("/src/assets/profile_default.png"); // Default profile image
 
-  //Notification
+  const defaultProfileImage = '/src/assets/noy.png';
+  const [profileImage, setProfileImage] = useState(defaultProfileImage);
+  const [studentName, setStudentName] = useState("");
+  const [classes, setClasses] = useState([]);
+
+  // [CHANGED] State for notifications
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false); // controls dropdown visibility
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  // ✅ Fetch student profile image on mount
+
   useEffect(() => {
+    const fetchProfile = async () => {
+      const response = await getProfile();
+      if (!response.error) {
+        setProfileImage(response.profileImage || defaultProfileImage);
+        setStudentName(`${response.firstname} ${response.lastname}`);
+      } else {
+        console.error("❌ Failed to fetch profile:", response.error);
+      }
+    };
+
+    const fetchStudentClasses = async () => {
+      const response = await getStudentClasses();
+      console.log("📥 Fetched Enrolled Classes:", response);
+      if (!response.error) {
+        const activeClasses = response.filter(cls =>
+          cls.activeClass === true || cls.activeClass === 1 || cls.activeClass === "1"
+        );
+        setClasses(activeClasses);
+      } else {
+        console.error("❌ Failed to fetch enrolled classes:", response.error);
+      }
+    };
+
+    // Fetch notifications on mount
+    const fetchUserNotifications = async () => {
+      const resp = await getNotifications();
+      if (!resp.error && Array.isArray(resp)) {
+        // Store all notifications in state
+        setNotifications(resp);
+        // Count unread by checking isRead === false
+        const unread = resp.filter(n => !n.isRead).length;
+        setUnreadCount(unread);
+      }
+    };
+
     fetchProfile();
+    fetchStudentClasses();
+    fetchUserNotifications();
+
+    // POLLING: setInterval to fetch notifications every 10 seconds
+    const interval = setInterval(() => {
+      fetchUserNotifications();
+    }, 10000);
+
+    // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
-
-  const fetchProfile = async () => {
-    const response = await getProfile();
-    if (!response.error) {
-      setProfileImage(response.profileImage || "/src/assets/profile_default.png");
-    }
-  };
-
-  // ✅ Determine active tab based on the URL
-  const getActiveTab = () => {
-    if (location.pathname.includes("activity")) return "activity";
-    if (location.pathname.includes("student-bulletin")) return "student-bulletin";
-    return "activities"; // Default to activities
-  };
-
-  // ✅ Handle tab navigation
-  const handleSelect = (key) => {
-    navigate(`/student/class/${classID}/${key}`);
-  };
-
-  const handleLogout = async () => {
-    const result = await logout();
-    if (!result.error) {
-        alert("✅ Logout successful");
-        window.location.href = "/home";
-    } else {
-        alert("❌ Logout failed. Try again.");
-    }
-  };
-
+  
+    // THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
   const handleBellClick = () => {
     setShowNotifications(!showNotifications);
   };
@@ -79,22 +100,25 @@ const StudentCMNavigationBarComponent = () => {
     // navigate('/some-other-page');
   };
 
-  /**
-   * Delete a notification entirely.
-   */
-  const handleDeleteNotification = async (e, notificationId) => {
-    e.stopPropagation(); // prevent parent onClick from firing
-    const resp = await deleteNotification(notificationId);
-    if (!resp.error) {
-      // Remove from local state
-      const updatedList = notifications.filter(n => n.id !== notificationId);
-      setNotifications(updatedList);
+  // ✅ Determine active tab based on the URL
+  const getActiveTab = () => {
+    if (location.pathname.includes("activity")) return "activity";
+    if (location.pathname.includes("student-bulletin")) return "student-bulletin";
+    return "activities"; // Default to activities
+  };
 
-      // Recalculate unread
-      const newUnreadCount = updatedList.filter(n => !n.isRead).length;
-      setUnreadCount(newUnreadCount);
+  // ✅ Handle tab navigation
+  const handleSelect = (key) => {
+    navigate(`/student/class/${classID}/${key}`);
+  };
+
+  const handleLogout = async () => {
+    const result = await logout();
+    if (!result.error) {
+        alert("✅ Logout successful");
+        window.location.href = "/home";
     } else {
-      console.error('Failed to delete notification:', resp.error);
+        alert("❌ Logout failed. Try again.");
     }
   };
 
@@ -140,7 +164,7 @@ const StudentCMNavigationBarComponent = () => {
                 <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Activities
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className={`nav-item ${getActiveTab() === "teacher-bulletin" ? "active" : ""}`} onClick={() => navigate(`/student/class/${classID}/student-bulletin`)}>
+            <Nav.Item className={`nav-item ${getActiveTab() === "student-bulletin" ? "active" : ""}`} onClick={() => navigate(`/student/class/${classID}/student-bulletin`)}>
               <Nav.Link href='#' className='nav-link'>
                 <FontAwesomeIcon icon={faLaptopCode} className='sidebar-icon' /> Bulletin
               </Nav.Link>
@@ -182,7 +206,7 @@ const StudentCMNavigationBarComponent = () => {
                         notifications.map((notif) => {
                           // Parse notif.data from string to object
                           const parsedData = JSON.parse(notif.data || '{}');
-
+  
                           // [CHANGED] A function to handle deleting the notification
                           const handleDelete = async (e) => {
                             e.stopPropagation(); // prevent parent onClick from firing
@@ -191,7 +215,7 @@ const StudentCMNavigationBarComponent = () => {
                               // Remove this notification from state
                               const updatedList = notifications.filter(n => n.id !== notif.id);
                               setNotifications(updatedList);
-
+  
                               // Recount unread
                               const unread = updatedList.filter(n => !n.read_at).length;
                               setUnreadCount(unread);
@@ -199,7 +223,7 @@ const StudentCMNavigationBarComponent = () => {
                               console.error('Failed to delete notification:', resp.error);
                             }
                           };
-
+  
                           return (
                             <div
                               key={notif.id}
@@ -213,7 +237,7 @@ const StudentCMNavigationBarComponent = () => {
                                   {new Date(notif.created_at).toLocaleString()}
                                 </small>
                               </div>
-
+  
                               {/* [CHANGED] Delete (X) icon/button */}
                               <div onClick={handleDelete} style={{ marginLeft: '8px', cursor: 'pointer' }}>
                                 <FontAwesomeIcon icon={faTimes} />

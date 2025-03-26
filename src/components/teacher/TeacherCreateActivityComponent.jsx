@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button, Form, Dropdown } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBold, faItalic, faUnderline, faSuperscript, 
-  faAlignLeft, faAlignCenter, faAlignRight, faCaretDown 
-} from '@fortawesome/free-solid-svg-icons';
 import '/src/style/teacher/amCreateNewActivity.css';
 import TeacherCMNavigationBarComponent from './TeacherCMNavigationBarComponent';
 
@@ -14,7 +9,8 @@ import {
   getItems,
   createActivity, 
   getItemTypes, 
-  getProgrammingLanguages 
+  getProgrammingLanguages,
+  getSessionData
 } from '../api/API';
 
 // 1) Use the **name** returned by your backend as keys.
@@ -148,7 +144,8 @@ export const TeacherCreateActivityComponent = () => {
   };
 
   const fetchPresetItems = async () => {
-    const teacherID = sessionStorage.getItem("userID");
+    const sessionData = getSessionData();
+    const teacherID = sessionData.userID;
     // Use getItems with query params
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
