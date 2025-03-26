@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navbar } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import '/src/style/ProfilePlaygroundNavbar.css';
+import { getSessionData } from "./api/API.js"; 
 
 export const ProfilePlaygroundNavbarComponent = () => {
     const navigate = useNavigate();
