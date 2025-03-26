@@ -101,7 +101,7 @@ export const TeacherClassManagementComponent = () => {
     actAttempts: '', // NEW: store attempts as string
     finalScorePolicy: 'last_attempt', // NEW: default policy
     // renamed "questions" -> "items"
-    items: ['', '', ''],
+    items: [],
   });
   const [allProgrammingLanguages, setAllProgrammingLanguages] = useState([]);
   const [editSelectedProgLangs, setEditSelectedProgLangs] = useState([]);
@@ -397,16 +397,6 @@ export const TeacherClassManagementComponent = () => {
           []
       }));
     }
-    while (existingItems.length < 3) {
-      existingItems.push({
-        itemID: null,
-        itemName: "",
-        itemDifficulty: "-",
-        itemTypeID: null,
-        itemPoints: 0,
-        programming_languages: []
-      });
-    }
 
     let totalMinutes = "";
     if (activity.actDuration) {
@@ -572,6 +562,20 @@ export const TeacherClassManagementComponent = () => {
     if (fieldA > fieldB) return itemSortOrder === "asc" ? 1 : -1;
     return 0;
   });
+
+  const handleAddItem = () => {
+    setEditFormData(prev => ({
+      ...prev,
+      items: [...prev.items, {
+        itemID: null,
+        itemName: "",
+        itemDifficulty: "-",
+        itemTypeID: null,
+        itemPoints: 0,
+        programming_languages: []
+      }]
+    }));
+  };
 
   // -------------------- Rendering --------------------
   return (
@@ -1209,6 +1213,7 @@ export const TeacherClassManagementComponent = () => {
                   )}
                 </div>
               ))}
+              <Button variant="link" onClick={handleAddItem}>+ Add Item</Button>
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
