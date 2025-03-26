@@ -116,28 +116,28 @@ export const TeacherDashboardComponent = () => {
 
   }, [instructorName]);
 
-// THIS IS THE FUNCTION IF YOU WANT TO MAKE ALL NOTIF TO BE CONSIDERED ALL READ
-//   const handleBellClick = async () => {
-//     setShowNotifications(!showNotifications);
-//     if (!showNotifications && unreadCount > 0) {
-//       // Mark all unread notifications as read
-//       for (let n of notifications) {
-//         if (!n.isRead) {
-//           await markNotificationAsRead(n.id);
-//         }
-//       }
-//       const resp = await getNotifications();
-//       if (!resp.error && Array.isArray(resp)) {
-//         setNotifications(resp);
-//       }
-//       setUnreadCount(0);
-//     }
-//   };
+  // THIS IS THE FUNCTION IF YOU WANT TO MAKE ALL NOTIF TO BE CONSIDERED ALL READ
+  //   const handleBellClick = async () => {
+  //     setShowNotifications(!showNotifications);
+  //     if (!showNotifications && unreadCount > 0) {
+  //       // Mark all unread notifications as read
+  //       for (let n of notifications) {
+  //         if (!n.isRead) {
+  //           await markNotificationAsRead(n.id);
+  //         }
+  //       }
+  //       const resp = await getNotifications();
+  //       if (!resp.error && Array.isArray(resp)) {
+  //         setNotifications(resp);
+  //       }
+  //       setUnreadCount(0);
+  //     }
+  //   };
 
-// THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
-const handleBellClick = () => {
-  setShowNotifications(!showNotifications);
-};
+  // THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
+  const handleBellClick = () => {
+    setShowNotifications(!showNotifications);
+  };
 
   /**
    * Mark a single notification as read, then update state.
@@ -343,8 +343,8 @@ const handleBellClick = () => {
             <a href='#'><i className='bi bi-moon'></i></a>
             <span className='teacher-badge'>Teacher</span>
 
-                        {/* [CHANGED] Notification Bell */}
-                        <div className='notification-bell' style={{ position: 'relative', marginRight: '20px' }}>
+            {/* [CHANGED] Notification Bell */}
+            <div className='notification-bell' style={{ position: 'relative', marginRight: '20px' }}>
               <FontAwesomeIcon
                 icon={faBell}
                 size='lg'
