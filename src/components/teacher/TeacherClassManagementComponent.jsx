@@ -219,7 +219,9 @@ export const TeacherClassManagementComponent = () => {
 
   // Using getItems instead of getQuestions, with query params
   const fetchPresetItems = async () => {
-    const teacherID = sessionStorage.getItem("userID");
+    // Instead of sessionStorage, get teacherID from per-tab session data.
+    const sessionData = getSessionData();
+    const teacherID = sessionData.userID;
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
       setPresetItems(response);
@@ -267,7 +269,8 @@ export const TeacherClassManagementComponent = () => {
   };
 
   const handleConfirmDelete = async () => {
-    const teacherEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const teacherEmail = sessionData.email;
     if (!teacherEmail) {
       alert("Teacher email not found. Please log in again.");
       return;
@@ -608,7 +611,9 @@ export const TeacherClassManagementComponent = () => {
           <button
             className="create-new-activity-button"
             onClick={() => {
-              const storedClassID = sessionStorage.getItem("selectedClassID");
+            // Use per-tab session data instead of sessionStorage for selectedClassID.
+            const sessionData = getSessionData();
+            const storedClassID = sessionData.selectedClassID;
               if (!storedClassID) {
                 alert("⚠️ No class selected!");
                 return;

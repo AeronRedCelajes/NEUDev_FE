@@ -14,7 +14,8 @@ import {
   getItems,
   createActivity, 
   getItemTypes, 
-  getProgrammingLanguages 
+  getProgrammingLanguages,
+  getSessionData
 } from '../api/API';
 
 // 1) Use the **name** returned by your backend as keys.
@@ -148,7 +149,9 @@ export const TeacherCreateActivityComponent = () => {
   };
 
   const fetchPresetItems = async () => {
-    const teacherID = sessionStorage.getItem("userID");
+    const sessionData = getSessionData();
+    const teacherID = sessionData.userID;
+    
     // Use getItems with query params
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
@@ -233,7 +236,8 @@ export const TeacherCreateActivityComponent = () => {
       return;
     }
 
-    const classID = sessionStorage.getItem("selectedClassID");
+    const sessionData = getSessionData();
+    const classID = sessionData.selectedClassID;
 
     // Build final item objects
     const finalItems = selectedItems
