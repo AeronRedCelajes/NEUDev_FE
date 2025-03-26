@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../style/signup.css";
 
+
 export const SignUpComponent = () => {
     const navigate = useNavigate();
 

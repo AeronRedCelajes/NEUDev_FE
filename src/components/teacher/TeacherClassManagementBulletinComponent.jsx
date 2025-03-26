@@ -9,10 +9,13 @@ import {
 import TeacherCMNavigationBarComponent from './TeacherCMNavigationBarComponent';
 import { createBulletinPost, getBulletinPosts, deleteBulletinPost, getConcerns, updateConcern } from '../api/API.js';
 import { useParams } from 'react-router-dom';
+import { useAlert } from "../AlertContext"; 
 
 export const TeacherClassManagementBulletinComponent = () => {
   // Get the classID from the URL parameters.
   const { classID } = useParams();
+
+  const { openAlert } = useAlert();
 
   // State to hold bulletin posts.
   const [posts, setPosts] = useState([]);
@@ -88,10 +91,20 @@ export const TeacherClassManagementBulletinComponent = () => {
     const response = await deleteBulletinPost(id);
     if (response.error) {
       console.error("Error deleting post:", response.error);
-      alert("❌ Error deleting post. Please try again.");
+      //alert("❌ Error deleting post. Please try again.");
+      openAlert({
+        message: "❌ Error deleting post. Please try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     } else {
       setPosts(posts.filter(post => post.id !== id));
-      alert("✅ Post deleted successfully!");
+      //alert("✅ Post deleted successfully!");
+      openAlert({
+        message: "✅ Post deleted successfully!",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     }
     setShowDeleteModal(false);
   };
@@ -113,7 +126,12 @@ export const TeacherClassManagementBulletinComponent = () => {
     const response = await createBulletinPost(classID, newPostTitle, newPostMessage);
     if (response.error) {
       console.error("Error creating post:", response.error);
-      alert("❌ Error creating post. Please try again.");
+      //alert("❌ Error creating post. Please try again.");
+      openAlert({
+        message: "❌ Error creating post. Please try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
 
@@ -134,7 +152,13 @@ export const TeacherClassManagementBulletinComponent = () => {
     setNewPostTitle('');
     setNewPostMessage('');
     setShowPostAnnouncement(false);
-    alert("✅ Post created successfully!");
+    //alert("✅ Post created successfully!");
+    openAlert({
+      message: "✅ Post created successfully!",
+      imageUrl: "/src/assets/profile_default2.png",
+      autoCloseDelay: 2000,
+
+    });
   };
 
   // UPDATED: Handler to reply to a concern.
@@ -147,7 +171,12 @@ export const TeacherClassManagementBulletinComponent = () => {
       ));
       setShowResponse(false);
       setReplyMessage('');
-      alert("✅ Reply sent successfully!");
+      //alert("✅ Reply sent successfully!");
+      openAlert({
+        message: "✅ Reply sent successfully!",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     }
   };
 

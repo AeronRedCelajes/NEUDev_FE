@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../style/signup.css";
 import { useNavigate } from "react-router-dom";
 import { register } from "./api/API.js";
+import { useAlert } from "./AlertContext"; 
 
 export const SignUpTeacher = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ export const SignUpTeacher = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { openAlert } = useAlert();
 
   // New states for toggling password visibility
   const [showPassword, setShowPassword] = useState(false);
@@ -25,20 +27,35 @@ export const SignUpTeacher = () => {
     setIsSigningUp(true);
 
     if (!email.endsWith("@neu.edu.ph")) {
-      alert("Invalid email format! Use '@neu.edu.ph'.");
+      //alert("Invalid email format! Use '@neu.edu.ph'.");
+      openAlert({
+        message: "Invalid email format! Use NEU email",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
       setIsSigningUp(false);
       return;
     }
 
     // Check that password is at least 8 characters
     if (password.length < 8) {
-      alert("Password must be at least 8 characters.");
+      //alert("Password must be at least 8 characters.");
+      openAlert({
+        message: "Password must be at least 8 characters.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
       setIsSigningUp(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      openAlert({
+        message: "Passwords do not match!",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
+      //alert("Passwords do not match!");
       setIsSigningUp(false);
       return;
     }
@@ -48,15 +65,32 @@ export const SignUpTeacher = () => {
       console.log("API Response:", response);
 
       if (response.access_token) {
-        alert("Registration successful!");
-        navigate("/signin");
+        //alert("Registration successful!");
+        openAlert({
+          message: "Registration successful!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+          onAfterClose: () => {
+            navigate("/signin");
+          },
+        });
       } else {
-        alert(response.message || "Registration unsuccessful. Please try again.");
+        //alert(response.message || "Registration unsuccessful. Please try again.");
+        openAlert({
+          message: response.message || "Registration unsuccessful. Please try again.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 3000,
+        });
         setIsSigningUp(false);
       }
     } catch (error) {
       console.error("Registration error:", error);
-      alert("An error occurred. Please try again.");
+      //alert("An error occurred. Please try again.");
+      openAlert({
+        message: "An error occurred. Please try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
       setIsSigningUp(false);
     }
   };

@@ -11,10 +11,13 @@ import {
   getClassInfo,
   getSessionData 
 } from '../api/API.js';
+import { useAlert } from "../AlertContext"; 
 
 export const StudentBulletinComponent = () => {
   // Get classID from URL parameters.
   const { classID } = useParams();
+
+  const { openAlert } = useAlert();
 
   // Retrieve session data for the current tab
   const sessionData = getSessionData();
@@ -117,7 +120,12 @@ export const StudentBulletinComponent = () => {
   const handlePostConcern = async () => {
     if (!concernText.trim()) {
       console.error("Concern cannot be empty.");
-      alert("Concern cannot be empty.");
+      //alert("Concern cannot be empty.");
+      openAlert({
+        message: "Concern cannot be empty.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
 
@@ -133,7 +141,12 @@ export const StudentBulletinComponent = () => {
       const response = await createConcern(newConcern);
       if (response.error) {
         console.error("Error creating concern:", response.error);
-        alert("Error creating concern: " + response.error);
+        //alert("Error creating concern: " + response.error);
+        openAlert({
+          message: "Error creating concern: " + response.error,
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
       } else {
         setConcerns(prevConcerns => [
           ...prevConcerns,
@@ -148,11 +161,21 @@ export const StudentBulletinComponent = () => {
         ]);
         setConcernText('');
         setShowPostConcern(false);
-        alert("✅ Concern created successfully!");
+        //alert("✅ Concern created successfully!");
+        openAlert({
+          message: "✅ Concern created successfully!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
       }
     } catch (error) {
       console.error("Error posting concern:", error);
-      alert("Error posting concern: " + error.message);
+      //alert("Error posting concern: " + error.message);
+      openAlert({
+        message: "Error posting concern: " + error.message,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     }
   };
 
@@ -162,16 +185,31 @@ export const StudentBulletinComponent = () => {
       const response = await deleteConcern(selectedConcernId);
       if (response.error) {
         console.error("Error deleting concern:", response.error);
-        alert("Error deleting concern: " + response.error);
+        //alert("Error deleting concern: " + response.error);
+        openAlert({
+          message: "Error deleting concern: " + response.error,
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
       } else {
         setConcerns(prevConcerns => prevConcerns.filter(c => c.id !== selectedConcernId));
         setShowDeleteModal(false);
         setSelectedConcernId(null);
-        alert("✅ Concern deleted successfully!");
+        //alert("✅ Concern deleted successfully!");
+        openAlert({
+          message: "✅ Concern deleted successfully!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
       }
     } catch (error) {
       console.error("Error during deletion:", error);
-      alert("Error during deletion: " + error.message);
+      //alert("Error during deletion: " + error.message);
+      openAlert({
+        message: "Error during deletion: " + error.message,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     }
 
     

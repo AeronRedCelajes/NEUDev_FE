@@ -3,12 +3,14 @@ import { Dropdown, Navbar, Tab, Tabs } from "react-bootstrap";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import "../../style/teacher/activityItems.css";
 import { getProfile, logout } from "../api/API"; // ✅ Import API function
+import { useAlert } from "../AlertContext"; 
 
 const StudentAMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID, actID } = useParams(); // ✅ Get classID and actID from URL
   const [profileImage, setProfileImage] = useState("/src/assets/profile_default.png"); // Default image
+  const { openAlert } = useAlert();
 
   // ✅ Fetch student's profile image on mount
   useEffect(() => {
@@ -34,15 +36,29 @@ const StudentAMNavigationBarComponent = () => {
     navigate(`/student/class/${classID}/activity/${actID}/${key}`);
   };
 
-    const handleLogout = async () => {
-      const result = await logout();
-      if (!result.error) {
-          alert("✅ Logout successful");
-          window.location.href = "/home";
-      } else {
-          alert("❌ Logout failed. Try again.");
-      }
-    };
+const handleLogout = async () => {
+    const result = await logout();
+    if (!result.error) {
+      //alert("✅ Logout successful");
+      openAlert({
+        message: "Logout successful",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => { window.location.href = "/home";
+        },
+      });
+     
+    } else {
+      //alert("❌ Logout failed. Try again.");
+      openAlert({
+        message: "Logout failed. Try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+        onAfterClose: () => {
+        },
+      });
+    }
+  };
 
   return (
     <Navbar expand="lg" className="class-navbar-top">

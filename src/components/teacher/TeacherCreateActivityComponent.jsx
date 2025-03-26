@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Modal, Button, Form, Dropdown } from 'react-bootstrap';
 import '/src/style/teacher/amCreateNewActivity.css';
 import TeacherCMNavigationBarComponent from './TeacherCMNavigationBarComponent';
+import { useAlert } from "../AlertContext"; 
 
 // --- Updated: using getItems instead of getItemsByItemType
 import { 
@@ -24,6 +25,7 @@ const programmingLanguageMap = {
 
 export const TeacherCreateActivityComponent = () => {
   const navigate = useNavigate();
+  const { openAlert } = useAlert();
 
   // -------------------- Activity Form State --------------------
   const [activityTitle, setActivityTitle] = useState('');
@@ -177,7 +179,14 @@ export const TeacherCreateActivityComponent = () => {
       (it, i) => i !== selectedItemIndex && it && it.itemID === selectedItem.itemID
     );
     if (alreadyExists) {
-      alert("❌ You already picked that item. Please choose a different one.");
+      //alert("❌ You already picked that item. Please choose a different one.");
+      openAlert({
+        message: "❌ You already picked that item. Please choose a different one.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => {
+        },
+      });
       return;
     }
 
@@ -226,7 +235,12 @@ export const TeacherCreateActivityComponent = () => {
       !dateClosed ||
       selectedItems.every(item => item === null)
     ) {
-      alert("⚠️ All fields are required, including at least one programming language, one item, and an activity duration.");
+      //alert("⚠️ All fields are required, including at least one programming language, one item, and an activity duration.");
+      openAlert({
+        message: "⚠️ All fields are required, including at least one programming language, one item, and an activity duration.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
 
@@ -242,7 +256,12 @@ export const TeacherCreateActivityComponent = () => {
       }));
 
     if (finalItems.length === 0) {
-      alert("⚠️ Please select at least one valid item.");
+      //alert("⚠️ Please select at least one valid item.");
+      openAlert({
+        message: "⚠️ Please select at least one valid item",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
 
@@ -276,10 +295,22 @@ export const TeacherCreateActivityComponent = () => {
 
     const response = await createActivity(newActivity);
     if (response.error) {
-      alert(`❌ Failed to create activity: ${response.error}`);
+      //alert(`❌ Failed to create activity: ${response.error}`);
+      openAlert({
+        message: "❌ Failed to create activity: " + response.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     } else {
-      alert("✅ Activity created successfully!");
-      navigate(`/teacher/class/${classID}/activity`);
+      //alert("✅ Activity created successfully!");
+      openAlert({
+        message: "✅ Activity created successfully!!",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => { navigate(`/teacher/class/${classID}/activity`);
+        },
+      });
+      
     }
   };
 

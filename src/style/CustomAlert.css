@@ -6,7 +6,7 @@
   width: 100%;
   height: 100%;
   background: transparent;
-  z-index: 999;
+  z-index:  99999999; /* Increased z-index to be on top of other elements */;
 }
 
 /* Alert box positioned in the upper left with slide-in animation */
@@ -20,6 +20,7 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.5s ease-out;
   overflow: hidden; /* Keeps the progress bar contained */
+  text-align: center;
 }
 
 /* When closing, slide out to the left */

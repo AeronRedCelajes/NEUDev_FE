@@ -12,6 +12,8 @@ import {
   markNotificationAsRead, 
   deleteNotification 
 } from './api/API';
+import { useAlert } from "./AlertContext"; 
+
 
 export const StudentNavbar = () => {
   const defaultProfileImage = "/src/assets/profile_default.png";
@@ -21,6 +23,7 @@ export const StudentNavbar = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { openAlert } = useAlert();
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,10 +162,22 @@ export const StudentNavbar = () => {
   const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
-      alert("✅ Logout successful");
-      navigate('/home');
+      //alert("✅ Logout successful");
+      openAlert({
+        message: "Logout successful",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => {  navigate('/home');
+        },
+      });
+    
     } else {
-      alert("❌ Logout failed. Try again.");
+      //alert("❌ Logout failed. Try again.");
+      openAlert({
+        message: "Logout failed. Try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
     }
   };
 

@@ -4,6 +4,7 @@ import "../../style/teacher/activityItems.css";
 import { ProfilePlaygroundNavbarComponent } from "../ProfilePlaygroundNavbarComponent.jsx";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faCaretUp, faEllipsisV, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { useAlert } from "../AlertContext"; 
 
 // ----- Import your API functions -----
 // Notice that we now import getItems (which appends query parameters) instead of getItemsByItemType.
@@ -89,6 +90,9 @@ function getDisplayDateString(item) {
 }
 
 export default function TeacherItemBankComponent() {
+  const { openAlert } = useAlert();
+
+
   // -------------------- State: Items & Item Types --------------------
   const [items, setItems] = useState([]);
   const [itemTypes, setItemTypes] = useState([]);
@@ -251,23 +255,43 @@ export default function TeacherItemBankComponent() {
     const teacherEmail = sessionData.email;
 
     if (!teacherEmail) {
-      alert("Teacher email not found. Please log in again.");
+      //alert("Teacher email not found. Please log in again.");
+      openAlert({
+        message: "Teacher email not found. Please log in again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const verification = await verifyPassword(teacherEmail, deletePassword);
     if (verification.error) {
-      alert(verification.error);
+      //alert(verification.error);
+      openAlert({
+        message: verification.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const resp = await deleteItem(itemData.itemID);
     if (!resp.error) {
-      alert("Item deleted successfully.");
+      //alert("Item deleted successfully.");
+      openAlert({
+        message: "Item deleted successfully.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       setItems(prev => (prev || []).filter(i => i.itemID !== itemData.itemID));
       fetchItems(selectedItemType);
       setShowDeleteModal(false);
       setDeletePassword("");
     } else {
-      alert(resp.error);
+      //alert(resp.error);
+      openAlert({
+        message: resp.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     }
   }
 
@@ -280,12 +304,22 @@ export default function TeacherItemBankComponent() {
       !itemData.itemDesc.trim() ||
       itemData.progLangIDs.length === 0
     ) {
-      alert("Please fill in all required fields (name, description, at least one language).");
+      //alert("Please fill in all required fields (name, description, at least one language).");
+      openAlert({
+        message: "Please fill in all required fields (name, description, at least one language).",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       setIsClicked(false);
       return;
     }
     if (isConsoleApp && (itemData.testCases || []).length === 0) {
-      alert("Please add at least one test case for this item.");
+      //alert("Please add at least one test case for this item.");
+      openAlert({
+        message: "Please add at least one test case for this item.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       setIsClicked(false);
       return;
     }
@@ -293,7 +327,12 @@ export default function TeacherItemBankComponent() {
       for (let i = 0; i < itemData.testCases.length; i++) {
         const tc = itemData.testCases[i];
         if (tc.testCasePoints === "" || isNaN(Number(tc.testCasePoints)) || Number(tc.testCasePoints) < 0) {
-          alert(`Please enter a valid points value for test case ${i + 1}.`);
+          //alert(`Please enter a valid points value for test case ${i + 1}.`);
+          openAlert({
+            message: "Please enter a valid points value for test case " + i + 1,
+            imageUrl: "/src/assets/profile_default2.png",
+            autoCloseDelay: 2000,
+          });
           setIsClicked(false);
           return;
         }
@@ -327,7 +366,12 @@ export default function TeacherItemBankComponent() {
       resp = await createItem(payload);
     } else if (showEditModal) {
       if (!itemData.itemID) {
-        alert("No item selected to update.");
+        //alert("No item selected to update.");
+        openAlert({
+          message: "No item selected to update.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
         setIsClicked(false);
         return;
       }
@@ -339,7 +383,12 @@ export default function TeacherItemBankComponent() {
       setShowEditModal(false);
       setIsClicked(false);
     } else {
-      alert(resp.error);
+      //alert(resp.error);
+      openAlert({
+        message: resp.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       setIsClicked(false);
     }
   }
@@ -477,25 +526,50 @@ export default function TeacherItemBankComponent() {
   const handleRunCode = async () => {
     if (!isConsoleApp) return;
     if (!testLangID) {
-      alert("Please select which language to test with.");
+      //alert("Please select which language to test with.");
+      openAlert({
+        message: "Please select which language to test with.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const foundLang = allProgLanguages.find(l => l.progLangID === testLangID);
     if (!foundLang) {
-      alert("Selected language is not recognized.");
+      //alert("Selected language is not recognized.");
+      openAlert({
+        message: "Selected language is not recognized.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     if (!isValidCodeForLanguage(code, foundLang.progLangName)) {
-      alert(`Your code does not look like valid ${foundLang.progLangName} code.`);
+      //alert(`Your code does not look like valid ${foundLang.progLangName} code.`);
+      openAlert({
+        message: "Your code does not look like valid " + foundLang.progLangName + code,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const shortCode = compilerCodeMap[testLangID];
     if (!shortCode) {
-      alert(`The compiler does not support ${foundLang.progLangName} yet.`);
+      //alert(`The compiler does not support ${foundLang.progLangName} yet.`);
+      openAlert({
+        message: "The compiler does not support " + foundLang.progLangName + code,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     if (!code.trim()) {
-      alert("Please enter some code before running.");
+      //alert("Please enter some code before running.");
+      openAlert({
+        message: "Please enter some code before running" ,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
 

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Card, Dropdown, Form, Modal, Nav, Navbar, Badge, ModalFooter } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import '/src/style/teacher/dashboard.css';
+import { useAlert } from "../AlertContext"; 
 
 import { logout, getProfile, createClass, getClasses, updateClass, deleteClass, verifyPassword, 
   markNotificationAsRead, 
@@ -18,6 +19,7 @@ export const TeacherDashboardComponent = () => {
   const [showCreateClass, setShowCreateClass] = useState(false);
   const [classes, setClasses] = useState([]);
   const [instructorName, setInstructorName] = useState("");
+  const { openAlert } = useAlert();
 
   //Notification
   const [notifications, setNotifications] = useState([]);
@@ -127,20 +129,39 @@ export const TeacherDashboardComponent = () => {
     }
   };
   
-  const handleLogout = async () => {
-    const result = await logout();
-    if (!result.error) {
-      alert("✅ Logout successful");
-      window.location.href = "/home";
-    } else {
-      alert("❌ Logout failed. Try again.");
-    }
-  };
+   const handleLogout = async () => {
+     const result = await logout();
+     if (!result.error) {
+       //alert("✅ Logout successful");
+       openAlert({
+         message: "Logout successful",
+         imageUrl: "/src/assets/profile_default2.png",
+         autoCloseDelay: 2000,
+         onAfterClose: () => { window.location.href = "/home";
+         },
+       });
+      
+     } else {
+       //alert("❌ Logout failed. Try again.");
+       openAlert({
+         message: "Logout failed. Try again.",
+         imageUrl: "/src/assets/profile_default2.png",
+         autoCloseDelay: 3000,
+         onAfterClose: () => {
+         },
+       });
+     }
+   };
 
   const handleClassCreate = async (e) => {
     e.preventDefault();
     if (!className.trim() || !classSection.trim()) {
-      alert("⚠️ Please enter both class name and section.");
+      //alert("⚠️ Please enter both class name and section.");
+      openAlert({
+        message: "⚠️ Please enter both class name and section.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     setIsCreating(true);
@@ -148,9 +169,20 @@ export const TeacherDashboardComponent = () => {
     console.log("📤 Sending Class Data:", classData);
     const response = await createClass(classData);
     if (response.error) {
-      alert(`❌ Class creation failed: ${response.error}`);
+      //alert(`❌ Class creation failed: ${response.error}`);
+      openAlert({
+        message: "❌ Class creation failed: " + response.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     } else {
-      alert("✅ Class created successfully!");
+      //alert("✅ Class created successfully!");
+
+      openAlert({
+        message: "✅ Class created successfully!",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       setShowCreateClass(false);
       setClassName("");
       setClassSection("");
@@ -173,31 +205,50 @@ export const TeacherDashboardComponent = () => {
     setShowEditModal(true);
   };
 
-  // Save changes including the updated cover photo
   const handleEditClassSave = async (e) => {
     e.preventDefault();
     if (!editClassData.className.trim() || !editClassData.classSection.trim()) {
-      alert("⚠️ Please enter both class name and section.");
+      //alert("⚠️ Please enter both class name and section.");
+      openAlert({
+        message: "⚠️ Please enter both class name and section.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => {
+        },
+      });
       return;
     }
     setIsEditing(true);
     const response = await updateClass(editClassData.id, editClassData);
     if (response.error) {
-      alert(`❌ Failed to update class: ${response.error}`);
+      //alert(`❌ Failed to update class: ${response.error}`);
+      openAlert({
+        message: "❌ Failed to update class: "+ response.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => {
+        },
+      });
       setIsEditing(false);
       return;
     }
-    const updatedClasses = classes.map(cls => {
+    const updatedClasses = classes.map((cls) => {
       if ((cls.id || cls.classID) === editClassData.id) {
-        return { ...cls, ...editClassData, instructorName };
+        return { ...cls, ...response, instructorName };
       }
       return cls;
     });
     setClasses(updatedClasses);
-    alert("✅ Class updated successfully!");
+    //alert("✅ Class updated successfully!");
+    openAlert({
+      message: "✅ Class updated successfully!.",
+      imageUrl: "/src/assets/profile_default2.png",
+      autoCloseDelay: 2000,
+
+    });
     setShowEditModal(false);
     setIsEditing(false);
-  };
+  }; 
 
   // Open the delete modal and set the class to delete
   const handleDeleteClass = (classItem, event) => {
@@ -206,28 +257,54 @@ export const TeacherDashboardComponent = () => {
     setShowDeleteModal(true);
   };
 
-  // Delete the class after verifying the teacher's password
+  // Delete class after verifying password
   const handleDeleteClassConfirm = async (e) => {
     e.preventDefault();
     if (!deletePassword.trim()) {
-      alert("⚠️ Please enter your password to confirm deletion.");
+      //alert("⚠️ Please enter your password to confirm deletion.");
+      openAlert({
+        message: "⚠️ Please enter your password to confirm deletion.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+  
+      });
       return;
     }
-    const teacherEmail = sessionStorage.getItem("user_email");
+    const sessionData = getSessionData();
+    const teacherEmail = sessionData.email;
+
     const verifyResponse = await verifyPassword(teacherEmail, deletePassword);
     if (verifyResponse.error) {
-      alert(`❌ Password verification failed: ${verifyResponse.error}`);
+      //alert(`❌ Password verification failed: ${verifyResponse.error}`);
+      openAlert({
+        message: "❌ Password verification failed: " + verifyResponse.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+  
+      });
       return;
     }
     const classID = deleteClassData.id || deleteClassData.classID;
     const deleteResponse = await deleteClass(classID);
     if (deleteResponse.error) {
-      alert(`❌ Failed to delete class: ${deleteResponse.error}`);
+      //alert(`❌ Failed to delete class: ${deleteResponse.error}`);
+      openAlert({
+        message: "❌ Failed to delete class: " + deleteResponse.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+  
+      });
       return;
     }
     const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
     setClasses(updatedClasses);
-    alert(`✅ ${deleteClassData.className} deleted successfully!`);
+    //alert(`✅ ${deleteClassData.className} deleted successfully!`);
+    openAlert({
+      message: deleteClassData.className + "deleted successfully!",
+      imageUrl: "/src/assets/profile_default2.png",
+      autoCloseDelay: 2000,
+
+    });
     setShowDeleteModal(false);
     setDeletePassword("");
     setDeleteClassData(null);
@@ -253,11 +330,22 @@ export const TeacherDashboardComponent = () => {
     };
     const response = await updateClass(classID, archiveData);
     if (response.error) {
-      alert(`❌ Failed to archive class: ${response.error}`);
+      //alert(`❌ Failed to archive class: ${response.error}`);
+      openAlert({
+        message: "❌ Failed to archive class: " + response.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       setIsArchiving(false);
       return;
     }
-    alert("✅ Class archived successfully!");
+    //alert("✅ Class archived successfully!");
+    openAlert({
+      message: "✅ Class archived successfully!",
+      imageUrl: "/src/assets/profile_default2.png",
+      autoCloseDelay: 2000,
+
+    });
     const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
     setClasses(updatedClasses);
     setShowArchiveModal(false);

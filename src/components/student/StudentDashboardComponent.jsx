@@ -4,6 +4,7 @@ import { Navbar, Dropdown, Nav, Card, Button, Modal, Form, Badge } from 'react-b
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLaptopCode, faDesktop, faBars, faBell, faTimes } from '@fortawesome/free-solid-svg-icons'; // [CHANGED]
 import '/src/style/student/dashboard.css';
+import { useAlert } from "../AlertContext"; 
 
 import {
   logout,
@@ -26,6 +27,7 @@ export const StudentDashboardComponent = () => {
   const [classCode, setClassCode] = useState(""); 
   const [isJoining, setIsJoining] = useState(false);
   const [showJoinClass, setShowJoinClass] = useState(false);
+  const { openAlert } = useAlert();
 
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -135,17 +137,38 @@ export const StudentDashboardComponent = () => {
   const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
-      alert("✅ Logout successful");
-      window.location.href = "/home";
+      //alert("✅ Logout successful");
+      openAlert({
+        message: "Logout successful",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => { window.location.href = "/home";
+        },
+      });
+     
     } else {
-      alert("❌ Logout failed. Try again.");
+      //alert("❌ Logout failed. Try again.");
+      openAlert({
+        message: "Logout failed. Try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+        onAfterClose: () => {
+        },
+      });
     }
   };
 
   const handleJoinClass = async (e) => {
     e.preventDefault();
     if (!classCode.trim()) {
-      alert("⚠️ Please enter a valid class code.");
+      //alert("⚠️ Please enter a valid class code.");
+      openAlert({
+        message: "⚠️ Please enter a valid class code.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+        onAfterClose: () => {
+        },
+      });
       return;
     }
 
@@ -153,9 +176,19 @@ export const StudentDashboardComponent = () => {
     const response = await enrollInClass(classCode);
 
     if (response.error) {
-      alert(`❌ Failed to join class: ${response.error}`);
+      //alert(`❌ Failed to join class: ${response.error}`);
+      openAlert({
+        message: '❌ Failed to join class: ' + response.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
     } else {
-      alert("✅ Successfully joined the class!");
+      //alert("✅ Successfully joined the class!");
+      openAlert({
+        message: '✅ Successfully joined the class!',
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
       setShowJoinClass(false);
       setClassCode("");
 
