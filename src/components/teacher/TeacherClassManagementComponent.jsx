@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Row, Tabs, Col, Tab, Modal, Button, Form } from 'react-bootstrap';
 import TeacherCMNavigationBarComponent from './TeacherCMNavigationBarComponent';
-import { useAlert } from "../AlertContext"; 
 import "../../style/teacher/cmActivities.css"; 
 import { 
   getClassActivities, 
@@ -77,7 +76,6 @@ const Timer = ({ openDate, closeDate }) => {
 export const TeacherClassManagementComponent = () => {
   const navigate = useNavigate();
   const { classID } = useParams();
-  const { openAlert } = useAlert();
 
   // -------------------- Class Info --------------------
   const [classInfo, setClassInfo] = useState(null);
@@ -263,12 +261,7 @@ export const TeacherClassManagementComponent = () => {
     const activityLink = `${window.location.origin}/teacher/class/${classID}/activity/${activity.actID}/items`;
     navigator.clipboard.writeText(activityLink)
       .then(() => {
-       //alert("Activity link copied to clipboard!");
-       openAlert({
-        message: "Activity link copied to clipboard!",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-      });
+        alert("Activity link copied to clipboard!");
       })
       .catch((err) => {
         console.error("Failed to copy link:", err);
@@ -279,41 +272,21 @@ export const TeacherClassManagementComponent = () => {
     const sessionData = getSessionData();
     const teacherEmail = sessionData.email;
     if (!teacherEmail) {
-      //alert("Teacher email not found. Please log in again.");
-      openAlert({
-        message: "Teacher email not found. Please log in again.",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-      });
+      alert("Teacher email not found. Please log in again.");
       return;
     }
     const verification = await verifyPassword(teacherEmail, deletePassword);
     if (verification.error) {
-     //alert(verification.error);
-     openAlert({
-      message: verification.error,
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      alert(verification.error);
       return;
     }
     try {
       const response = await deleteActivity(activityToDelete.actID);
       if (!response.error) {
-        //alert("Activity deleted successfully.");
-        openAlert({
-          message: "Activity deleted successfully.",
-          imageUrl: "/src/assets/profile_default2.png",
-          autoCloseDelay: 2000,
-        });
+        alert("Activity deleted successfully.");
         fetchActivities();
       } else {
-       //alert("Error deleting activity: " + response.error);
-        openAlert({
-          message: "Error deleting activity: " + response.error,
-          imageUrl: "/src/assets/profile_default2.png",
-          autoCloseDelay: 2000,
-        });
+        alert("Error deleting activity: " + response.error);
       }
     } catch (err) {
       console.error("Error deleting activity:", err);
@@ -345,12 +318,7 @@ export const TeacherClassManagementComponent = () => {
       i !== selectedItemIndex && it && it.itemID === selectedItem.itemID
     );
     if (duplicate) {
-     //alert("❌ You already picked that item. Please choose a different one.");
-     openAlert({
-      message: "❌ You already picked that item. Please choose a different one.",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      alert("❌ You already picked that item. Please choose a different one.");
       return;
     }
     const updatedItems = [...editFormData.items];
@@ -504,31 +472,16 @@ export const TeacherClassManagementComponent = () => {
     try {
       const response = await editActivity(selectedActivity.actID, updatedActivity);
       if (!response.error) {
-        //alert("Activity edited successfully.");
-        openAlert({
-          message: "Activity edited successfully.",
-          imageUrl: "/src/assets/profile_default2.png",
-          autoCloseDelay: 2000,
-        });
+        alert("Activity edited successfully.");
         setShowEditModal(false);
         setSelectedActivity(null);
         fetchActivities();
       } else {
         console.error("Error editing activity:", response);
         if (response.details && response.details.errors) {
-           //alert("Validation Errors:\n" + JSON.stringify(response.details.errors, null, 2));
-           openAlert({
-            message: "Validation Errors:\n" + JSON.stringify(response.details.errors, null, 2),
-            imageUrl: "/src/assets/profile_default2.png",
-            autoCloseDelay: 2000,
-          });
+          alert("Validation Errors:\n" + JSON.stringify(response.details.errors, null, 2));
         } else {
-           //alert("Error editing activity: " + response.error);
-           openAlert({
-            message: "Error editing activity: " + response.error,
-            imageUrl: "/src/assets/profile_default2.png",
-            autoCloseDelay: 2000,
-          });
+          alert("Error editing activity: " + response.error);
         }
       }
     } catch (err) {
@@ -662,12 +615,7 @@ export const TeacherClassManagementComponent = () => {
             const sessionData = getSessionData();
             const storedClassID = sessionData.selectedClassID;
               if (!storedClassID) {
-               //alert("⚠️ No class selected!");
-               openAlert({
-                message: "⚠️ No class selected!",
-                imageUrl: "/src/assets/profile_default2.png",
-                autoCloseDelay: 2000,
-              });
+                alert("⚠️ No class selected!");
                 return;
               }
               navigate(`/teacher/class/${storedClassID}/create-activity`);
