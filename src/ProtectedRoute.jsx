@@ -4,7 +4,7 @@ import { getSessionData, clearSessionData } from "./components/api/API";
 const ProtectedRoute = ({ allowedRoles }) => {
     // 🟢 Use **per-tab session data** instead of global session data
     const sessionData = getSessionData(); 
-    console.log("Session Data:", sessionData);
+    
     const userRole = sessionData.user_type;
     const token = sessionData.access_token;
 
