@@ -11,7 +11,9 @@ import {
   getItems,
   getItemTypes, 
   getProgrammingLanguages,
-  verifyPassword
+  verifyPassword,
+  getSessionData,
+  getProfile
 } from "../api/API"; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faEllipsisV, faEye, faEyeSlash, faClock } from '@fortawesome/free-solid-svg-icons';
@@ -171,7 +173,9 @@ export const TeacherClassManagementComponent = () => {
   // -------------------- API Calls --------------------
   const fetchActivities = async () => {
     try {
-      const storedClassID = sessionStorage.getItem("selectedClassID");
+      // Use per-tab session data instead of sessionStorage
+      const sessionData = getSessionData();
+      const storedClassID = sessionData.selectedClassID;
       if (!storedClassID) {
         console.error("❌ No class ID found in session storage.");
         return;
