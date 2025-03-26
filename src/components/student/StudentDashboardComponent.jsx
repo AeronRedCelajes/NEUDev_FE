@@ -19,7 +19,7 @@ import {
 } from '../api/API.js';
 
 export const StudentDashboardComponent = () => {
-  const defaultProfileImage = '/src/assets/noy.png';
+  const defaultProfileImage = '/src/assets/default.png';
   const [profileImage, setProfileImage] = useState(defaultProfileImage);
   const [studentName, setStudentName] = useState("");
   const [classes, setClasses] = useState([]); 

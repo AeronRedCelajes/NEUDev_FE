@@ -89,7 +89,7 @@ const TeacherActivitySettingsComponent = () => {
     if (!response.error) {
       setProfessor({
         name: `${response.firstname} ${response.lastname}`,
-        imageUrl: response.profileImage || "/src/assets/noy.png"
+        imageUrl: response.profileImage || "/src/assets/default.png"
       });
     }
   };

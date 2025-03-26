@@ -11,7 +11,7 @@ const TeacherCMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID } = useParams(); // ✅ Get classID from URL
-  const [profileImage, setProfileImage] = useState("/src/assets/noy.png"); // Default image
+  const [profileImage, setProfileImage] = useState("/src/assets/default.png"); // Default image
 
   //Notification
   const [notifications, setNotifications] = useState([]);
@@ -29,7 +29,7 @@ const TeacherCMNavigationBarComponent = () => {
   const fetchProfile = async () => {
     const response = await getProfile();
     if (!response.error) {
-      setProfileImage(response.profileImage || "/src/assets/noy.png");
+      setProfileImage(response.profileImage || "/src/assets/default.png");
     }
   };
 

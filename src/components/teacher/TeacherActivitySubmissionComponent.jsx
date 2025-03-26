@@ -110,7 +110,7 @@ const SubmissionItem = ({ submission, actID, classID }) => {
             <img src={submission.profileImage &&
                   submission.profileImage.trim() !== ""
                     ? submission.profileImage
-                    : "/src/assets/noy.png"} alt="Avatar" className="avatar-image" />
+                    : "/src/assets/default.png"} alt="Avatar" className="avatar-image" />
             <span className="student-name">{submission.studentName}</span>
           </div>
         </td>

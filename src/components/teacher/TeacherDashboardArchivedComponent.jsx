@@ -8,7 +8,7 @@ import '/src/style/teacher/dashboard.css';
 import { logout, getProfile, createClass, getArchivedClasses, updateClass, deleteClass, verifyPassword, getSessionData, setSessionData } from '../api/API.js';
 
 export const TeacherDashboardArchivedComponent = () => {
-  const defaultProfileImage = '/src/assets/noy.png';
+  const defaultProfileImage = '/src/assets/default.png';
   const [profileImage, setProfileImage] = useState(defaultProfileImage);
   const [className, setClassName] = useState("");
   const [classSection, setClassSection] = useState("");
