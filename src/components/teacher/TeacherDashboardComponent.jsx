@@ -79,8 +79,30 @@ export const TeacherDashboardComponent = () => {
       }
     };
 
+    // Fetch notifications on mount
+    const fetchUserNotifications = async () => {
+      const resp = await getNotifications();
+      if (!resp.error && Array.isArray(resp)) {
+        // Store all notifications in state
+        setNotifications(resp);
+        // Count unread by checking isRead === false
+        const unread = resp.filter(n => !n.isRead).length;
+        setUnreadCount(unread);
+      }
+    };
+
     fetchProfile();
     fetchClasses();
+    fetchUserNotifications();
+
+    // POLLING: setInterval to fetch notifications every 10 seconds
+    const interval = setInterval(() => {
+      fetchUserNotifications();
+    }, 10000);
+
+    // Cleanup on unmount
+    return () => clearInterval(interval);
+
   }, [instructorName]);
 
   const handleBellClick = () => {
