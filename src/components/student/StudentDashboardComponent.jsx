@@ -19,7 +19,7 @@ import {
 } from '../api/API.js';
 
 export const StudentDashboardComponent = () => {
-  const defaultProfileImage = '/src/assets/noy.png';
+  const defaultProfileImage = '/src/assets/default.png';
   const [profileImage, setProfileImage] = useState(defaultProfileImage);
   const [studentName, setStudentName] = useState("");
   const [classes, setClasses] = useState([]); 
@@ -79,7 +79,7 @@ export const StudentDashboardComponent = () => {
     // POLLING: setInterval to fetch notifications every 10 seconds
     const interval = setInterval(() => {
       fetchUserNotifications();
-    }, 10000);
+    }, 5000);
 
     // Cleanup on unmount
     return () => clearInterval(interval);

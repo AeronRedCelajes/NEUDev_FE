@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../style/signin.css";
 import { useNavigate } from "react-router-dom";
 import { login } from "./api/API.js";
+import { useAlert } from "./AlertContext"; // Import the alert hook
 
 export const SignInComponent = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export const SignInComponent = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const { openAlert } = useAlert();
 
   //disabling the sign up button
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -28,7 +30,19 @@ export const SignInComponent = () => {
         setIsSigningIn(false);
         return;
       } else {
-        alert("LogIn Successful!");
+        openAlert({
+          message: "Log In Successful!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+          onAfterClose: () => {
+            // Redirect based on user type only after the alert closes
+            if (response.user_type === "student") {
+              navigate("/student/dashboard");
+            } else if (response.user_type === "teacher") {
+              navigate("/teacher/dashboard");
+            }
+          },
+        });
       }
 
       // Store role and token
@@ -36,11 +50,11 @@ export const SignInComponent = () => {
       // localStorage.setItem("user_type", response.user_type);
 
       // Redirect based on role
-      if (response.user_type === "student") {
-        navigate("/student/dashboard");
-      } else if (response.user_type === "teacher") {
-        navigate("/teacher/dashboard");
-      }
+      // if (response.user_type === "student") {
+      //   navigate("/student/dashboard");
+      // } else if (response.user_type === "teacher") {
+      //   navigate("/teacher/dashboard");
+      // }
     } catch (error) {
       console.error("Login error:", error);
       setError("An error occurred. Please try again.");

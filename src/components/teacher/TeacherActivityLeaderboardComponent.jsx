@@ -90,7 +90,7 @@ const TeacherActivityLeaderboardComponent = () => {
 };
            
 const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }) => {
-  const defaultProfileImage = "/src/assets/noy.png";
+  const defaultProfileImage = "/src/assets/default.png";
   const imageToShow =
     profileImage && profileImage.trim() !== "" ? profileImage : defaultProfileImage;
 
