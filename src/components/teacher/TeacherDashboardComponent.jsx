@@ -109,35 +109,35 @@ export const TeacherDashboardComponent = () => {
     // POLLING: setInterval to fetch notifications every 10 seconds
     const interval = setInterval(() => {
       fetchUserNotifications();
-    }, 5000);
+    }, 10000);
 
     // Cleanup on unmount
     return () => clearInterval(interval);
 
   }, [instructorName]);
 
-  // THIS IS THE FUNCTION IF YOU WANT TO MAKE ALL NOTIF TO BE CONSIDERED ALL READ
-  //   const handleBellClick = async () => {
-  //     setShowNotifications(!showNotifications);
-  //     if (!showNotifications && unreadCount > 0) {
-  //       // Mark all unread notifications as read
-  //       for (let n of notifications) {
-  //         if (!n.isRead) {
-  //           await markNotificationAsRead(n.id);
-  //         }
-  //       }
-  //       const resp = await getNotifications();
-  //       if (!resp.error && Array.isArray(resp)) {
-  //         setNotifications(resp);
-  //       }
-  //       setUnreadCount(0);
-  //     }
-  //   };
+// THIS IS THE FUNCTION IF YOU WANT TO MAKE ALL NOTIF TO BE CONSIDERED ALL READ
+//   const handleBellClick = async () => {
+//     setShowNotifications(!showNotifications);
+//     if (!showNotifications && unreadCount > 0) {
+//       // Mark all unread notifications as read
+//       for (let n of notifications) {
+//         if (!n.isRead) {
+//           await markNotificationAsRead(n.id);
+//         }
+//       }
+//       const resp = await getNotifications();
+//       if (!resp.error && Array.isArray(resp)) {
+//         setNotifications(resp);
+//       }
+//       setUnreadCount(0);
+//     }
+//   };
 
-  // THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
-  const handleBellClick = () => {
-    setShowNotifications(!showNotifications);
-  };
+// THIS IS THE FUNCTION TO JUST SIMPLY SHOW THE NOTIFICATION WITHOUT MAKING THEM AS READ
+const handleBellClick = () => {
+  setShowNotifications(!showNotifications);
+};
 
   /**
    * Mark a single notification as read, then update state.
@@ -340,10 +340,11 @@ export const TeacherDashboardComponent = () => {
           </Button>
           <div className='dashboard-navbar'>
             <span className='ping'>20 ms</span>
-            <span className='teacher-badge'>Teacher</span>
+            <a href='#'><i className='bi bi-moon'></i></a>
+            <span className='student-badge'>Teacher</span>
 
-            {/* Notification Bell */}
-            <div className='notification-bell'>
+                        {/* [CHANGED] Notification Bell */}
+                        <div className='notification-bell' style={{ position: 'relative', marginRight: '20px' }}>
               <FontAwesomeIcon
                 icon={faBell}
                 size='lg'
@@ -351,46 +352,90 @@ export const TeacherDashboardComponent = () => {
                 onClick={handleBellClick}
               />
               {unreadCount > 0 && (
-                <Badge bg='danger' pill className='notification-badge'>
+                <Badge bg='danger' pill style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px'
+                }}>
                   {unreadCount}
                 </Badge>
               )}
-  
+              {/* Dropdown Panel */}
               {showNotifications && (
-                <div className='notification-dropdown'>
-                  <div>
-                    {notifications.length === 0 ? (
-                      <div style={{ padding: '10px', backgroundColor:"" }}>No Notifications</div>
-                    ) : (
-                      notifications.map((notif) => {
-                        const parsedData = JSON.parse(notif.data || '{}');
-                        return (
-                          <div
-                            key={notif.id}
-                            className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
-                            onClick={() => handleNotificationClick(notif.id)}
-                          >
-                            <div>
-                              <div><strong>{notif.type}</strong></div>
-                              <div>{parsedData.message}</div>
-                              <small className={`notification-item-dt ${notif.isRead ? 'read' : 'unread'}`}>
-                                {new Date(notif.created_at).toLocaleString()}
-                              </small>
-                            </div>
-                            <div 
-                              onClick={(e) => handleDeleteNotification(e, notif.id)}
-                              style={{ marginLeft: '8px', cursor: 'pointer' }}
-                            >
-                              <FontAwesomeIcon icon={faTimes} />
-                            </div>
+                <div
+                  className='notification-dropdown'
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '30px',
+                    width: '300px',
+                    background: '#fff',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    borderRadius: '4px',
+                    zIndex: 9999
+                  }}
+                >
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: '10px' }}>No Notifications</div>
+                  ) : (
+                    notifications.map((notif) => {
+                      // Parse notif.data from string to object
+                      const parsedData = JSON.parse(notif.data || '{}');
+
+                      // [CHANGED] A function to handle deleting the notification
+                      const handleDelete = async (e) => {
+                        e.stopPropagation(); // prevent parent onClick from firing
+                        const resp = await deleteNotification(notif.id);
+                        if (!resp.error) {
+                          // Remove this notification from state
+                          const updatedList = notifications.filter(n => n.id !== notif.id);
+                          setNotifications(updatedList);
+
+                          // Recount unread
+                          const unread = updatedList.filter(n => !n.read_at).length;
+                          setUnreadCount(unread);
+                        } else {
+                          console.error('Failed to delete notification:', resp.error);
+                        }
+                      };
+
+                      return (
+                        <div
+                          key={notif.id}
+                          style={{
+                            padding: '10px',
+                            borderBottom: '1px solid #ccc',
+                            backgroundColor: notif.isRead ? '#f9f9f9' : '#eaf3ff',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start'
+                          }}
+                          onClick={() => handleNotificationClick(notif.id)}
+                        >
+                          <div>
+                            <div><strong>{notif.type}</strong></div>
+                            <div>{parsedData.message}</div>
+                            <small style={{ color: '#666' }}>
+                              {new Date(notif.created_at).toLocaleString()}
+                            </small>
                           </div>
-                        );
-                      })
-                    )}
-                  </div>
+
+                          {/* [CHANGED] Delete (X) icon/button */}
+                          <div onClick={handleDelete} style={{ marginLeft: '8px', cursor: 'pointer' }}>
+                            <FontAwesomeIcon icon={faTimes} />
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
                 </div>
               )}
             </div>
+            {/* END Notification Bell */}
+
             <Dropdown align='end'>
               <Dropdown.Toggle variant='transparent' className='profile-dropdown'>
                 <img src={profileImage} className='profile-image' alt="Profile" />
@@ -488,7 +533,7 @@ export const TeacherDashboardComponent = () => {
         </Modal>
 
         {/* Edit Class Modal */}
-        <Modal className='modal-design' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-edit-class' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Edit Class</Modal.Title>
           </Modal.Header>
@@ -515,14 +560,10 @@ export const TeacherDashboardComponent = () => {
                 />
               </Form.Group>
               <Form.Group controlId='formEditClassCoverPhoto' className='mt-3'>
-                <div className='edit-button'>
-                  <span>Cover Photo</span>
-                  <Button>
-                    <label htmlFor='class-cover-upload' className='upload-label'>
-                      Upload Cover Photo
-                    </label>
-                  </Button>
-                </div>
+                <Form.Label>Class Cover Photo</Form.Label>
+                <Button variant="secondary" as="label" htmlFor="class-cover-upload">
+                  Upload Cover Photo
+                </Button>
                 <input
                   id="class-cover-upload"
                   type="file"
@@ -549,23 +590,21 @@ export const TeacherDashboardComponent = () => {
                   </div>
                 )}
               </Form.Group>
+              <Button variant='primary' className='mt-3' type="submit" disabled={isEditing}>
+                {isEditing ? "Saving..." : "Save Changes"}
+              </Button>
             </Form>
           </Modal.Body>
-          <Modal.Footer>
-            <Button className='success-button' type="submit" disabled={isEditing}>
-              {isEditing ? "Saving..." : "Save Changes"}
-            </Button>
-          </Modal.Footer>
         </Modal>
 
         {/* Delete Class Modal */}
-        <Modal className='modal-design' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-delete-class' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Deletion</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Please enter your password to confirm deletion of <strong>{deleteClassData?.className}</strong>.</p>
-            <Form>
+            <Form onSubmit={handleDeleteClassConfirm}>
               <Form.Group controlId='formDeletePassword'>
                 <Form.Label>Password</Form.Label>
                 <Form.Control
@@ -576,29 +615,26 @@ export const TeacherDashboardComponent = () => {
                   required
                 />
               </Form.Group>
+              <div className='d-flex justify-content-end mt-3'>
+                <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
+                  Cancel
+                </Button>
+                <Button variant='danger' type="submit">
+                  Delete Class
+                </Button>
+              </div>
             </Form>
           </Modal.Body>
-          <Modal.Footer>
-            <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
-              Cancel
-            </Button>
-            <Button variant='danger' onClick={handleDeleteClassConfirm}>
-              Delete Class
-            </Button>
-          </Modal.Footer>
         </Modal>
 
         {/* Archive Class Modal */}
-        <Modal className='modal-design' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-archive-class' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Archive</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Are you sure you want to archive <strong>{archiveClassData?.className}</strong>?</p>
-            
-          </Modal.Body>
-          <Modal.Footer>
-          <div className='d-flex justify-content-end mt-3'>
+            <div className='d-flex justify-content-end mt-3'>
               <Button variant='secondary' onClick={() => setShowArchiveModal(false)} className='me-2'>
                 Cancel
               </Button>
@@ -606,7 +642,7 @@ export const TeacherDashboardComponent = () => {
                 {isArchiving ? "Archiving..." : "Archive Class"}
               </Button>
             </div>
-          </Modal.Footer>
+          </Modal.Body>
         </Modal>
       </div>
     </div>
