@@ -5,9 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { getProfile, updateProfile, deleteProfile, verifyPassword, getSessionData } from '../api/API.js';
 import '/src/style/student/profile.css';
+import { useAlert } from "../AlertContext"; 
 
 export const StudentProfileComponent = () => {
-  const defaultProfileImage = '/src/assets/default.png';
+  const defaultProfileImage = '/src/assets/profile_default.png';
   const defaultCoverImage = '/src/assets/univ.png';
 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -32,7 +33,8 @@ export const StudentProfileComponent = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [showDeletePassword, setShowDeletePassword] = useState(false);
-
+  const { openAlert } = useAlert();
+  
   // Helper: Format student number as "xx-xxxxx-xxx"
   const formatStudentNumber = (value) => {
     let digits = value.replace(/\D/g, '');
@@ -96,22 +98,42 @@ export const StudentProfileComponent = () => {
   const handleSaveChanges = async () => {
     // Validate email format
     if (!profile.email.endsWith("@neu.edu.ph")) {
-      alert("Invalid email format! Use '@neu.edu.ph'.");
+      //alert("Invalid email format! Use '@neu.edu.ph'.");
+      openAlert({
+        message: "Invalid email format! Use NEU email",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
       return;
     }
     // Validate student number format
     if (!/^\d{2}-\d{5}-\d{3}$/.test(profile.student_num)) {
-      alert("Invalid Student Number format! Example: 21-12345-678");
+      //alert("Invalid Student Number format! Example: 21-12345-678");
+      openAlert({
+        message: "Invalid Student Number format! Example: 21-12345-678",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+      });
       return;
     }
     // Validate new password if provided (minimum 8 characters)
     if (profile.newPassword || confirmNewPassword) {
       if (profile.newPassword.length < 8) {
-        alert("New Password must be at least 8 characters.");
+        //alert("New Password must be at least 8 characters.");
+        openAlert({
+          message: "New password must be at least 8 characters.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 3000,
+        });
         return;
       }
       if (profile.newPassword !== confirmNewPassword) {
-        alert("New Password and Confirm New Password do not match.");
+        //alert("New Password and Confirm New Password do not match.");
+        openAlert({
+          message: "New Password and Confirm New Password do not match!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 3000,
+        });
         return;
       }
     } else {
@@ -135,11 +157,24 @@ export const StudentProfileComponent = () => {
 
     const response = await updateProfile(updatedProfile);
     if (!response.error) {
-      alert("Profile updated successfully!");
-      setShowEditModal(false);
-      window.location.reload();
+      //alert("Profile updated successfully!");
+      openAlert({
+        message: "Profile updated successfully!",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => {
+          setShowEditModal(false);
+          window.location.reload();
+        },
+      });
+
     } else {
-      alert("Failed to update profile: " + response.error);
+      //alert("Failed to update profile: " + response.error);
+      openAlert({
+        message: "Failed to update profile: " + response.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     }
   };
 
@@ -153,20 +188,43 @@ export const StudentProfileComponent = () => {
     const sessionData = getSessionData();
     const userEmail = sessionData.email;
     if (!userEmail) {
-      alert("No user email found. Please log in again.");
+      //alert("No user email found. Please log in again.");
+      openAlert({
+        message: "No user email found. Please log in again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const verification = await verifyPassword(userEmail, deletePassword);
     if (verification.error) {
-      alert(verification.error);
+      //alert(verification.error);
+      openAlert({
+        message: verification.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const response = await deleteProfile();
     if (!response.error) {
-      alert("Profile deleted successfully!");
-      window.location.href = "/home";
+      //alert("Profile deleted successfully!");
+      openAlert({
+        message: "Profile deleted successfully!",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => {
+          window.location.href = "/home";
+        },
+      });
+      
     } else {
-      alert("Failed to delete profile: " + response.error);
+      //alert("Failed to delete profile: " + response.error);
+      openAlert({
+        message: "Failed to delete profile: " + response.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
     }
     setShowDeleteModal(false);
     setDeletePassword("");

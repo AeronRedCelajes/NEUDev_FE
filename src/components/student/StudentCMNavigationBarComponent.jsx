@@ -5,11 +5,13 @@ import { faDesktop, faLaptopCode, faBars, faBell, faTimes } from "@fortawesome/f
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import "../../style/teacher/cmNavigationBar.css";
 import { getProfile, logout, getStudentClasses, markNotificationAsRead, deleteNotification, getNotifications } from "../api/API"; // ✅ Import API function
+import { useAlert } from "../AlertContext"; 
 
 const StudentCMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID } = useParams(); // ✅ Get classID from URL
+  const { openAlert } = useAlert();
 
   const defaultProfileImage = '/src/assets/default.png';
   const [profileImage, setProfileImage] = useState(defaultProfileImage);
@@ -113,14 +115,28 @@ const StudentCMNavigationBarComponent = () => {
   };
 
   const handleLogout = async () => {
-    const result = await logout();
-    if (!result.error) {
-        alert("✅ Logout successful");
-        window.location.href = "/home";
-    } else {
-        alert("❌ Logout failed. Try again.");
-    }
-  };
+      const result = await logout();
+      if (!result.error) {
+        //alert("✅ Logout successful");
+        openAlert({
+          message: "Logout successful",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+          onAfterClose: () => { window.location.href = "/home";
+          },
+        });
+       
+      } else {
+        //alert("❌ Logout failed. Try again.");
+        openAlert({
+          message: "Logout failed. Try again.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 3000,
+          onAfterClose: () => {
+          },
+        });
+      }
+    };
 
   return (
     <>
