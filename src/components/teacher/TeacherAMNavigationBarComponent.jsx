@@ -43,6 +43,9 @@ const TeacherAMNavigationBarComponent = () => {
     return "leaderboard"; // Default to leaderboard
   };
 
+  const handleSelect = (key) => {
+    navigate(`/teacher/class/${classID}/activity/${actID}/${key}`);
+  };
   // ✅ Navigate between activity management tabs
  const handleLogout = async () => {
     const result = await logout();
