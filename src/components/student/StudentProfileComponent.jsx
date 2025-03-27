@@ -28,6 +28,8 @@ export const StudentProfileComponent = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [isClickedDelete, setIsClickedDelete] = useState(false);
+  const [isClickedSave, setIsClickedSave] = useState(false);
 
   // State for the deletion confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -96,6 +98,7 @@ export const StudentProfileComponent = () => {
 
   // Save profile changes
   const handleSaveChanges = async () => {
+    setIsClickedSave(true)
     // Validate email format
     if (!profile.email.endsWith("@neu.edu.ph")) {
       //alert("Invalid email format! Use '@neu.edu.ph'.");
@@ -104,6 +107,7 @@ export const StudentProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 3000,
       });
+      setIsClickedSave(false)
       return;
     }
     // Validate student number format
@@ -114,6 +118,7 @@ export const StudentProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 3000,
       });
+      setIsClickedSave(false)
       return;
     }
     // Validate new password if provided (minimum 8 characters)
@@ -125,6 +130,7 @@ export const StudentProfileComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 3000,
         });
+        setIsClickedSave(false)
         return;
       }
       if (profile.newPassword !== confirmNewPassword) {
@@ -134,6 +140,7 @@ export const StudentProfileComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 3000,
         });
+        setIsClickedSave(false)
         return;
       }
     } else {
@@ -175,6 +182,7 @@ export const StudentProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedSave(false)
     }
   };
 
@@ -185,6 +193,7 @@ export const StudentProfileComponent = () => {
 
   // Confirm deletion: verify password then delete profile
   const handleConfirmDeleteProfile = async () => {
+    setIsClickedDelete(true)
     const sessionData = getSessionData();
     const userEmail = sessionData.email;
     if (!userEmail) {
@@ -194,6 +203,7 @@ export const StudentProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedDelete(false)
       return;
     }
     const verification = await verifyPassword(userEmail, deletePassword);
@@ -204,6 +214,7 @@ export const StudentProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedDelete(false)
       return;
     }
     const response = await deleteProfile();
@@ -225,6 +236,7 @@ export const StudentProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedDelete(false)
     }
     setShowDeleteModal(false);
     setDeletePassword("");
@@ -356,8 +368,12 @@ export const StudentProfileComponent = () => {
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="danger" onClick={handleDeleteProfile}>Delete Profile</Button>
-            <Button className='success-button' onClick={handleSaveChanges}>Save Changes</Button>
+            <Button variant="danger" onClick={handleDeleteProfile} disabled={isClickedDelete}>
+              {isClickedDelete ? "Deleting..." : "Delete Profile"}
+            </Button>
+            <Button className='success-button' onClick={handleSaveChanges} disabled={isClickedSave}>
+              {isClickedSave ? "Saving" : "Save Changes"}
+            </Button>
           </Modal.Footer>
         </Modal>
 

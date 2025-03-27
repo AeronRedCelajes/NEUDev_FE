@@ -16,7 +16,8 @@ export const TeacherClassManagementBulletinComponent = () => {
   const { classID } = useParams();
 
   const { openAlert } = useAlert();
-
+  const [isClicked, setIsClicked] = useState(false);
+ 
   // State to hold bulletin posts.
   const [posts, setPosts] = useState([]);
 
@@ -87,26 +88,35 @@ export const TeacherClassManagementBulletinComponent = () => {
 
   // Function to delete a post (calls the API and updates UI if successful).
   const handleDeletePost = async (id) => {
-    // Call the API to delete the post from the backend.
-    const response = await deleteBulletinPost(id);
-    if (response.error) {
-      console.error("Error deleting post:", response.error);
-      //alert("❌ Error deleting post. Please try again.");
-      openAlert({
-        message: "❌ Error deleting post. Please try again.",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-      });
-    } else {
-      setPosts(posts.filter(post => post.id !== id));
-      //alert("✅ Post deleted successfully!");
-      openAlert({
-        message: "✅ Post deleted successfully!",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-      });
-    }
+    setIsClicked(true)
+
+    try{
+      // Call the API to delete the post from the backend.
+      const response = await deleteBulletinPost(id);
+      if (response.error) {
+        console.error("Error deleting post:", response.error);
+        //alert("❌ Error deleting post. Please try again.");
+        openAlert({
+          message: "❌ Error deleting post. Please try again.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
+        setIsClicked(false)
+      } else {
+        setPosts(posts.filter(post => post.id !== id));
+        //alert("✅ Post deleted successfully!");
+        openAlert({
+          message: "✅ Post deleted successfully!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
+      }
     setShowDeleteModal(false);
+    }catch (error) {
+      console.error("Error in handleDeletePost:", error);
+    } finally {
+      setIsClicked(false);
+    }
   };
 
   // Handler to open delete confirmation modal.
@@ -117,66 +127,85 @@ export const TeacherClassManagementBulletinComponent = () => {
 
   // Handler to create a new bulletin post.
   const handleCreatePost = async () => {
+    setIsClicked(true)
     if (!classID) {
       console.error("Class ID not found in URL parameters.");
       return;
     }
     
-    // Call the API to create the bulletin post.
-    const response = await createBulletinPost(classID, newPostTitle, newPostMessage);
-    if (response.error) {
-      console.error("Error creating post:", response.error);
-      //alert("❌ Error creating post. Please try again.");
+    try{
+      // Call the API to create the bulletin post.
+      const response = await createBulletinPost(classID, newPostTitle, newPostMessage);
+      if (response.error) {
+        console.error("Error creating post:", response.error);
+        //alert("❌ Error creating post. Please try again.");
+        openAlert({
+          message: "❌ Error creating post. Please try again.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
+        return;
+      }
+
+      // Create a new post object from the API response.
+      const newPost = {
+        id: response.id,
+        title: response.title,
+        message: response.message,
+        dateCreated: new Date(response.created_at).toLocaleDateString(),
+        timeCreated: new Date(response.created_at).toLocaleTimeString(),
+        teacherName: response.teacher ? `${response.teacher.firstname} ${response.teacher.lastname}` : 'Unknown'
+      };
+
+      // Update posts state with the new post added at the beginning.
+      setPosts([newPost, ...posts]);
+
+      // Clear the modal fields, close the modal and show a success alert.
+      setNewPostTitle('');
+      setNewPostMessage('');
+      setShowPostAnnouncement(false);
+      //alert("✅ Post created successfully!");
       openAlert({
-        message: "❌ Error creating post. Please try again.",
+        message: "✅ Post created successfully!",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
-      return;
+    }catch (error) {
+      console.error("Error in handleCreatePost:", error);
+    } finally {
+      setIsClicked(false)
     }
-
-    // Create a new post object from the API response.
-    const newPost = {
-      id: response.id,
-      title: response.title,
-      message: response.message,
-      dateCreated: new Date(response.created_at).toLocaleDateString(),
-      timeCreated: new Date(response.created_at).toLocaleTimeString(),
-      teacherName: response.teacher ? `${response.teacher.firstname} ${response.teacher.lastname}` : 'Unknown'
-    };
-
-    // Update posts state with the new post added at the beginning.
-    setPosts([newPost, ...posts]);
-
-    // Clear the modal fields, close the modal and show a success alert.
-    setNewPostTitle('');
-    setNewPostMessage('');
-    setShowPostAnnouncement(false);
-    //alert("✅ Post created successfully!");
-    openAlert({
-      message: "✅ Post created successfully!",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-
-    });
   };
 
   // UPDATED: Handler to reply to a concern.
   const handleReplyToConcern = async () => {
+    setIsClicked(true)
     if (!replyMessage.trim() || !selectedConcernId) return;
-    const response = await updateConcern(selectedConcernId, { reply: replyMessage });
-    if (!response.error) {
-      setConcerns(concerns.map(concern => 
-        concern.id === selectedConcernId ? { ...concern, reply: replyMessage } : concern
-      ));
-      setShowResponse(false);
-      setReplyMessage('');
-      //alert("✅ Reply sent successfully!");
+
+    try{
+      const response = await updateConcern(selectedConcernId, { reply: replyMessage });
+      if (!response.error) {
+        setConcerns(concerns.map(concern => 
+          concern.id === selectedConcernId ? { ...concern, reply: replyMessage } : concern
+        ));
+        setShowResponse(false);
+        setReplyMessage('');
+        //alert("✅ Reply sent successfully!");
+        openAlert({
+          message: "✅ Reply sent successfully!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
+      }
+    }catch (error) {
+      console.error("Error in handleReplyToConcern:", error);
       openAlert({
-        message: "✅ Reply sent successfully!",
+        message: "❌ Error sending reply. Please try again.",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+    } finally {
+      setIsClicked(false);
     }
   };
 
@@ -213,7 +242,9 @@ export const TeacherClassManagementBulletinComponent = () => {
                 </Form>
               </Modal.Body>
               <Modal.Footer>
-                <Button className='success-button' onClick={handleCreatePost}>Post</Button>
+                <Button className='success-button' onClick={handleCreatePost} disabled={isClicked}>
+                  {isClicked ? "Posting..." : "Post Announcement"}
+                </Button>
               </Modal.Footer>
             </Modal>
           </div>
@@ -294,7 +325,9 @@ export const TeacherClassManagementBulletinComponent = () => {
                       />
                     </Modal.Body>
                     <Modal.Footer>
-                      <Button className='success-button' onClick={handleReplyToConcern}>Send Response</Button>
+                      <Button className='success-button' onClick={handleReplyToConcern} disabled={isClicked}>
+                        {isClicked ? "Sending..." : "Send Response"}
+                      </Button>
                     </Modal.Footer>
                   </Modal>
                 </div>
@@ -322,8 +355,8 @@ export const TeacherClassManagementBulletinComponent = () => {
             <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
               No
             </Button>
-            <Button variant="danger" onClick={() => handleDeletePost(postToDelete)}>
-              Yes
+            <Button variant="danger" onClick={() => handleDeletePost(postToDelete)} disabled={isClicked}>
+              {isClicked ?  "Deleting..." : "Yes"}
             </Button>
           </Modal.Footer>
         </Modal>

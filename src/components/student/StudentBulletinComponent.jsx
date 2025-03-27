@@ -18,6 +18,7 @@ export const StudentBulletinComponent = () => {
   const { classID } = useParams();
 
   const { openAlert } = useAlert();
+  const [isClicked, setIsClicked] = useState(false);
 
   // Retrieve session data for the current tab
   const sessionData = getSessionData();
@@ -118,6 +119,8 @@ export const StudentBulletinComponent = () => {
 
   // Handler for posting a new concern.
   const handlePostConcern = async () => {
+    setIsClicked(true)
+
     if (!concernText.trim()) {
       console.error("Concern cannot be empty.");
       //alert("Concern cannot be empty.");
@@ -126,6 +129,7 @@ export const StudentBulletinComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
       return;
     }
 
@@ -176,11 +180,15 @@ export const StudentBulletinComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+    }finally {
+      setIsClicked(false);  // Ensure button resets after try/catch
+      console.log("setIsClicked(false) executed")
     }
   };
 
   // Handler for confirming deletion of a concern.
   const handleConfirmDelete = async () => {
+    setIsClicked(true)
     try {
       const response = await deleteConcern(selectedConcernId);
       if (response.error) {
@@ -191,6 +199,7 @@ export const StudentBulletinComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 2000,
         });
+        setIsClicked(false)
       } else {
         setConcerns(prevConcerns => prevConcerns.filter(c => c.id !== selectedConcernId));
         setShowDeleteModal(false);
@@ -201,6 +210,7 @@ export const StudentBulletinComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 2000,
         });
+        setIsClicked(false)
       }
     } catch (error) {
       console.error("Error during deletion:", error);
@@ -210,13 +220,10 @@ export const StudentBulletinComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
     }
-
-    
   };
 
-
-  
   return (
     <>
       <StudentCMNavigationBarComponent />
@@ -293,8 +300,8 @@ export const StudentBulletinComponent = () => {
                   <Button variant="secondary" onClick={() => setShowPostConcern(false)}>
                     Cancel
                   </Button>
-                  <Button className='success-button' onClick={handlePostConcern}>
-                    Post Concern
+                  <Button className='success-button' onClick={handlePostConcern} disabled={isClicked}>
+                    {isClicked ? "Posting..." : "Post Concern"}
                   </Button>
                 </Modal.Footer>
               </Modal>
@@ -316,8 +323,8 @@ export const StudentBulletinComponent = () => {
                   <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
                     Cancel
                   </Button>
-                  <Button variant="danger" onClick={handleConfirmDelete}>
-                    Delete
+                  <Button variant="danger" onClick={handleConfirmDelete} disabled={isClicked}>
+                    {isClicked ? "Deleting..." : "Delete Concern"}
                   </Button>
                 </Modal.Footer>
               </Modal>

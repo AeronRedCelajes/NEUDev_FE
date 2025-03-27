@@ -5,14 +5,14 @@ import { faDesktop, faLaptopCode, faBars, faBell, faTimes } from "@fortawesome/f
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import "../../style/teacher/cmNavigationBar.css";
 import { getProfile, logout, markNotificationAsRead, deleteNotification } from "../api/API"; // ✅ Import API function
-
+import { useAlert } from "../AlertContext"; 
 
 const TeacherAMNavigationBarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { classID, actID } = useParams(); // ✅ Get classID from URL
   const [profileImage, setProfileImage] = useState("/src/assets/noy.png"); // Default image
-
+  const { openAlert } = useAlert();
   //Notification
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -43,8 +43,13 @@ const TeacherAMNavigationBarComponent = () => {
     return "leaderboard"; // Default to leaderboard
   };
 
+  // ✅ Navigate between class management tabs
+  const handleSelect = (key) => {
+    navigate(`/teacher/class/${classID}/${key}`);
+  };
+
   // ✅ Navigate between activity management tabs
- const handleLogout = async () => {
+  const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
       //alert("✅ Logout successful");
@@ -66,6 +71,10 @@ const TeacherAMNavigationBarComponent = () => {
         },
       });
     }
+  };
+  
+  const handleBellClick = () => {
+    setShowNotifications(!showNotifications);
   };
   
   /**

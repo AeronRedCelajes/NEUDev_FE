@@ -22,12 +22,16 @@
     display: inline-block;
 }
 
-.create-new-activity-container .class-id{
+.create-new-activity-container .class-id-label{
     color: #bc6a4a;
     font-size: 1.2rem;
-    cursor: pointer;
     position: relative;
     display: inline-block;
+    font-weight: 700;
+}
+
+.create-new-activity-container .class-id{
+    cursor: pointer;
 }
 
 .create-new-activity-container .class-id:hover{
@@ -122,20 +126,18 @@
 .activity-menu-container .activity-menu{
     width: 120px;
     border-radius: 10px;
-    background-color: #e4bcac;
-    padding: 5px;
+    background-color: #64c5b1;
+    overflow: hidden;
 }
 
 .activity-menu-container .activity-menu-item{
-    padding-inline: 10px;
-    background-color: #e4bcac;
+    padding: 3px 10px;
+    background-color: #64c5b1;
     color: #ffffff;
-    border-radius: 10px;
 }
 
 .activity-menu-container .activity-menu-item:hover{
-    background-color: #FFF5F1;
-    color: #B84C20;
+    background-color: #4ea99a;
 }
 
 /* The outer header container */

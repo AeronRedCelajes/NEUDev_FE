@@ -1,25 +1,26 @@
 import { faBars, faDesktop, faLaptopCode, faEllipsisV, faBell, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Dropdown, Form, Modal, Nav, Navbar, Badge, ModalFooter } from 'react-bootstrap';
+import { Button, Card, Dropdown, Form, Modal, Nav, Navbar, Badge} from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import '/src/style/teacher/dashboard.css';
 import { useAlert } from "../AlertContext"; 
 
 import { logout, getProfile, createClass, getClasses, updateClass, deleteClass, verifyPassword, 
   markNotificationAsRead, 
-  deleteNotification } from '../api/API.js';
+  deleteNotification, getSessionData } from '../api/API.js';
 
 export const TeacherDashboardComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
   const [profileImage, setProfileImage] = useState(defaultProfileImage);
   const [className, setClassName] = useState("");
   const [classSection, setClassSection] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
   const [showCreateClass, setShowCreateClass] = useState(false);
   const [classes, setClasses] = useState([]);
   const [instructorName, setInstructorName] = useState("");
   const { openAlert } = useAlert();
+  const [isClicked, setIsClicked] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   //Notification
   const [notifications, setNotifications] = useState([]);
@@ -37,7 +38,6 @@ export const TeacherDashboardComponent = () => {
     // For preview display in the modal
     classCoverPreview: ""
   });
-  const [isEditing, setIsEditing] = useState(false);
 
   // State for deleting a class
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -164,7 +164,7 @@ export const TeacherDashboardComponent = () => {
       });
       return;
     }
-    setIsCreating(true);
+    setIsClicked(true);
     const classData = { className, classSection };
     console.log("📤 Sending Class Data:", classData);
     const response = await createClass(classData);
@@ -188,7 +188,7 @@ export const TeacherDashboardComponent = () => {
       setClassSection("");
       setClasses([...classes, { ...response, instructorName }]);
     }
-    setIsCreating(false);
+    setIsClicked(false);
   };
 
   // Open the edit modal and load class data including cover photo
@@ -218,7 +218,7 @@ export const TeacherDashboardComponent = () => {
       });
       return;
     }
-    setIsEditing(true);
+    setIsClicked(true);
     const response = await updateClass(editClassData.id, editClassData);
     if (response.error) {
       //alert(`❌ Failed to update class: ${response.error}`);
@@ -229,7 +229,7 @@ export const TeacherDashboardComponent = () => {
         onAfterClose: () => {
         },
       });
-      setIsEditing(false);
+      setIsClicked(false);
       return;
     }
     const updatedClasses = classes.map((cls) => {
@@ -247,7 +247,7 @@ export const TeacherDashboardComponent = () => {
 
     });
     setShowEditModal(false);
-    setIsEditing(false);
+    setIsClicked(false);
   }; 
 
   // Open the delete modal and set the class to delete
@@ -270,6 +270,7 @@ export const TeacherDashboardComponent = () => {
       });
       return;
     }
+    setIsClicked(true);
     const sessionData = getSessionData();
     const teacherEmail = sessionData.email;
 
@@ -282,6 +283,7 @@ export const TeacherDashboardComponent = () => {
         autoCloseDelay: 2000,
   
       });
+      setIsClicked(false);
       return;
     }
     const classID = deleteClassData.id || deleteClassData.classID;
@@ -294,13 +296,14 @@ export const TeacherDashboardComponent = () => {
         autoCloseDelay: 2000,
   
       });
+      setIsClicked(false);
       return;
     }
     const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
     setClasses(updatedClasses);
     //alert(`✅ ${deleteClassData.className} deleted successfully!`);
     openAlert({
-      message: deleteClassData.className + "deleted successfully!",
+      message: deleteClassData.className + " deleted successfully!",
       imageUrl: "/src/assets/profile_default2.png",
       autoCloseDelay: 2000,
 
@@ -486,7 +489,7 @@ export const TeacherDashboardComponent = () => {
                 </div>
                 <Card.Body>
                   <Card.Text>
-                    <strong><h6>{classItem.className}</h6></strong>
+                    <strong className='class-name'>{classItem.className}</strong><br />
                     <strong>Section:</strong> {classItem.classSection} <br />
                     <strong>Teacher:</strong> {classItem.instructorName || instructorName}
                   </Card.Text>
@@ -501,12 +504,12 @@ export const TeacherDashboardComponent = () => {
         </div>
 
         {/* Create Class Modal */}
-        <Modal className='modal-create-class' show={showCreateClass} onHide={() => setShowCreateClass(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showCreateClass} onHide={() => setShowCreateClass(false)} backdrop='static' keyboard={false} size='md'>
           <Modal.Header closeButton>
             <Modal.Title>Class Creation</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Form onSubmit={handleClassCreate}>
+            <Form>
               <Form.Group controlId='formClassName'>
                 <Form.Label>Class Name</Form.Label>
                 <Form.Control
@@ -527,20 +530,22 @@ export const TeacherDashboardComponent = () => {
                   required
                 />
               </Form.Group>
-              <Button variant='primary' className='mt-3' type="submit" disabled={isCreating}>
-                {isCreating ? "Creating..." : "Create Class"}
-              </Button>
             </Form>
           </Modal.Body>
+          <Modal.Footer>
+            <Button className='success-button' onClick={handleClassCreate} disabled={isClicked}>
+              {isClicked ? "Creating..." : "Create Class"}
+            </Button>
+          </Modal.Footer>
         </Modal>
 
         {/* Edit Class Modal */}
-        <Modal className='modal-design' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='md'>
           <Modal.Header closeButton>
             <Modal.Title>Edit Class</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Form onSubmit={handleEditClassSave}>
+            <Form>
               <Form.Group controlId='formEditClassName'>
                 <Form.Label>Class Name</Form.Label>
                 <Form.Control
@@ -563,7 +568,7 @@ export const TeacherDashboardComponent = () => {
               </Form.Group>
               <Form.Group controlId='formEditClassCoverPhoto' className='mt-3'>
                 <div className='edit-button'>
-                  <span>Cover Photo</span>
+                  <span>Class Cover Photo</span>
                   <Button>
                     <label htmlFor='class-cover-upload' className='upload-label'>
                       Upload Cover Photo
@@ -599,29 +604,35 @@ export const TeacherDashboardComponent = () => {
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button className='success-button' type="submit" disabled={isEditing}>
-              {isEditing ? "Saving..." : "Save Changes"}
+            <Button className='success-button' onClick={handleEditClassSave} disabled={isClicked}>
+              {isClicked ? "Saving..." : "Save Changes"}
             </Button>
           </Modal.Footer>
         </Modal>
 
         {/* Delete Class Modal */}
-        <Modal className='modal-design' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop='static' keyboard={false} size='md'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Deletion</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Please enter your password to confirm deletion of <strong>{deleteClassData?.className}</strong>.</p>
             <Form>
-              <Form.Group controlId='formDeletePassword'>
-                <Form.Label>Password</Form.Label>
+              <Form.Label>Password</Form.Label>
+              <Form.Group controlId='formDeletePassword' className="d-flex align-items-center">
                 <Form.Control
-                  type='password'
+                  type={showPassword ? "text" : "password"}
                   placeholder='Enter your password'
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   required
                 />
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ cursor: "pointer", marginLeft: "0.5rem" }}
+                >
+                  {showPassword ? <i className="bi bi-eye-slash"></i> : <i className="bi bi-eye"></i>}
+                </span>
               </Form.Group>
             </Form>
           </Modal.Body>
@@ -629,14 +640,14 @@ export const TeacherDashboardComponent = () => {
             <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
               Cancel
             </Button>
-            <Button variant='danger' onClick={handleDeleteClassConfirm}>
-              Delete Class
+            <Button variant='danger' onClick={handleDeleteClassConfirm} disabled={isClicked}>
+              {isClicked ? "Deleting..." : "Delete Class"}
             </Button>
           </Modal.Footer>
         </Modal>
 
         {/* Archive Class Modal */}
-        <Modal className='modal-design' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='lg'>
+        <Modal className='modal-design' show={showArchiveModal} onHide={() => setShowArchiveModal(false)} backdrop='static' keyboard={false} size='md'>
           <Modal.Header closeButton>
             <Modal.Title>Confirm Archive</Modal.Title>
           </Modal.Header>

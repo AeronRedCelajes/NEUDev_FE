@@ -251,6 +251,7 @@ export default function TeacherItemBankComponent() {
 
   async function handleDelete() {
     if (!itemData.itemID) return;
+    setIsClicked(true)
     const sessionData = getSessionData();
     const teacherEmail = sessionData.email;
 
@@ -261,6 +262,7 @@ export default function TeacherItemBankComponent() {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
       return;
     }
     const verification = await verifyPassword(teacherEmail, deletePassword);
@@ -271,6 +273,7 @@ export default function TeacherItemBankComponent() {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
       return;
     }
     const resp = await deleteItem(itemData.itemID);
@@ -1090,13 +1093,12 @@ export default function TeacherItemBankComponent() {
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
               />
-              <Button
-                variant="outline-secondary"
+              <span
                 onClick={() => setShowDeletePassword(!showDeletePassword)}
-                style={{ marginLeft: "5px" }}
+                style={{ cursor: "pointer", marginLeft: "0.5rem" }}
               >
-                <FontAwesomeIcon icon={showDeletePassword ? faEyeSlash : faEye} />
-              </Button>
+                {showDeletePassword ? <i className="bi bi-eye-slash"></i> : <i className="bi bi-eye"></i>}
+              </span>
             </div>
           </Form.Group>
         </Modal.Body>
@@ -1104,8 +1106,8 @@ export default function TeacherItemBankComponent() {
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={handleDelete}>
-            Delete
+          <Button variant="danger" onClick={handleDelete} disabled={isClicked}>
+            {isClicked ? "Deleting..." : "Delete Item"}
           </Button>
         </Modal.Footer>
       </Modal>

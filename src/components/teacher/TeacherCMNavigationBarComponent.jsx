@@ -13,12 +13,13 @@ const TeacherCMNavigationBarComponent = () => {
   const { classID } = useParams(); // ✅ Get classID from URL
   const [profileImage, setProfileImage] = useState("/src/assets/noy.png"); // Default image
   const { openAlert } = useAlert();
+
   //Notification
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   // ✅ Fetch teacher's profile image on mount
@@ -47,33 +48,33 @@ const TeacherCMNavigationBarComponent = () => {
     navigate(`/teacher/class/${classID}/${key}`);
   };
 
-    const handleLogout = async () => {
-      const result = await logout();
-      if (!result.error) {
-        //alert("✅ Logout successful");
-        openAlert({
-          message: "Logout successful",
-          imageUrl: "/src/assets/profile_default2.png",
-          autoCloseDelay: 2000,
-          onAfterClose: () => { window.location.href = "/home";
-          },
-        });
-       
-      } else {
-        //alert("❌ Logout failed. Try again.");
-        openAlert({
-          message: "Logout failed. Try again.",
-          imageUrl: "/src/assets/profile_default2.png",
-          autoCloseDelay: 3000,
-          onAfterClose: () => {
-          },
-        });
-      }
-    };
+  const handleLogout = async () => {
+    const result = await logout();
+    if (!result.error) {
+      //alert("✅ Logout successful");
+      openAlert({
+        message: "Logout successful",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => { window.location.href = "/home";
+        },
+      });
+      
+    } else {
+      //alert("❌ Logout failed. Try again.");
+      openAlert({
+        message: "Logout failed. Try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+        onAfterClose: () => {
+        },
+      });
+    }
+  };
 
   const handleBellClick = () => {
-      setShowNotifications(!showNotifications);
-    };
+    setShowNotifications(!showNotifications);
+  };
   
   /**
    * Mark a single notification as read, then update state.
@@ -185,7 +186,7 @@ const TeacherCMNavigationBarComponent = () => {
           </Nav>
         </div>
 
-        {sidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
+        {sidebarOpen && <div className="cm-sidebar-overlay" onClick={toggleSidebar}></div>}
 
         <div>
           <Navbar expand='lg' fixed='top' className='navbar-top'>

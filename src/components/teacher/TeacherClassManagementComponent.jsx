@@ -84,6 +84,7 @@ export const TeacherClassManagementComponent = () => {
   const navigate = useNavigate();
   const { classID } = useParams();
   const { openAlert } = useAlert();
+  const [isClicked, setIsClicked] = useState(false);
 
   // -------------------- Class Info --------------------
   const [classInfo, setClassInfo] = useState(null);
@@ -278,6 +279,7 @@ export const TeacherClassManagementComponent = () => {
   };
 
   const handleConfirmDelete = async () => {
+    setIsClicked(true)
     const sessionData = getSessionData();
     const teacherEmail = sessionData.email;
     if (!teacherEmail) {
@@ -287,6 +289,7 @@ export const TeacherClassManagementComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
       return;
     }
     const verification = await verifyPassword(teacherEmail, deletePassword);
@@ -297,6 +300,7 @@ export const TeacherClassManagementComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
       return;
     }
     try {
@@ -308,6 +312,7 @@ export const TeacherClassManagementComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 2000,
         });
+        setIsClicked(false)
         fetchActivities();
       } else {
         //alert("Error deleting activity: " + response.error);
@@ -316,9 +321,11 @@ export const TeacherClassManagementComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 2000,
         });
+        setIsClicked(false)
       }
     } catch (err) {
       console.error("Error deleting activity:", err);
+      setIsClicked(false)
     }
     setShowDeleteModal(false);
     setDeletePassword("");
@@ -472,7 +479,7 @@ export const TeacherClassManagementComponent = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!selectedActivity) return;
-
+    setIsClicked(true)
     const computedPoints = editFormData.items
       .filter((it) => it && it.itemPoints)
       .reduce((sum, it) => sum + it.itemPoints, 0);
@@ -512,11 +519,13 @@ export const TeacherClassManagementComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 2000,
         });
+        setIsClicked(false)
         setShowEditModal(false);
         setSelectedActivity(null);
         fetchActivities();
       } else {
         console.error("Error editing activity:", response);
+        setIsClicked(false)
         if (response.details && response.details.errors) {
           //alert("Validation Errors:\n" + JSON.stringify(response.details.errors, null, 2));
           openAlert({
@@ -524,6 +533,7 @@ export const TeacherClassManagementComponent = () => {
             imageUrl: "/src/assets/profile_default2.png",
             autoCloseDelay: 2000,
           });
+          setIsClicked(false)
         } else {
           //alert("Error editing activity: " + response.error);
           openAlert({
@@ -531,10 +541,12 @@ export const TeacherClassManagementComponent = () => {
             imageUrl: "/src/assets/profile_default2.png",
             autoCloseDelay: 2000,
           });
+          setIsClicked(false)
         }
       }
     } catch (err) {
       console.error("Error editing activity:", err);
+      setIsClicked(false)
     }
   };
 
@@ -647,8 +659,8 @@ export const TeacherClassManagementComponent = () => {
             {classInfo ? (
               <>
                 {classInfo.className}{" "}
-                <span className='class-id' onClick={copyToClipboard}>
-                  (#{classInfo.classID})
+                <span className='class-id-label' onClick={copyToClipboard}>
+                  (Code: <span className='class-id'>{classInfo.classID}</span>)
                 </span>
                 {copied && <span className='popup'>Copied!</span>}
               </>
@@ -1281,8 +1293,8 @@ export const TeacherClassManagementComponent = () => {
               <Button variant="secondary" onClick={() => setShowEditModal(false)}>
                 Cancel
               </Button>
-              <Button className="success-button" type="submit">
-                Save Changes
+              <Button className="success-button" type="submit" disabled={isClicked}>
+                {isClicked ? "Saving..." : "Save Changes"}
               </Button>
             </Modal.Footer>
           </Form>
@@ -1407,19 +1419,18 @@ export const TeacherClassManagementComponent = () => {
           <Modal.Body>
             <Form.Group controlId="deletePassword">
               <Form.Label>Enter Password</Form.Label>
-              <div className="d-flex">
+              <div className="d-flex align-items-center">
                 <Form.Control
                   type={showDeletePassword ? "text" : "password"}
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                 />
-                <Button
-                  variant="outline-secondary"
+                <span
                   onClick={() => setShowDeletePassword(!showDeletePassword)}
-                  style={{ marginLeft: "5px" }}
+                  style={{ cursor: "pointer", marginLeft: "0.5rem" }}
                 >
-                  <FontAwesomeIcon icon={showDeletePassword ? faEyeSlash : faEye} />
-                </Button>
+                  {showDeletePassword ? <i className="bi bi-eye-slash"></i> : <i className="bi bi-eye"></i>}
+                </span>
               </div>
             </Form.Group>
           </Modal.Body>
@@ -1427,8 +1438,8 @@ export const TeacherClassManagementComponent = () => {
             <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setDeletePassword(""); }}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={handleConfirmDelete}>
-              Confirm Delete
+            <Button variant="danger" onClick={handleConfirmDelete} disabled={isClicked}>
+              {isClicked ? "Deleting..." : "Confirm Delete"}
             </Button>
           </Modal.Footer>
         </Modal>

@@ -46,6 +46,7 @@ const TeacherClassManagementClassParticipantsComponent = () => {
   const [showUnenrollModal, setShowUnenrollModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -243,22 +244,27 @@ const TeacherClassManagementClassParticipantsComponent = () => {
             </strong>
             ?
           </p>
-          <Form onSubmit={handleConfirmUnenroll}>
-            <Form.Group>
-              <Form.Label>Enter your password</Form.Label>
+          <Form>
+          <Form.Label>Enter your password</Form.Label>
+            <Form.Group className="d-flex align-items-center">
               <Form.Control
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ cursor: "pointer", marginLeft: "0.5rem" }}
+              >
+                {showPassword ? <i className="bi bi-eye-slash"></i> : <i className="bi bi-eye"></i>}
+              </span>
             </Form.Group>
-            
+            {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
-          <Button variant="danger" type="submit" disabled={isProcessing}>
+          <Button variant="danger" onClick={handleConfirmUnenroll} disabled={isProcessing}>
             {isProcessing ? "Processing..." : "Unenroll"}
           </Button>
           <Button variant="secondary" onClick={() => setShowUnenrollModal(false)}>

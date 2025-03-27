@@ -1,4 +1,4 @@
-import { faBars, faDesktop, faLaptopCode, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faDesktop, faLaptopCode, faEllipsisV, faBell, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Dropdown, Form, Modal, Nav, Navbar } from 'react-bootstrap';
@@ -6,18 +6,27 @@ import { useNavigate } from 'react-router-dom';
 import '/src/style/teacher/dashboard.css';
 import { useAlert } from "../AlertContext"; 
 
-import { logout, getProfile, createClass, getArchivedClasses, updateClass, deleteClass, verifyPassword, getSessionData, setSessionData } from '../api/API.js';
+import { logout, getProfile, createClass, getArchivedClasses, updateClass, deleteClass, verifyPassword, 
+  markNotificationAsRead, 
+  deleteNotification, getSessionData } from '../api/API.js';
+
 
 export const TeacherDashboardArchivedComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
   const [profileImage, setProfileImage] = useState(defaultProfileImage);
   const [className, setClassName] = useState("");
   const [classSection, setClassSection] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
   const [showCreateClass, setShowCreateClass] = useState(false);
   const [classes, setClasses] = useState([]);
   const [instructorName, setInstructorName] = useState("");
   const { openAlert } = useAlert();
+  const [isClicked, setIsClicked] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  //Notification
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // State for editing a class (including cover photo)
   const [showEditModal, setShowEditModal] = useState(false);
@@ -28,7 +37,6 @@ export const TeacherDashboardArchivedComponent = () => {
     classCoverPhoto: "",
     classCoverPreview: ""
   });
-  const [isEditing, setIsEditing] = useState(false);
 
   // State for deleting a class
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -77,6 +85,50 @@ export const TeacherDashboardArchivedComponent = () => {
     fetchClasses();
   }, [instructorName]);
 
+  const handleBellClick = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  /**
+   * Mark a single notification as read, then update state.
+   */
+  const handleNotificationClick = async (notificationId) => {
+    // Mark as read on the server
+    await markNotificationAsRead(notificationId);
+
+    // Update local state to set isRead = true
+    const updatedList = notifications.map(n =>
+      n.id === notificationId ? { ...n, isRead: true } : n
+    );
+    setNotifications(updatedList);
+
+    // Recalculate how many are unread
+    const newUnreadCount = updatedList.filter(n => !n.isRead).length;
+    setUnreadCount(newUnreadCount);
+
+    // (Optional) If you want to do something else, like navigate somewhere:
+    // navigate('/some-other-page');
+  };
+
+  /**
+   * Delete a notification entirely.
+   */
+  const handleDeleteNotification = async (e, notificationId) => {
+    e.stopPropagation(); // prevent parent onClick from firing
+    const resp = await deleteNotification(notificationId);
+    if (!resp.error) {
+      // Remove from local state
+      const updatedList = notifications.filter(n => n.id !== notificationId);
+      setNotifications(updatedList);
+
+      // Recalculate unread
+      const newUnreadCount = updatedList.filter(n => !n.isRead).length;
+      setUnreadCount(newUnreadCount);
+    } else {
+      console.error('Failed to delete notification:', resp.error);
+    }
+  };
+    
   const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
@@ -112,7 +164,7 @@ export const TeacherDashboardArchivedComponent = () => {
       });
       return;
     }
-    setIsCreating(true);
+    setIsClicked(true);
     const classData = { className, classSection };
     console.log("📤 Sending Class Data:", classData);
     const response = await createClass(classData);
@@ -136,7 +188,7 @@ export const TeacherDashboardArchivedComponent = () => {
       setClassSection("");
       setClasses([...classes, { ...response, instructorName }]);
     }
-    setIsCreating(false);
+    setIsClicked(false);
   };
 
   // Open the edit modal and load class data
@@ -166,7 +218,7 @@ export const TeacherDashboardArchivedComponent = () => {
       });
       return;
     }
-    setIsEditing(true);
+    setIsClicked(true);
     const response = await updateClass(editClassData.id, editClassData);
     if (response.error) {
       //alert(`❌ Failed to update class: ${response.error}`);
@@ -177,7 +229,7 @@ export const TeacherDashboardArchivedComponent = () => {
         onAfterClose: () => {
         },
       });
-      setIsEditing(false);
+      setIsClicked(false);
       return;
     }
     const updatedClasses = classes.map((cls) => {
@@ -195,7 +247,7 @@ export const TeacherDashboardArchivedComponent = () => {
 
     });
     setShowEditModal(false);
-    setIsEditing(false);
+    setIsClicked(false);
   };  
 
   // Open the delete modal and set the class to delete
@@ -218,6 +270,7 @@ export const TeacherDashboardArchivedComponent = () => {
       });
       return;
     }
+    setIsClicked(true);
     const sessionData = getSessionData();
     const teacherEmail = sessionData.email;
 
@@ -230,6 +283,7 @@ export const TeacherDashboardArchivedComponent = () => {
         autoCloseDelay: 2000,
   
       });
+      setIsClicked(false);
       return;
     }
     const classID = deleteClassData.id || deleteClassData.classID;
@@ -242,13 +296,14 @@ export const TeacherDashboardArchivedComponent = () => {
         autoCloseDelay: 2000,
   
       });
+      setIsClicked(false);
       return;
     }
     const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
     setClasses(updatedClasses);
     //alert(`✅ ${deleteClassData.className} deleted successfully!`);
     openAlert({
-      message: deleteClassData.className + "deleted successfully!",
+      message: deleteClassData.className + " deleted successfully!",
       imageUrl: "/src/assets/profile_default2.png",
       autoCloseDelay: 2000,
 
@@ -340,7 +395,57 @@ export const TeacherDashboardArchivedComponent = () => {
           <div className='dashboard-navbar'>
             <span className='ping'>20 ms</span>
             <a href='#'><i className='bi bi-moon'></i></a>
-            <span className='student-badge'>Teacher</span>
+            <span className='teacher-badge'>Teacher</span>
+
+            {/* Notification Bell */}
+            <div className='notification-bell'>
+              <FontAwesomeIcon
+                icon={faBell}
+                size='lg'
+                style={{ cursor: 'pointer' }}
+                onClick={handleBellClick}
+              />
+              {unreadCount > 0 && (
+                <Badge bg='danger' pill className='notification-badge'>
+                  {unreadCount}
+                </Badge>
+              )}
+  
+              {showNotifications && (
+                <div className='notification-dropdown'>
+                  <div>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: '10px', backgroundColor:"" }}>No Notifications</div>
+                    ) : (
+                      notifications.map((notif) => {
+                        const parsedData = JSON.parse(notif.data || '{}');
+                        return (
+                          <div
+                            key={notif.id}
+                            className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
+                            onClick={() => handleNotificationClick(notif.id)}
+                          >
+                            <div>
+                              <div><strong>{notif.type}</strong></div>
+                              <div>{parsedData.message}</div>
+                              <small className={`notification-item-dt ${notif.isRead ? 'read' : 'unread'}`}>
+                                {new Date(notif.created_at).toLocaleString()}
+                              </small>
+                            </div>
+                            <div 
+                              onClick={(e) => handleDeleteNotification(e, notif.id)}
+                              style={{ marginLeft: '8px', cursor: 'pointer' }}
+                            >
+                              <FontAwesomeIcon icon={faTimes} />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <Dropdown align='end'>
               <Dropdown.Toggle variant='transparent' className='dropdown-desgin'>
                 <img src={profileImage} className='profile-image' alt="Profile" />
@@ -387,7 +492,7 @@ export const TeacherDashboardArchivedComponent = () => {
                 </div>
                 <Card.Body>
                   <Card.Text>
-                    <strong><h6>{classItem.className}</h6></strong>
+                    <strong className='class-name'>{classItem.className}</strong><br />
                     <strong>Section:</strong> {classItem.classSection} <br />
                     <strong>Teacher:</strong> {classItem.instructorName || instructorName}
                   </Card.Text>
@@ -424,8 +529,8 @@ export const TeacherDashboardArchivedComponent = () => {
                   required
                 />
               </Form.Group>
-              <Button variant='primary' className='mt-3' type="submit" disabled={isCreating}>
-                {isCreating ? "Creating..." : "Create Class"}
+              <Button variant='primary' className='mt-3' type="submit" disabled={isClicked}>
+                {isClicked ? "Creating..." : "Create Class"}
               </Button>
             </Form>
           </Modal.Body>
@@ -459,10 +564,14 @@ export const TeacherDashboardArchivedComponent = () => {
                 />
               </Form.Group>
               <Form.Group controlId='formEditClassCoverPhoto' className='mt-3'>
-                <Form.Label>Class Cover Photo</Form.Label>
-                <Button variant="secondary" as="label" htmlFor="class-cover-upload">
-                  Upload Cover Photo
-                </Button>
+                <div className='edit-button'>
+                  <span>Class Cover Photo</span>
+                  <Button>
+                    <label htmlFor='class-cover-upload' className='upload-label'>
+                      Upload Cover Photo
+                    </label>
+                  </Button>
+                </div>
                 <input
                   id="class-cover-upload"
                   type="file"
@@ -489,12 +598,11 @@ export const TeacherDashboardArchivedComponent = () => {
                   </div>
                 )}
               </Form.Group>
-              
             </Form>
           </Modal.Body>
-          <Modal.Footer onClick={handleEditClassSave}>
-            <Button variant='primary' className='mt-3' type="submit" disabled={isEditing}>
-              {isEditing ? "Saving..." : "Save Changes"}
+          <Modal.Footer>
+            <Button className='success-button' onClick={handleEditClassSave} disabled={isClicked}>
+              {isClicked ? "Saving..." : "Save Changes"}
             </Button>
           </Modal.Footer>
         </Modal>
@@ -507,25 +615,31 @@ export const TeacherDashboardArchivedComponent = () => {
           <Modal.Body>
             <p>Please enter your password to confirm deletion of <strong>{deleteClassData?.className}</strong>.</p>
             <Form>
-              <Form.Group controlId='formDeletePassword'>
-                <Form.Label>Password</Form.Label>
+              <Form.Label>Password</Form.Label>
+              <Form.Group controlId='formDeletePassword' className="d-flex align-items-center">
                 <Form.Control
-                  type='password'
+                  type={showPassword ? "text" : "password"}
                   placeholder='Enter your password'
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   required
                 />
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ cursor: "pointer", marginLeft: "0.5rem" }}
+                >
+                  {showPassword ? <i className="bi bi-eye-slash"></i> : <i className="bi bi-eye"></i>}
+                </span>
               </Form.Group>
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <div className='d-flex justify-content-end mt-3'>
+            <div className='d-flex justify-content-end'>
               <Button variant='secondary' onClick={() => setShowDeleteModal(false)} className='me-2'>
                 Cancel
               </Button>
-              <Button variant='danger' onClick={handleDeleteClassConfirm}>
-                Delete Class
+              <Button variant='danger' onClick={handleDeleteClassConfirm} disabled={isClicked}>
+                {isClicked ? "Deleting..." : "Delete Class"}
               </Button>
             </div>
           </Modal.Footer>

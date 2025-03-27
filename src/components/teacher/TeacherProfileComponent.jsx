@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ProfilePlaygroundNavbarComponent } from '../ProfilePlaygroundNavbarComponent.jsx';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, ModalTitle } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { getProfile, updateProfile, deleteProfile, verifyPassword, getSessionData } from '../api/API.js';
@@ -11,6 +11,8 @@ export const TeacherProfileComponent = () => {
   const defaultProfileImage = '/src/assets/noy.png';
   const defaultCoverImage = '/src/assets/univ.png';
   const { openAlert } = useAlert();
+  const [isClickedSave, setIsClickedSave] = useState(false);
+  const [isClickedDelete, setIsClickedDelete] = useState(false);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [profile, setProfile] = useState({
@@ -71,6 +73,7 @@ export const TeacherProfileComponent = () => {
   // Save profile changes using FormData.
   // Also check that the email format is valid.
   const handleSaveChanges = async () => {
+    setIsClickedSave(true)
     // Validate email format
     if (!profile.email.endsWith("@neu.edu.ph")) {
       //alert("Invalid email format! Use '@neu.edu.ph'.");
@@ -79,6 +82,7 @@ export const TeacherProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 3000,
       });
+      setIsClickedSave(false)
       return;
     }
     // Only check password if at least one field is filled.
@@ -90,6 +94,7 @@ export const TeacherProfileComponent = () => {
           imageUrl: "/src/assets/profile_default2.png",
           autoCloseDelay: 3000,
         });
+        setIsClickedSave(false)
         return;
       }
     } else {
@@ -130,6 +135,7 @@ export const TeacherProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedSave(false)
     }
   };
 
@@ -140,6 +146,7 @@ export const TeacherProfileComponent = () => {
 
   // Confirm deletion: verify password then delete profile
   const handleConfirmDeleteProfile = async () => {
+    setIsClickedDelete(true)
     const sessionData = getSessionData();
     const userEmail = sessionData.email;
     if (!userEmail) {
@@ -149,6 +156,7 @@ export const TeacherProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedDelete(false)
       return;
     }
     const verification = await verifyPassword(userEmail, deletePassword);
@@ -159,6 +167,7 @@ export const TeacherProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedDelete(false)
       return;
     }
     const response = await deleteProfile();
@@ -179,6 +188,7 @@ export const TeacherProfileComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClickedDelete(false)
     }
     setShowDeleteModal(false);
     setDeletePassword("");
@@ -198,7 +208,7 @@ export const TeacherProfileComponent = () => {
         {/* Edit Profile Modal */}
         <Modal show={showEditModal} onHide={() => setShowEditModal(false)} backdrop='static' keyboard={false} size='md' className='modal-design'>
           <Modal.Header closeButton>
-            <p className='modal-title w-100'>Edit Profile</p>
+            <Modal.Title>Edit Profile</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             {/* Cover Image Upload */}
@@ -256,7 +266,7 @@ export const TeacherProfileComponent = () => {
 
               {/* New Password Field with toggle */}
               <label>New Password:</label>
-              <div className="password-field">
+              <div className="password-field d-flex align-items-center">
                 <input
                   type={showNewPassword ? "text" : "password"}
                   name="newPassword"
@@ -274,7 +284,7 @@ export const TeacherProfileComponent = () => {
 
               {/* Confirm New Password Field with toggle */}
               <label>Confirm New Password:</label>
-              <div className="password-field">
+              <div className="password-field d-flex align-items-center">
                 <input
                   type={showConfirmNewPassword ? "text" : "password"}
                   value={confirmNewPassword}
@@ -291,8 +301,12 @@ export const TeacherProfileComponent = () => {
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="danger" onClick={handleDeleteProfile}>Delete Profile</Button>
-            <Button className="success-button" onClick={handleSaveChanges}>Save Changes</Button>
+            <Button variant="danger" onClick={handleDeleteProfile} disabled={isClickedDelete}>
+              {isClickedDelete ? "Deleting..." : "Delete Profile"}
+            </Button>
+            <Button className="success-button" onClick={handleSaveChanges} disabled={isClickedSave}>
+              {isClickedSave ? "Saving..." : "Save Changes"}
+            </Button>
           </Modal.Footer>
         </Modal>
 

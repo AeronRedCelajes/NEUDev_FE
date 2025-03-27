@@ -26,6 +26,7 @@ const programmingLanguageMap = {
 export const TeacherCreateActivityComponent = () => {
   const navigate = useNavigate();
   const { openAlert } = useAlert();
+  const [isClicked, setIsClicked] = useState(false);
 
   // -------------------- Activity Form State --------------------
   const [activityTitle, setActivityTitle] = useState('');
@@ -224,7 +225,6 @@ export const TeacherCreateActivityComponent = () => {
   // -------------------- Create Activity Handler --------------------
   const handleCreateActivity = async (e) => {
     e.preventDefault();
-
     if (
       !activityTitle.trim() ||
       !activityDescription.trim() ||
@@ -241,9 +241,11 @@ export const TeacherCreateActivityComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
       return;
     }
 
+    setIsClicked(true)
     const classID = sessionStorage.getItem("selectedClassID");
 
     // Build final item objects
@@ -262,6 +264,7 @@ export const TeacherCreateActivityComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
       return;
     }
 
@@ -301,6 +304,7 @@ export const TeacherCreateActivityComponent = () => {
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
+      setIsClicked(false)
     } else {
       //alert("✅ Activity created successfully!");
       openAlert({
@@ -513,8 +517,8 @@ export const TeacherCreateActivityComponent = () => {
 
             <div className='d-flex justify-content-center align-items-center'>
               {/* Submit Button */}
-              <Button className='create-activity-btn mt-3' type="submit">
-                <i className="bi bi-pencil-square"></i> Create Activity
+              <Button className='create-activity-btn mt-3' type="submit" disabled={isClicked}>
+                <i className="bi bi-pencil-square"></i> {isClicked ? "Creating..." : "Create Activity"}
               </Button>
             </div>
             

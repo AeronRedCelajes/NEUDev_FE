@@ -21,7 +21,7 @@ export const ProfilePlaygroundNavbarComponent = () => {
         <>
             <Navbar className='profile-playground-navbar'>
                 <a href='#'><i className='bi bi-arrow-left-circle' onClick={handleBackClick}></i></a>
-                <p>Dashboard</p>
+                <p>Back</p>
 
                 <div className='right-navbar'>
                     <span className='ping'>20 ms</span>
