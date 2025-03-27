@@ -254,8 +254,6 @@ const TeacherClassManagementClassParticipantsComponent = () => {
               />
             </Form.Group>
             
-          </Form>
-        </Modal.Body>
         <Modal.Footer>
           {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
           <Button variant="danger" type="submit" disabled={isProcessing}>
@@ -265,6 +263,8 @@ const TeacherClassManagementClassParticipantsComponent = () => {
             Cancel
           </Button>
         </Modal.Footer>
+        </Form>
+        </Modal.Body>
       </Modal>
     </div>
   );
