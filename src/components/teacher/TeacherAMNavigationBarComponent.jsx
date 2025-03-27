@@ -43,32 +43,23 @@ const TeacherAMNavigationBarComponent = () => {
     return "leaderboard"; // Default to leaderboard
   };
 
+     // ✅ Navigate between activity management tabs
   const handleSelect = (key) => {
     navigate(`/teacher/class/${classID}/activity/${actID}/${key}`);
   };
-  // ✅ Navigate between activity management tabs
- const handleLogout = async () => {
+
+  const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
-      //alert("✅ Logout successful");
-      openAlert({
-        message: "Logout successful",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-        onAfterClose: () => { window.location.href = "/home";
-        },
-      });
-     
+        alert("✅ Logout successful");
+        window.location.href = "/home";
     } else {
-      //alert("❌ Logout failed. Try again.");
-      openAlert({
-        message: "Logout failed. Try again.",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 3000,
-        onAfterClose: () => {
-        },
-      });
+        alert("❌ Logout failed. Try again.");
     }
+  };
+
+  const handleBellClick = () => {
+    setShowNotifications(!showNotifications);
   };
   
   /**
