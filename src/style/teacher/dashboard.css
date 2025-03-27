@@ -7,29 +7,6 @@
     font-weight: 500;
 }
 
-.fade-up-enter {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  
-  .fade-up-enter-active {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 500ms, transform 500ms;
-  }
-  
-  .fade-up-exit {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  .fade-up-exit-active {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 500ms, transform 500ms;
-  }
-
-  
 .classes-container .create-class{
     width: 25%;
     height: auto;
@@ -328,4 +305,3 @@
         padding: 5px 11px;
     }
 }
-
