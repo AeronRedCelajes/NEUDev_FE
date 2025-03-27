@@ -51,10 +51,24 @@ const TeacherAMNavigationBarComponent = () => {
   const handleLogout = async () => {
     const result = await logout();
     if (!result.error) {
-        alert("✅ Logout successful");
-        window.location.href = "/home";
+      //alert("✅ Logout successful");
+      openAlert({
+        message: "Logout successful",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+        onAfterClose: () => { window.location.href = "/home";
+        },
+      });
+     
     } else {
-        alert("❌ Logout failed. Try again.");
+      //alert("❌ Logout failed. Try again.");
+      openAlert({
+        message: "Logout failed. Try again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 3000,
+        onAfterClose: () => {
+        },
+      });
     }
   };
 
