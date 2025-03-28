@@ -687,6 +687,25 @@ export const TeacherClassManagementComponent = () => {
           >
             + Create New Activity
           </button>
+
+          <button
+            className="create-new-activity-button-icon"
+            onClick={() => {
+              const storedClassID = sessionStorage.getItem("selectedClassID");
+              if (!storedClassID) {
+                //alert("⚠️ No class selected!");
+                openAlert({
+                  message: "⚠️ No class selected!",
+                  imageUrl: "/src/assets/profile_default2.png",
+                  autoCloseDelay: 2000,
+                });
+                return;
+              }
+              navigate(`/teacher/class/${storedClassID}/create-activity`);
+            }}
+          >
+            +
+          </button>
         </div>
 
         {/* Sorting Controls for Activities */}

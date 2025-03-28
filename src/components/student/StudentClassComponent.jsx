@@ -603,8 +603,9 @@ const handleActivityClick = async (activity) => {
   return (
     <>
       <StudentCMNavigationBarComponent />
-      <div className="class-wrapper"></div>
-      <div className="class-info">
+      <div className='class-management-container'>
+        <div className="class-wrapper"></div>
+        <div className="class-info">
         {/* Dynamic header using fetched classInfo */}
         <h3>
           {classInfo 
@@ -613,7 +614,6 @@ const handleActivityClick = async (activity) => {
         </h3>
 
       </div>
-      <div className='class-management-container'>
         {/* Sorting Controls for Activities */}
         <div className='sort-container'>
           <div className='sort-content'>

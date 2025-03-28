@@ -170,7 +170,7 @@ const TeacherClassManagementClassRecordComponent = () => {
   return (
     <div className="table-body">
       <TeacherCMNavigationBarComponent />
-      <div className="table-container">
+      <div className="table-record-container">
         <div className="table-header">
           <h1 className="table-title">
             Class Record for {className || "Loading..."}
@@ -198,12 +198,8 @@ const TeacherClassManagementClassRecordComponent = () => {
                   <tr>
                     <th className="table-column-titles">#</th>
                     <th className="table-column-titles">Student Name</th>
-                    {activities.map((act, index) => (
-                      <React.Fragment key={act.actID}>
-                        <th className="table-column-titles">Activity #{index + 1} Name</th>
-                        <th className="table-column-titles">Activity #{index + 1} Score</th>
-                      </React.Fragment>
-                    ))}
+                    <th className="table-column-titles">Item Name</th>
+                    <th className="table-column-titles">Item Score</th>
                     <th className="table-column-titles">Total Score</th>
                     <th className="table-column-titles">Avg Score Percentage</th>
                   </tr>
@@ -233,35 +229,46 @@ const TeacherClassManagementClassRecordComponent = () => {
 
                       return (
                         <tr key={student.studentID}>
-                          <td>
-                            {index + 1}
-                          </td>
-                          <td>
+                          <td data-label="#"> {index + 1} </td>
+                          <td data-label="Student Name:">
                             <div className="avatar">
                               <img src={student.profileImage || "/src/assets/profile_default.png"} alt="Avatar" className="avatar-image" />
                               <span className="student-name">{student.lastname}, {student.firstname}</span>
                             </div>
                           </td>
-                          {activities.map((act) => {
-                            const record = student.activities
-                              ? student.activities.find((a) => a.actID === act.actID)
-                              : null;
-                            const actualScore = record
-                              ? record.overallScore ?? record.finalScore
-                              : null;
-                            const scoreStr =
-                              actualScore !== null && actualScore !== undefined
-                                ? `${actualScore}/${act.maxPoints}`
-                                : "-";
-                            return (
-                              <React.Fragment key={act.actID}>
-                                <td>{act.actTitle}</td>
-                                <td>{scoreStr}</td>
-                              </React.Fragment>
-                            );
-                          })}
-                          <td>{totalScoreStr}</td>
-                          <td>{avgPerc}</td>
+                          {/* Merge all activities inside a single column */}
+                          <td className="item-border" data-label="Item Name:">
+                            {activities.map((act) => {
+                              return (
+                                <div className="item-block" key={act.actID}>
+                                  <span>{act.actTitle}</span>
+                                </div>
+                              );
+                            })}
+                          </td>
+                          {/* Merge all scores inside a single column */}
+                          <td className="item-border" data-label="Item Score:">
+                            {activities.map((act, actIndex) => {
+                              const record = student.activities
+                                ? student.activities.find((a) => a.actID === act.actID)
+                                : null;
+                              const actualScore = record
+                                ? record.overallScore ?? record.finalScore
+                                : null;
+                              const scoreStr =
+                                actualScore !== null && actualScore !== undefined
+                                  ? `${actualScore}/${act.maxPoints}`
+                                  : "-";
+
+                              return (
+                                <div className="item-block" key={act.actID}>
+                                  <span>{scoreStr}</span>
+                                </div>
+                              );
+                            })}
+                          </td>
+                          <td data-label="Total Score:">{totalScoreStr}</td>
+                          <td data-label="Avg. Score Percentage:">{avgPerc}</td>
                         </tr>
                       );
                     })

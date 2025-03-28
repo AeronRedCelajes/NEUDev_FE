@@ -77,6 +77,20 @@
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow effect */
 }
 
+.create-new-activity-button-icon{
+    background-color: #64c5b1; /* Soft teal button */
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 30px; /* Fully rounded */
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
 /* Hover Effect */
 .create-new-activity-button:hover {
     background-color: #4ea99a; /* Slightly darker teal on hover */
@@ -199,7 +213,8 @@
         font-size: 1.4rem;
     }
 
-    .create-new-activity-container .class-id{
+    .create-new-activity-container .class-id,
+    .create-new-activity-container .class-id-label{
         font-size: 1rem;
     }
 
@@ -219,18 +234,16 @@
 
 @media (max-width: 425px) {
     .create-new-activity-container h3{
-        font-size: 1.1rem;
-        margin-left: -10px;
-    }
-
-    .create-new-activity-container .class-id{
-        font-size: 0.9rem;
+        margin-left: -5px;
     }
 
     .create-new-activity-button {
-        font-size: 0.7rem;
-        padding: 5px 8px;
-        margin-right: -10px;
+        display: none;
+    }
+
+    .create-new-activity-button-icon {
+        display: block;
+        padding: 10px 17px;
     }
 
     .sort-container .sort-content{
@@ -238,11 +251,11 @@
     }
 
     .sort-container span{
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .sort-container button{
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 }
 

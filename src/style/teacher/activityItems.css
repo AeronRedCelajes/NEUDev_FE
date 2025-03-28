@@ -198,11 +198,11 @@ body {
 }
 
 .table-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    overflow-x: auto;
 }
 
 .item-table {
@@ -213,6 +213,7 @@ body {
   border-radius: 15px;
   overflow: hidden;
   background-color: transparent;
+  margin-block: 20px;
 }
 
 .item-table thead {
@@ -262,8 +263,9 @@ body {
   align-items: center;
 }
 
-.action.cell .edit-btn, .action-cell .delete-btn{
+.action.cell .edit-btn, .action-cell button{
   margin-left: 5px;
+  width: 98px;
 }
 
 .action-cell .edit-btn{

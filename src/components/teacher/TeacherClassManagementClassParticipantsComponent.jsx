@@ -20,16 +20,20 @@ const LeaderboardItem = ({
 }) => {
   return (
     <tr>
-      <td>{index}</td> {/* Numbering Column */}
-      <td>
+      <td data-label="#"> {index} </td>
+      <td data-label="Student Name:">
         <div className="avatar">
-          <img src={avatarUrl || "/src/assets/profile_default.png"} alt="Avatar" className="avatar-image" />
+          <img
+            src={avatarUrl || "/src/assets/profile_default.png"}
+            alt="Avatar"
+            className="avatar-image"
+          />
           <span className="student-name">{name}</span>
         </div>
       </td>
-      <td>{studentNumber}</td>
+      <td data-label="Student Number:">{studentNumber}</td>
       <td className="unenroll-cell">
-        <Button variant="danger" onClick={onUnenrollClick}>
+        <Button className="unenroll-btn" variant="danger" onClick={onUnenrollClick}>
           Unenroll
         </Button>
       </td>
