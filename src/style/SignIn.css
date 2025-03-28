@@ -28,8 +28,6 @@
     cursor: not-allowed;
 }
 
-
-
 .sign-custom-button:hover {
     background-color: rgb(212, 65, 20);
     color: #ffffff;
@@ -41,19 +39,14 @@
     }
 
     .signin-form input,
-    .signin-form .custom-button{
-        font-size: 0.80rem;
+    .signin-form .sign-custom-button{
+        font-size: 0.9rem;
     }
 }
 
 @media (max-width: 768px) {
-    .signin-form label{
-        font-size: 0.85rem;
-    }
-
-    .signin-form input,
-    .signin-form .custom-button{
-        font-size: 0.75rem;
+    .signin-form-container .form-container h3{
+        font-size: 1.2rem;
     }
 }
 
@@ -104,16 +97,5 @@
     .signin-form input,
     .signin-form .custom-button{
         font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 425px) {
-    .signin-form label{
-        font-size: 0.85rem;
-    }
-
-    .signin-form input,
-    .signin-form .custom-button{
-        font-size: 0.75rem;
     }
 }

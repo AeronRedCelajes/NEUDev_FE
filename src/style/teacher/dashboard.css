@@ -10,41 +10,23 @@
 .fade-up-enter {
     opacity: 0;
     transform: translateY(20px);
-  }
-  
-  .fade-up-enter-active {
+}
+
+.fade-up-enter-active {
     opacity: 1;
     transform: translateY(0);
     transition: opacity 500ms, transform 500ms;
-  }
-  
-  .fade-up-exit {
+}
+
+.fade-up-exit {
     opacity: 1;
     transform: translateY(0);
-  }
-  
-  .fade-up-exit-active {
+}
+
+.fade-up-exit-active {
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 500ms, transform 500ms;
-  }
-
-  
-.classes-container .create-class{
-    width: 25%;
-    height: auto;
-    border: 2px dashed #A7AAB6;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    color: #A7AAB6;
-    text-align: center;
-    padding: 10px;
-}
-
-.classes-container .create-class:hover{
-    border: 2px dashed #72747d;
-    border-radius: 12px; 
-    color: #72747d;
 }
 
 .classes-container .card-options .dropdown-item {
@@ -286,27 +268,10 @@
     }
 }
 
-@media (max-width: 992px) {
-    .classes-container .class-card{
-        width: 47%;
-    }
-}
-
 @media (max-width: 768px) {
     .teacher-badge {
         padding: 6px 13px;
         font-size: 0.75rem;
-    }
-}
-
-@media (max-width: 680px) {
-    .classes-container .class-card{
-        width: 80%;
-    }
-
-    .classes-container .create-class{
-        width: 80%;
-        height: auto;
     }
 }
 

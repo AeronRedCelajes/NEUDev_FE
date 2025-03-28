@@ -21,8 +21,26 @@
     transform: translateX(-100%);
 }
 
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
 .sidebar.open {
     transform: translateX(0);
+}
+
+.sidebar.open ~ .sidebar-overlay {
+    opacity: 1;
+    visibility: visible;
 }
 
 .sidebar-content{
@@ -202,18 +220,11 @@
     justify-content: start;
     flex-direction: column;
     margin-top: 11vh;
-    margin-left: 16vw;
     padding: 20px;
     transition: margin-left 0.3s ease;
     flex-grow: 1;
     max-width: 100%;
     overflow-x: hidden;
-}
-
-.sidebar.closed + .dashboard-content {
-    margin-left: 0;
-    width: 100%;
-    transition: margin-left 0.3s ease;
 }
 
 .dashboard-content h4{
@@ -236,7 +247,7 @@
     font-size: 0.9rem;
 }
 
-.no-classes-container .join-class{
+.no-classes-container .join-create-class{
     width: 20% !important;
     height: 150px !important;
 }
@@ -246,17 +257,17 @@
     flex-direction: row;
     flex-wrap: wrap;
     align-items: stretch;
-    justify-content: center;
     gap: 30px;
     min-height: 150px;
 }
 
-.classes-container .join-class{
-    width: 30%;
-    max-width: 300px;
-    flex-grow: 0;
-    height: auto;
-    min-height: 100%;
+.classes-container .join-create-class{
+    width: 32%;
+    min-width: 20%;
+    max-width: 100%;
+    height: 19rem;
+    flex: 0 0 auto;
+    padding: 0;
     border: 2px dashed #A7AAB6;
     border-radius: 12px;
     font-size: 0.8rem;
@@ -265,7 +276,7 @@
     padding: 10px;
 }
 
-.classes-container .join-class:hover{
+.classes-container .join-create-class:hover{
     border: 2px dashed #72747d;
     border-radius: 12px; 
     color: #72747d;
@@ -277,7 +288,7 @@
     max-width: 100%;
     flex: 0 0 auto;
     padding: 0;
-    border-radius: 5% !important;
+    border-radius: 15px !important;
     overflow: hidden; 
 }
 
@@ -344,16 +355,20 @@
     background-color: #83c77692;
 }
 
-@media (max-width: 1200px) {
-    .dashboard-navbar {
-        margin-right: 5px;
-        gap: 10px;
+@media (max-width: 1563px) {
+    .classes-container .join-create-class{
+        width: 31%;
     }
+    
+    .classes-container .class-card{
+        width: 31%;
+    }
+}
 
+@media (max-width: 1200px) {
     .student-badge {
         padding: 6px 13px;
         border-radius: 20px;
-        font-size: 0.8rem;
     }
     
     .dashboard-navbar .dropdown-item {
@@ -378,16 +393,12 @@
         width: 70%;
     }
     
-    .no-classes-container .join-class{
+    .no-classes-container .join-create-class{
         width: 30% !important;
     }
 
-    .classes-container .join-class{
-        width: 30%;
-    }
-    
-    .classes-container .class-card{
-        width: 30%;
+    .classes-container .join-create-class{
+        height: 16rem;
     }
     
     .class-card img{
@@ -408,10 +419,6 @@
 }
 
 @media (max-width: 1024px) {
-    .notification-bell{
-        margin-right: -5px;
-    }
-
     .sidebar {
         width: 205px;
     }
@@ -420,11 +427,11 @@
         width: 205px;
     }
 
-    .no-classes-container .join-class{
+    .no-classes-container .join-create-class{
         width: 30% !important;
     }
 
-    .classes-container .join-class{
+    .classes-container .join-create-class{
         width: 48%;
     }
     
@@ -434,12 +441,18 @@
 
 }
 
-@media (max-width: 768px) {
-    .student-badge {
-        padding: 6px 13px;
-        font-size: 0.75rem;
+@media (max-width: 813px) {
+    .classes-container .join-create-class{
+        width: 47%;
+    }
+    
+    .classes-container .class-card{
+        width: 47%;
     }
 
+}
+
+@media (max-width: 768px) {
     .sidebar .nav-link {
         font-size: 0.9rem;
     }
@@ -447,16 +460,8 @@
     .sidebar .sidebar-icon{
         font-size: 0.9rem;
     }
-
-    .dashboard-content{
-        margin-left: 17vw;
-    }
-
-    .dashboard-content h4{
-        font-size: 1.2rem;
-    }
     
-    .no-classes-container .join-class{
+    .no-classes-container .join-create-class{
         width: 40% !important;
     }
 
@@ -477,17 +482,6 @@
     }
 }
 
-@media (max-width: 680px) {
-    .classes-container .class-card{
-        width: 90%;
-    }
-
-    .classes-container .join-class{
-        width: 100%;
-    }
-    
-}
-
 @media (max-width: 576px) {
     .navbar-top {
         padding: 5px 0 !important;
@@ -495,30 +489,10 @@
 
     .student-badge {
         padding: 7px 13px;
-        font-size: 0.75rem;
     }
 
     .dashboard-content {
         margin-left: 0 !important;
-    }
-
-    .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-        opacity: 0;  /* Start fully transparent */
-        visibility: hidden; /* Hidden so it's not clickable */
-        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-    }
-
-    /* Show overlay when sidebar is open */
-    .sidebar.open ~ .sidebar-overlay {
-        opacity: 1; /* Fully visible */
-        visibility: visible;
     }
 
     .sidebar .nav-link {
@@ -529,11 +503,28 @@
         font-size: 0.9rem;
     }
 
-    .no-classes-container .join-class{
+    .no-classes-container .join-create-class{
         width: 50% !important;
     }
     
 }
+
+
+@media (max-width: 563px) {
+    .classes-container{
+        justify-content: center;
+    }
+
+    .classes-container .class-card{
+        width: 80%;
+    }
+
+    .classes-container .join-create-class{
+        width: 80%;
+    }
+    
+}
+
 
 @media (max-width: 425px) {
     .dashboard-navbar{
@@ -544,12 +535,16 @@
         padding: 5px 11px;
     }
 
-    .no-classes-container .join-class{
+    .no-classes-container .join-create-class{
         width: 70% !important;
         font-size: 0.7rem;
     }
 
     .classes-container .class-card{
+        width: 100%;
+    }
+
+    .classes-container .join-create-class{
         width: 100%;
     }
 }
@@ -567,7 +562,7 @@
         width: 100%;
     }
 
-    .no-classes-container .join-class{
+    .no-classes-container .join-create-class{
         width: 90% !important;
     }
 }

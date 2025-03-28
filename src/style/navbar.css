@@ -78,7 +78,7 @@
 
 @media (max-width: 1024px) {
   .auth-buttons button {
-    padding: 10px 40px;
+    padding-inline: 40px;
   }
 }
 
@@ -103,7 +103,7 @@
 
 @media (max-width: 576px) {
   .nav-list {
-    padding-inline: 5px 15px;
+    padding-inline: 15px;
   }
 
   .hanori_logo img{
@@ -151,7 +151,7 @@
 @media (max-width: 320px) {
   .auth-buttons button{
     font-size: 0.65rem;
-    padding: 4px 18px;
+    padding-inline: 18px;
   }
 
   .auth-buttons {

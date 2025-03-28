@@ -318,7 +318,7 @@ export const StudentDashboardComponent = () => {
         <div className='container-fluid'>
           <h4>Enrolled Classes</h4>
 
-          <div className='container classes-container'>
+          <div className='classes-container'>
             {classes.length > 0 ? (
               classes.map((classItem, index) => (
                 <Card className='class-card' key={index}
@@ -343,14 +343,14 @@ export const StudentDashboardComponent = () => {
             ) : (
               <div className="no-classes-container">
                 <p className='text-center'>No enrolled classes yet.</p>
-                <Button variant='transparent' className='join-class' onClick={() => setShowJoinClass(true)}>
+                <Button variant='transparent' className='join-create-class' onClick={() => setShowJoinClass(true)}>
                   + Join a Class
                 </Button>
               </div>
             )}
 
             {classes.length > 0 && (
-              <Button variant='transparent' className='join-class' onClick={() => setShowJoinClass(true)}>
+              <Button variant='transparent' className='join-create-class' onClick={() => setShowJoinClass(true)}>
                 + Join a Class
               </Button>
             )}

@@ -155,6 +155,7 @@ export const TeacherDashboardComponent = () => {
 
   const handleClassCreate = async (e) => {
     e.preventDefault();
+
     if (!className.trim() || !classSection.trim()) {
       //alert("⚠️ Please enter both class name and section.");
       openAlert({
@@ -164,31 +165,36 @@ export const TeacherDashboardComponent = () => {
       });
       return;
     }
-    setIsClicked(true);
-    const classData = { className, classSection };
-    console.log("📤 Sending Class Data:", classData);
-    const response = await createClass(classData);
-    if (response.error) {
-      //alert(`❌ Class creation failed: ${response.error}`);
-      openAlert({
-        message: "❌ Class creation failed: " + response.error,
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-      });
-    } else {
-      //alert("✅ Class created successfully!");
 
-      openAlert({
-        message: "✅ Class created successfully!",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-      });
-      setShowCreateClass(false);
-      setClassName("");
-      setClassSection("");
-      setClasses([...classes, { ...response, instructorName }]);
+    setIsClicked(true);
+
+    try{
+      const classData = { className, classSection };
+      console.log("📤 Sending Class Data:", classData);
+      const response = await createClass(classData);
+      if (response.error) {
+        //alert(`❌ Class creation failed: ${response.error}`);
+        openAlert({
+          message: "❌ Class creation failed: " + response.error,
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
+      } else {
+        //alert("✅ Class created successfully!");
+
+        openAlert({
+          message: "✅ Class created successfully!",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
+        setShowCreateClass(false);
+        setClassName("");
+        setClassSection("");
+        setClasses([...classes, { ...response, instructorName }]);
+      }
+    } finally{
+      setIsClicked(false);
     }
-    setIsClicked(false);
   };
 
   // Open the edit modal and load class data including cover photo
@@ -207,6 +213,7 @@ export const TeacherDashboardComponent = () => {
 
   const handleEditClassSave = async (e) => {
     e.preventDefault();
+
     if (!editClassData.className.trim() || !editClassData.classSection.trim()) {
       //alert("⚠️ Please enter both class name and section.");
       openAlert({
@@ -218,36 +225,43 @@ export const TeacherDashboardComponent = () => {
       });
       return;
     }
+
     setIsClicked(true);
-    const response = await updateClass(editClassData.id, editClassData);
-    if (response.error) {
-      //alert(`❌ Failed to update class: ${response.error}`);
+
+    try{
+      const response = await updateClass(editClassData.id, editClassData);
+      if (response.error) {
+        //alert(`❌ Failed to update class: ${response.error}`);
+        openAlert({
+          message: "❌ Failed to update class: "+ response.error,
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+          onAfterClose: () => {
+          },
+        });
+        return;
+      }
+
+      const updatedClasses = classes.map((cls) => {
+        if ((cls.id || cls.classID) === editClassData.id) {
+          return { ...cls, ...response, instructorName };
+        }
+        return cls;
+      });
+
+      setClasses(updatedClasses);
+      //alert("✅ Class updated successfully!");
       openAlert({
-        message: "❌ Failed to update class: "+ response.error,
+        message: "✅ Class updated successfully!.",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
-        onAfterClose: () => {
-        },
       });
-      setIsClicked(false);
-      return;
-    }
-    const updatedClasses = classes.map((cls) => {
-      if ((cls.id || cls.classID) === editClassData.id) {
-        return { ...cls, ...response, instructorName };
-      }
-      return cls;
-    });
-    setClasses(updatedClasses);
-    //alert("✅ Class updated successfully!");
-    openAlert({
-      message: "✅ Class updated successfully!.",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
 
-    });
     setShowEditModal(false);
-    setIsClicked(false);
+
+    }finally{
+      setIsClicked(false);
+    }
   }; 
 
   // Open the delete modal and set the class to delete
@@ -270,47 +284,54 @@ export const TeacherDashboardComponent = () => {
       });
       return;
     }
+
     setIsClicked(true);
-    const sessionData = getSessionData();
-    const teacherEmail = sessionData.email;
 
-    const verifyResponse = await verifyPassword(teacherEmail, deletePassword);
-    if (verifyResponse.error) {
-      //alert(`❌ Password verification failed: ${verifyResponse.error}`);
+    try{
+      const sessionData = getSessionData();
+      const teacherEmail = sessionData.email;
+
+      const verifyResponse = await verifyPassword(teacherEmail, deletePassword);
+      if (verifyResponse.error) {
+        //alert(`❌ Password verification failed: ${verifyResponse.error}`);
+        openAlert({
+          message: "❌ Password verification failed: " + verifyResponse.error,
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+    
+        });
+        return;
+      }
+      const classID = deleteClassData.id || deleteClassData.classID;
+      const deleteResponse = await deleteClass(classID);
+      if (deleteResponse.error) {
+        //alert(`❌ Failed to delete class: ${deleteResponse.error}`);
+        openAlert({
+          message: "❌ Failed to delete class: " + deleteResponse.error,
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+    
+        });
+        return;
+      }
+
+      const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
+      setClasses(updatedClasses);
+      //alert(`✅ ${deleteClassData.className} deleted successfully!`);
       openAlert({
-        message: "❌ Password verification failed: " + verifyResponse.error,
+        message: deleteClassData.className + " deleted successfully!",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
-  
       });
-      setIsClicked(false);
-      return;
-    }
-    const classID = deleteClassData.id || deleteClassData.classID;
-    const deleteResponse = await deleteClass(classID);
-    if (deleteResponse.error) {
-      //alert(`❌ Failed to delete class: ${deleteResponse.error}`);
-      openAlert({
-        message: "❌ Failed to delete class: " + deleteResponse.error,
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-  
-      });
-      setIsClicked(false);
-      return;
-    }
-    const updatedClasses = classes.filter(cls => (cls.id || cls.classID) !== classID);
-    setClasses(updatedClasses);
-    //alert(`✅ ${deleteClassData.className} deleted successfully!`);
-    openAlert({
-      message: deleteClassData.className + " deleted successfully!",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
 
-    });
-    setShowDeleteModal(false);
-    setDeletePassword("");
-    setDeleteClassData(null);
+      setShowDeleteModal(false);
+      setDeletePassword("");
+      setDeleteClassData(null);
+
+    }finally{
+      setIsClicked(false);
+    }
+
   };
 
   // Open the archive modal and set the class to archive
@@ -385,7 +406,7 @@ export const TeacherDashboardComponent = () => {
 
       {sidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
 
-      <div className={`dashboard-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
+      <div className="dashboard-content">
         <Navbar expand='lg' fixed='top' className='navbar-top'>
           <Button variant='transparent' className='toggle-btn' onClick={toggleSidebar}>
             <FontAwesomeIcon icon={faBars} />
@@ -455,7 +476,7 @@ export const TeacherDashboardComponent = () => {
           </div>
         </Navbar>
 
-        <div className='container dashboard-body'>
+        <div className='container-fluid'>
           <h4>Active Classes</h4>
           <div className='classes-container'>
             {classes.map((classItem, index) => (
@@ -497,7 +518,7 @@ export const TeacherDashboardComponent = () => {
               </Card>
             ))}
 
-            <Button variant='transparent' className='create-class' onClick={() => setShowCreateClass(true)}>
+            <Button variant='transparent' className='join-create-class' onClick={() => setShowCreateClass(true)}>
               + Create a Class
             </Button>
           </div>
