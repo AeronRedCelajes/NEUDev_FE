@@ -1275,6 +1275,33 @@ async function clearActivityProgress(actID) {
   });
 }
 
+/**
+ * Run check code for a specific item in an activity.
+ * This calls POST /api/activities/{actID}/check-code/{itemID}
+ * No body is strictly required if you only need to increment the run count
+ * and return the updated score. If you want to send additional data, pass
+ * it as the second argument.
+ */
+async function runCheckCode(actID, itemID, payload = {}) {
+  const sessionData = getSessionData();
+  const token = sessionData.access_token;
+  if (!token) return { error: "Unauthorized access: No token found" };
+
+  // Build the check code endpoint with {actID} and {itemID}
+  const endpoint = `${API_LINK}/activities/${actID}/check-code/${itemID}`;
+
+  return await safeFetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    // If you want to send additional data (like code), include it in `payload`.
+    body: JSON.stringify(payload)
+  });
+}
+
 //////////////////////////////////////////
 // ACTIVITY SUBMISSIONS FUNCTIONS
 //////////////////////////////////////////

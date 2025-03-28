@@ -114,6 +114,7 @@ export default function TeacherItemBankComponent() {
     itemDifficulty: "Beginner",
     progLangIDs: [],
     testCases: [],
+    // Teacher inputs the total item points manually regardless of item type.
     itemPoints: 0
   });
 
@@ -249,28 +250,25 @@ export default function TeacherItemBankComponent() {
     const teacherEmail = sessionData.email;
     
     if (!teacherEmail) {
-     //alert("Teacher email not found. Please log in again.");
-     openAlert({
-      message: "Teacher email not found. Please log in again.",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      openAlert({
+        message: "Teacher email not found. Please log in again.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const verification = await verifyPassword(teacherEmail, deletePassword);
     if (verification.error) {
-     //alert(verification.error);
-     openAlert({
-      message: verification.error,
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      openAlert({
+        message: verification.error,
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     const resp = await deleteItem(itemData.itemID);
     if (!resp.error) {
-       //alert("Item deleted successfully.");
-       openAlert({
+      openAlert({
         message: "Item deleted successfully.",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
@@ -280,7 +278,6 @@ export default function TeacherItemBankComponent() {
       setShowDeleteModal(false);
       setDeletePassword("");
     } else {
-      //alert(resp.error);
       openAlert({
         message: resp.error,
         imageUrl: "/src/assets/profile_default2.png",
@@ -295,54 +292,41 @@ export default function TeacherItemBankComponent() {
       !itemData.itemDesc.trim() ||
       itemData.progLangIDs.length === 0
     ) {
-     //alert("Please fill in all required fields (name, description, at least one language).");
-     openAlert({
-      message: "Please fill in all required fields (name, description, at least one language).",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      openAlert({
+        message: "Please fill in all required fields (name, description, at least one language).",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
     if (isConsoleApp && (itemData.testCases || []).length === 0) {
-     //alert("Please add at least one test case for this item.");
-     openAlert({
-      message: "Please add at least one test case for this item.",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      openAlert({
+        message: "Please add at least one test case for this item.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
-    if (isConsoleApp) {
-      for (let i = 0; i < itemData.testCases.length; i++) {
-        const tc = itemData.testCases[i];
-        if (tc.testCasePoints === "" || isNaN(Number(tc.testCasePoints)) || Number(tc.testCasePoints) < 0) {
-         //alert(`Please enter a valid points value for test case ${i + 1}.`);
-         openAlert({
-          message: "Please enter a valid points value for test case " + i + 1,
-          imageUrl: "/src/assets/profile_default2.png",
-          autoCloseDelay: 2000,
-        });
-          return;
-        }
-      }
-    }
-    const computedItemPoints = isConsoleApp
-      ? itemData.testCases.reduce(
-          (sum, tc) => sum + Number(tc.testCasePoints || 0),
-          0
-        )
-      : Number(itemData.itemPoints);
+    // For both Console App and others, teacher inputs the overall item points.
+    const computedItemPoints = Number(itemData.itemPoints);
+    // For Console App, override any test case points with auto-distribution.
     const payload = {
       itemTypeID: selectedItemType,
       progLangIDs: itemData.progLangIDs,
       itemName: itemData.itemName.trim(),
       itemDesc: itemData.itemDesc.trim(),
       itemDifficulty: itemData.itemDifficulty,
+      // Send teacher-provided itemPoints
       itemPoints: computedItemPoints,
       testCases: isConsoleApp
-        ? itemData.testCases.filter(tc =>
-            tc.expectedOutput.trim() !== ""
-          )
+        ? itemData.testCases
+            .filter(tc => tc.expectedOutput.trim() !== "")
+            .map(tc => ({
+              expectedOutput: tc.expectedOutput,
+              // Automatically calculate each test case's points as equal share.
+              testCasePoints: computedItemPoints / (itemData.testCases.length || 1),
+              isHidden: tc.isHidden || false
+            }))
         : []
     };
     if (showCreateModal && itemScope === "personal") {
@@ -354,12 +338,11 @@ export default function TeacherItemBankComponent() {
       resp = await createItem(payload);
     } else if (showEditModal) {
       if (!itemData.itemID) {
-       //alert("No item selected to update.");
-       openAlert({
-        message: "No item selected to update.",
-        imageUrl: "/src/assets/profile_default2.png",
-        autoCloseDelay: 2000,
-      });
+        openAlert({
+          message: "No item selected to update.",
+          imageUrl: "/src/assets/profile_default2.png",
+          autoCloseDelay: 2000,
+        });
         return;
       }
       resp = await updateItem(itemData.itemID, payload);
@@ -369,8 +352,7 @@ export default function TeacherItemBankComponent() {
       setShowCreateModal(false);
       setShowEditModal(false);
     } else {
-       //alert(resp.error);
-       openAlert({
+      openAlert({
         message: resp.error,
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
@@ -511,7 +493,6 @@ export default function TeacherItemBankComponent() {
   const handleRunCode = async () => {
     if (!isConsoleApp) return;
     if (!testLangID) {
-      //alert("Please select which language to test with.");
       openAlert({
         message: "Please select which language to test with.",
         imageUrl: "/src/assets/profile_default2.png",
@@ -521,7 +502,6 @@ export default function TeacherItemBankComponent() {
     }
     const foundLang = allProgLanguages.find(l => l.progLangID === testLangID);
     if (!foundLang) {
-      //alert("Selected language is not recognized.");
       openAlert({
         message: "Selected language is not recognized.",
         imageUrl: "/src/assets/profile_default2.png",
@@ -530,9 +510,8 @@ export default function TeacherItemBankComponent() {
       return;
     }
     if (!isValidCodeForLanguage(code, foundLang.progLangName)) {
-      //alert(`Your code does not look like valid ${foundLang.progLangName} code.`);
       openAlert({
-        message: "Your code does not look like valid " + foundLang.progLangName + code,
+        message: "Your code does not look like valid " + foundLang.progLangName + " code.",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
@@ -540,18 +519,16 @@ export default function TeacherItemBankComponent() {
     }
     const shortCode = compilerCodeMap[testLangID];
     if (!shortCode) {
-      //alert(`The compiler does not support ${foundLang.progLangName} yet.`);
       openAlert({
-        message: "The compiler does not support " + foundLang.progLangName + code,
+        message: "The compiler does not support " + foundLang.progLangName + ".",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
       return;
     }
     if (!code.trim()) {
-      //alert("Please enter some code before running.");
       openAlert({
-        message: "Please enter some code before running" ,
+        message: "Please enter some code before running",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
@@ -768,7 +745,8 @@ export default function TeacherItemBankComponent() {
                               progLangIDs: plIDs,
                               testCases: (item.test_cases || []).map(tc => ({
                                 expectedOutput: tc.expectedOutput,
-                                testCasePoints: tc.testCasePoints ?? "",
+                                // Auto-calculated: set to teacher's itemPoints divided by number of test cases.
+                                testCasePoints: tc.testCasePoints,
                                 isHidden: tc.isHidden ?? false
                               })),
                               itemPoints: item.itemPoints || 0
@@ -783,7 +761,6 @@ export default function TeacherItemBankComponent() {
                           ✏️ Edit
                         </button>
                   
-                      
                         <button
                           className="delete-btn"
                           onClick={() => {
@@ -876,34 +853,22 @@ export default function TeacherItemBankComponent() {
               </Form.Select>
             </Form.Group>
 
-            {/* Conditional Item Points */}
-            {isConsoleApp ? (
-              <Form.Group className="mb-3">
-                <Form.Label>Total Item Points (auto-calculated from test cases)</Form.Label>
-                <Form.Control
-                  className='bg-light'
-                  type="number"
-                  value={
-                    itemData.testCases.reduce(
-                      (sum, tc) => sum + Number(tc.testCasePoints || 0),
-                      0
-                    )
-                  }
-                  disabled
-                />
-              </Form.Group>
-            ) : (
-              <Form.Group className="mb-3">
-                <Form.Label>Item Points</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={itemData.itemPoints}
-                  onChange={(e) =>
-                    setItemData({ ...itemData, itemPoints: e.target.value })
-                  }
-                />
-              </Form.Group>
-            )}
+            {/* Item Points Input (applies to both Console App and non-Console App) */}
+            <Form.Group className="mb-3">
+              <Form.Label>Item Points</Form.Label>
+              <Form.Control
+                type="number"
+                value={itemData.itemPoints}
+                onChange={(e) =>
+                  setItemData({ ...itemData, itemPoints: e.target.value })
+                }
+              />
+              {isConsoleApp && (
+                <Form.Text className="text-muted">
+                  Test case points will be auto-distributed equally.
+                </Form.Text>
+              )}
+            </Form.Group>
 
             {/* Programming Languages */}
             <Form.Group className="mb-3">
@@ -975,10 +940,7 @@ export default function TeacherItemBankComponent() {
                 <Form.Group className="mb-3">
                   <Form.Label>Test Cases (added after each successful run)</Form.Label>
                   {(itemData.testCases || []).map((tc, index) => (
-                    <div
-                      className="test-case-item"
-                      key={index}
-                    >
+                    <div className="test-case-item" key={index}>
                       <Form.Label>Test Case {index + 1}</Form.Label>
                       <AutoResizeTextarea
                         readOnly
@@ -986,16 +948,15 @@ export default function TeacherItemBankComponent() {
                         style={{ marginBottom: "5px" }}
                       />
 
-                      <Form.Label>Points</Form.Label>
+                      <Form.Label>Points (auto-distributed)</Form.Label>
                       <Form.Control
                         type="number"
-                        placeholder="Enter points for this test case"
-                        value={tc.testCasePoints ?? ""}
-                        onChange={(e) => {
-                          const updatedTestCases = [...itemData.testCases];
-                          updatedTestCases[index].testCasePoints = e.target.value;
-                          setItemData({ ...itemData, testCases: updatedTestCases });
-                        }}
+                        value={
+                          itemData.itemPoints && itemData.testCases.length > 0
+                            ? (Number(itemData.itemPoints) / itemData.testCases.length).toFixed(2)
+                            : ""
+                        }
+                        readOnly
                       />
                       <Form.Check
                         type="checkbox"
@@ -1166,7 +1127,9 @@ export default function TeacherItemBankComponent() {
           <Button variant="primary" onClick={() => {
             const newTC = {
               expectedOutput: errorOutput,
-              testCasePoints: "",
+              testCasePoints: computedItemPoints && itemData.testCases.length > 0
+                ? (Number(itemData.itemPoints) / itemData.testCases.length).toFixed(2)
+                : "",
               isHidden: false
             };
             setItemData(prev => ({
