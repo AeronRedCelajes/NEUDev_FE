@@ -46,6 +46,11 @@ export const TeacherCreateActivityComponent = () => {
   // NEW: Final Score Policy (last_attempt or highest_score)
   const [finalScorePolicy, setFinalScorePolicy] = useState("last_attempt");
 
+  // -------------------- Global Check Code Settings State --------------------
+  const [checkCodeRestriction, setCheckCodeRestriction] = useState(false);
+  const [maxCheckCodeRuns, setMaxCheckCodeRuns] = useState("");
+  const [checkCodeDeduction, setCheckCodeDeduction] = useState("");
+
   // -------------------- Item Bank State --------------------
   const [selectedItems, setSelectedItems] = useState([null, null, null]);
   const [presetItems, setPresetItems] = useState([]);
@@ -185,13 +190,11 @@ export const TeacherCreateActivityComponent = () => {
       (it, i) => i !== selectedItemIndex && it && it.itemID === selectedItem.itemID
     );
     if (alreadyExists) {
-      //alert("❌ You already picked that item. Please choose a different one.");
       openAlert({
         message: "❌ You already picked that item. Please choose a different one.",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
-        onAfterClose: () => {
-        },
+        onAfterClose: () => {},
       });
       return;
     }
@@ -227,6 +230,11 @@ export const TeacherCreateActivityComponent = () => {
     }
   };
 
+  // -------------------- New: Check Code Settings Handlers --------------------
+  // (These states are used to configure global check code behavior for the activity.)
+  // Already defined as:
+  //   checkCodeRestriction, maxCheckCodeRuns, checkCodeDeduction
+
   // -------------------- Create Activity Handler --------------------
   const handleCreateActivity = async (e) => {
     e.preventDefault();
@@ -241,12 +249,11 @@ export const TeacherCreateActivityComponent = () => {
       !dateClosed ||
       selectedItems.every(item => item === null)
     ) {
-     //alert("⚠️ All fields are required, including at least one programming language, one item, and an activity duration.");
-     openAlert({
-      message: "⚠️ All fields are required, including at least one programming language, one item, and an activity duration.",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      openAlert({
+        message: "⚠️ All fields are required, including at least one programming language, one item, and an activity duration.",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
 
@@ -263,12 +270,11 @@ export const TeacherCreateActivityComponent = () => {
       }));
 
     if (finalItems.length === 0) {
-     //alert("⚠️ Please select at least one valid item.");
-     openAlert({
-      message: "⚠️ Please select at least one valid item",
-      imageUrl: "/src/assets/profile_default2.png",
-      autoCloseDelay: 2000,
-    });
+      openAlert({
+        message: "⚠️ Please select at least one valid item",
+        imageUrl: "/src/assets/profile_default2.png",
+        autoCloseDelay: 2000,
+      });
       return;
     }
 
@@ -282,7 +288,7 @@ export const TeacherCreateActivityComponent = () => {
     const ss = "00"; // fixed seconds
     const finalDuration = `${hh}:${mm}:${ss}`;
 
-    // Build new activity object including actAttempts and finalScorePolicy
+    // Build new activity object including actAttempts, finalScorePolicy, and new check code settings
     const newActivity = {
       classID,
       actTitle: activityTitle,
@@ -295,27 +301,28 @@ export const TeacherCreateActivityComponent = () => {
       maxPoints: computedPoints,
       items: finalItems,
       actAttempts: parseInt(activityAttempts, 10),
-      finalScorePolicy // either "last_attempt" or "highest_score"
+      finalScorePolicy, // either "last_attempt" or "highest_score"
+      // NEW: Check Code Settings Integration
+      checkCodeRestriction,
+      maxCheckCodeRuns: checkCodeRestriction ? parseInt(maxCheckCodeRuns, 10) : null,
+      checkCodeDeduction: checkCodeRestriction ? parseFloat(checkCodeDeduction) : null,
     };
 
     console.log("📤 Sending Activity Data:", JSON.stringify(newActivity, null, 2));
 
     const response = await createActivity(newActivity);
     if (response.error) {
-      //alert(`❌ Failed to create activity: ${response.error}`);
       openAlert({
         message: "❌ Failed to create activity: " + response.error,
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
       });
     } else {
-      //alert("✅ Activity created successfully!");
       openAlert({
         message: "✅ Activity created successfully!!",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
-        onAfterClose: () => { navigate(`/teacher/class/${classID}/activity`);
-        },
+        onAfterClose: () => { navigate(`/teacher/class/${classID}/activity`); },
       });
     }
   };
@@ -378,17 +385,13 @@ export const TeacherCreateActivityComponent = () => {
                         return (
                           <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
                             {known.image ? (
-                              <>
-                                <img
-                                  src={known.image}
-                                  alt={`${known.name} icon`}
-                                  style={{ width: "20px", marginRight: "4px" }}
-                                />
-                                {known.name}
-                              </>
-                            ) : (
-                              known.name
-                            )}
+                              <img
+                                src={known.image}
+                                alt={`${known.name} icon`}
+                                style={{ width: "20px", marginRight: "4px" }}
+                              />
+                            ) : null}
+                            {known.name}
                           </span>
                         );
                       })}
@@ -473,9 +476,49 @@ export const TeacherCreateActivityComponent = () => {
                 <option value="highest_score">Highest Score</option>
               </Form.Select>
               <Form.Text>
-                Choose whether the final score is determined by the students last submission or their highest score.
+                Choose whether the final score is determined by the student's last submission or their highest score.
               </Form.Text>
             </Form.Group>
+
+            {/* NEW: Check Code Settings */}
+            <Form.Group className="activity mt-3 me-3">
+              <Form.Label>Enable Check Code Deduction</Form.Label>
+              <Form.Check 
+                type="checkbox"
+                label="Yes, enable check code deduction"
+                checked={checkCodeRestriction}
+                onChange={(e) => setCheckCodeRestriction(e.target.checked)}
+              />
+            </Form.Group>
+            {checkCodeRestriction && (
+              <>
+                <Form.Group className="activity mt-3 me-3">
+                  <Form.Label>Max Check Code Runs (per item)</Form.Label>
+                  <Form.Control 
+                    type="number"
+                    min="1"
+                    value={maxCheckCodeRuns}
+                    onChange={(e) => setMaxCheckCodeRuns(e.target.value)}
+                    placeholder="Enter maximum runs"
+                    required={checkCodeRestriction}
+                  />
+                </Form.Group>
+                <Form.Group className="activity mt-3 me-3">
+                  <Form.Label>Deduction Percentage per Extra Run</Form.Label>
+                  <Form.Control 
+                    type="number"
+                    min="0"
+                    value={checkCodeDeduction}
+                    onChange={(e) => setCheckCodeDeduction(e.target.value)}
+                    placeholder="Enter deduction percentage"
+                    required={checkCodeRestriction}
+                  />
+                  <Form.Text>
+                    e.g., 10 means each extra run deducts 10% of the item points.
+                  </Form.Text>
+                </Form.Group>
+              </>
+            )}
 
             {/* Programming Languages (Checkboxes) */}
             <Form.Group className="activity mt-3 me-3">
