@@ -1446,6 +1446,7 @@ export {
   getActivityProgress,
   saveActivityProgress,
   clearActivityProgress,
+  runCheckCode,
   getActivitySubmissionByTeacher,
   getSubmissionDetail,
   getArchivedClasses,
