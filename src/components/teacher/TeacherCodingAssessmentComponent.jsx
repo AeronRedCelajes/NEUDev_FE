@@ -351,7 +351,7 @@ export const TeacherCodingAssessmentComponent = () => {
 
   // --- 6) WebSocket setup
   useEffect(() => {
-    const ws = new WebSocket('wss://neudevcompiler-production.up.railway.app');
+    const ws = new WebSocket('https://neudevcompiler.up.railway.app');
     wsRef.current = ws;
     ws.onopen = () => console.log('WebSocket connected');
     ws.onmessage = (event) => {

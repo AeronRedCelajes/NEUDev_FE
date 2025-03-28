@@ -367,7 +367,7 @@ export default function TeacherItemBankComponent() {
 
   // -------------------- WebSocket Setup for NEUDev Terminal --------------------
   useEffect(() => {
-    const ws = new WebSocket("https://neudevcompiler-production.up.railway.app");
+    const ws = new WebSocket("https://neudevcompiler.up.railway.app");
     wsRef.current = ws;
 
     ws.onopen = () => {

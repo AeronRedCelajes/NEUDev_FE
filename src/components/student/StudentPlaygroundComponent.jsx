@@ -178,7 +178,7 @@ export const StudentPlaygroundComponent = () => {
   // ----------------------------
   useEffect(() => {
     // Replace 'wss://' if your server is secure, or 'ws://' otherwise
-    const ws = new WebSocket('wss://neudevcompiler-production.up.railway.app');
+    const ws = new WebSocket('https://neudevcompiler.up.railway.app');
     wsRef.current = ws;
 
     ws.onopen = () => {
