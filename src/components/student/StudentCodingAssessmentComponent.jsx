@@ -681,23 +681,14 @@ export const StudentCodingAssessmentComponent = () => {
     try {
       const response = await runCheckCode(actID, selectedItem);
       if (!response.error) {
-        // Now fetch the updated progress from the backend
-        const progressResp = await getActivityProgress(actID);
-        if (!progressResp.error && progressResp.progress && progressResp.progress.length) {
-          const backendData = progressResp.progress[0];
-          const runsData = backendData.checkCodeRuns;      // e.g. { "123": 2, "456": 1 }
-          const scoresData = backendData.deductedScore;    // e.g. { "123": 90, "456": 100 }
-  
-          if (runsData && runsData[selectedItem] !== undefined) {
-            setCheckCodeStatus(prev => ({
-              ...prev,
-              [selectedItem]: {
-                runCount: runsData[selectedItem],
-                itemScore: scoresData?.[selectedItem] ?? 0
-              }
-            }));
+        // Here we expect response.runCount to be an integer.
+        setCheckCodeStatus(prev => ({
+          ...prev,
+          [selectedItem]: {
+            runCount: response.runCount
+            // No need for itemScore if you do not want to display deductions
           }
-        }
+        }));
       } else {
         console.error("Check code run error:", response.error);
       }
@@ -1089,12 +1080,6 @@ export const StudentCodingAssessmentComponent = () => {
                     <span>
                       Check Code Runs: {checkCodeStatus[selectedItem].runCount}
                       {maxCheckCodeRuns ? ` / ${maxCheckCodeRuns}` : ""}
-                    </span>
-                    <span style={{ marginLeft: '10px' }}>
-                      Remaining Points: {checkCodeStatus[selectedItem].itemScore}
-                    </span>
-                    <span style={{ marginLeft: '10px' }}>
-                      Deducted Points: {(items.find(it => it.itemID === selectedItem)?.actItemPoints || 0) - checkCodeStatus[selectedItem].itemScore}
                     </span>
                   </div>
                 )}
