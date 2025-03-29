@@ -89,6 +89,12 @@ function getDisplayDateString(item) {
     : "-";
 }
 
+// Add this helper function at the top of your file (or in a utilities file)
+function formatPoints(totalPoints, testCaseCount) {
+  const value = Number(totalPoints) / testCaseCount;
+  return Number.isInteger(value) ? value : value.toFixed(2);
+}
+
 export default function TeacherItemBankComponent() {
   const { openAlert } = useAlert();
   
@@ -950,13 +956,13 @@ export default function TeacherItemBankComponent() {
 
                       <Form.Label>Points (auto-distributed)</Form.Label>
                       <Form.Control
-                        type="text"
-                        readOnly
+                        type="text" // using type="text" to display the formatted string exactly
                         value={
                           itemData.itemPoints && itemData.testCases.length > 0
                             ? formatPoints(itemData.itemPoints, itemData.testCases.length)
                             : ""
                         }
+                        readOnly
                       />
                       <Form.Check
                         type="checkbox"
