@@ -750,18 +750,40 @@ export const StudentCodingAssessmentComponent = () => {
   };
 
   // --- Compute per-item score (current attempt only) ---
-  const computeItemScore = (itemID) => {
+  function computeItemScore(itemID) {
     const item = items.find(it => it.itemID === itemID);
     if (!item || !item.testCases) return 0;
   
+    // Count how many test cases the user passed:
     const itemResults = testCaseResults[itemID] || {};
-    let sum = 0;
+    let passedCount = 0;
     item.testCases.forEach(tc => {
-      const r = itemResults[tc.testCaseID] || {};
-      sum += r.latestPoints || 0;
+      const r = itemResults[tc.testCaseID];
+      if (r && r.latestPass) {
+        passedCount++;
+      }
     });
-    return sum;
-  };
+  
+    // The fraction of test cases passed:
+    const fraction = passedCount / item.testCases.length;
+  
+    // The partial score is fraction * item.actItemPoints
+    const partialScore = fraction * item.actItemPoints;
+  
+    // Format or round as you prefer:
+    return Math.round(partialScore * 100) / 100; // e.g. 2 decimal places
+  }
+
+  function formatPoints(value) {
+    // Round to 2 decimals:
+    const rounded = Math.round(value * 100) / 100;
+    // If it’s a whole number, drop the .00
+    if (Number.isInteger(rounded)) {
+      return rounded.toString(); // e.g. "100"
+    }
+    // Else show 2 decimals, e.g. "99.99"
+    return rounded.toFixed(2);
+  }
 
   // --- Compute total score ---
   const computeTotalScore = () => {
@@ -1117,7 +1139,7 @@ export const StudentCodingAssessmentComponent = () => {
                       <div key={item.itemID} className='item-summary' onClick={() => toggleSummaryItem(item.itemID)} style={{ cursor: 'pointer' }}>
                         <p className='item-name'>{`Item ${idx + 1}: ${item.itemName}`}</p>
                         <p>{item.itemDesc} <br/> | <em>{item.itemType}</em></p>
-                        <p className='item-score'>Score: {computeItemScore(item.itemID)}/{item.actItemPoints}</p>
+                        <p className='item-score'>Score: {formatPoints(computeItemScore(item.itemID))} / {formatPoints(item.actItemPoints)}</p>
                       </div>
                     ))}
                     <div className='submit-finish'> 
@@ -1244,8 +1266,8 @@ export const StudentCodingAssessmentComponent = () => {
                 )}
               <div className='test-footer'>
                 <p>
-                  Score: {selectedItem ? computeItemScore(selectedItem) : 0}/
-                  {selectedItem ? items.find(x => x.itemID === selectedItem)?.testCaseTotalPoints : 0}
+                  Score: {selectedItem ? formatPoints(computeItemScore(selectedItem)) : 0}/
+                  {selectedItem ? items.find(x => x.itemID === selectedItem)?.actItemPoints : 0}
                 </p>
               </div>
             </div>
