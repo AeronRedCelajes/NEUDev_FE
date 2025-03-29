@@ -1,16 +1,10 @@
+// TeacherCreateActivityComponent.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button, Form, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAlert } from "../AlertContext"; 
-import { 
-  faBold, faItalic, faUnderline, faSuperscript, 
-  faAlignLeft, faAlignCenter, faAlignRight, faCaretDown 
-} from '@fortawesome/free-solid-svg-icons';
-import '/src/style/teacher/amCreateNewActivity.css';
 import TeacherCMNavigationBarComponent from './TeacherCMNavigationBarComponent';
-
-// --- Updated: using getItems instead of getItemsByItemType
 import { 
   getItems,
   createActivity, 
@@ -19,9 +13,9 @@ import {
   getSessionData
 } from '../api/API';
 
-// 1) Use the **name** returned by your backend as keys.
-//    If your backend returns "C#", "Java", and "Python",
-//    your map should be exactly like this:
+// Import the new ItemCreationModal component
+import ItemCreationModal from './ItemCreationModal';
+
 const programmingLanguageMap = {
   "C#":     { name: "C#",     image: "/src/assets/c.png" },
   "Java":   { name: "Java",   image: "/src/assets/java2.png" },
@@ -36,14 +30,8 @@ export const TeacherCreateActivityComponent = () => {
   const [activityTitle, setActivityTitle] = useState('');
   const [activityDescription, setActivityDescription] = useState('');
   const [actDifficulty, setDifficulty] = useState('');
-  
-  // Store duration as "HH:MM:SS" (input as minutes)
   const [activityDuration, setActivityDuration] = useState('');
-  
-  // NEW: Activity Attempts (0 for unlimited; otherwise limited attempts)
   const [activityAttempts, setActivityAttempts] = useState("1");
-
-  // NEW: Final Score Policy (last_attempt or highest_score)
   const [finalScorePolicy, setFinalScorePolicy] = useState("last_attempt");
 
   // -------------------- Global Check Code Settings State --------------------
@@ -56,7 +44,6 @@ export const TeacherCreateActivityComponent = () => {
   const [presetItems, setPresetItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
-  // New state for item bank scope (personal vs. global)
   const [itemBankScope, setItemBankScope] = useState("personal");
 
   // -------------------- Item Types & Programming Languages --------------------
@@ -70,8 +57,9 @@ export const TeacherCreateActivityComponent = () => {
   const [dateClosed, setDateClosed] = useState('');
 
   // -------------------- Modal State --------------------
-  const [showModal, setShowModal] = useState(false);
-  const [showItemTypeDropdown, setShowItemTypeDropdown] = useState(false);
+  const [showItemModal, setShowItemModal] = useState(false);
+  // New state for the item creation modal
+  const [showItemCreationModal, setShowItemCreationModal] = useState(false);
 
   // -------------------- Programming Languages from Server --------------------
   const [programmingLanguages, setProgrammingLanguages] = useState([]);
@@ -159,7 +147,6 @@ export const TeacherCreateActivityComponent = () => {
     const sessionData = getSessionData();
     const teacherID = sessionData.userID;
     
-    // Use getItems with query params
     const response = await getItems(selectedItemType, { scope: itemBankScope, teacherID });
     if (!response.error) {
       setPresetItems(response);
@@ -171,11 +158,11 @@ export const TeacherCreateActivityComponent = () => {
   // -------------------- Modal Handlers --------------------
   const handleItemClick = (index) => {
     setSelectedItemIndex(index);
-    setShowModal(true);
+    setShowItemModal(true);
   };
 
-  const handleClose = () => {
-    setShowModal(false);
+  const handleCloseItemModal = () => {
+    setShowItemModal(false);
   };
 
   const handleSelectItem = (item) => {
@@ -184,8 +171,7 @@ export const TeacherCreateActivityComponent = () => {
 
   const handleSaveItem = () => {
     if (!selectedItem || selectedItemIndex === null) return;
-
-    // Check if the same item is already picked in another slot
+    // Check duplicate selection
     const alreadyExists = selectedItems.some(
       (it, i) => i !== selectedItemIndex && it && it.itemID === selectedItem.itemID
     );
@@ -194,25 +180,22 @@ export const TeacherCreateActivityComponent = () => {
         message: "❌ You already picked that item. Please choose a different one.",
         imageUrl: "/src/assets/profile_default2.png",
         autoCloseDelay: 2000,
-        onAfterClose: () => {},
       });
       return;
     }
-
     const updated = [...selectedItems];
     updated[selectedItemIndex] = selectedItem;
     setSelectedItems(updated);
     setSelectedItem(null);
-    setShowModal(false);
+    setShowItemModal(false);
   };
 
   const handleItemTypeSelect = (type) => {
     setSelectedItemType(type.itemTypeID);
     setItemTypeName(type.itemTypeName);
-    setShowItemTypeDropdown(false);
   };
 
-  // -------------------- Programming Languages Checkboxes --------------------
+  // -------------------- Programming Languages Handlers --------------------
   const handleProgLangToggle = (langID) => {
     if (selectedProgLangs.includes(langID)) {
       setSelectedProgLangs(selectedProgLangs.filter(id => id !== langID));
@@ -229,11 +212,6 @@ export const TeacherCreateActivityComponent = () => {
       setSelectedProgLangs([]);
     }
   };
-
-  // -------------------- New: Check Code Settings Handlers --------------------
-  // (These states are used to configure global check code behavior for the activity.)
-  // Already defined as:
-  //   checkCodeRestriction, maxCheckCodeRuns, checkCodeDeduction
 
   // -------------------- Create Activity Handler --------------------
   const handleCreateActivity = async (e) => {
@@ -260,7 +238,6 @@ export const TeacherCreateActivityComponent = () => {
     const sessionData = getSessionData();
     const classID = sessionData.selectedClassID;
 
-    // Build final item objects
     const finalItems = selectedItems
       .filter(item => item !== null)
       .map(item => ({
@@ -278,17 +255,14 @@ export const TeacherCreateActivityComponent = () => {
       return;
     }
 
-    // Compute total points from selected items
     const computedPoints = finalItems.reduce((sum, it) => sum + (it.actItemPoints || 0), 0);
 
-    // Convert total minutes to HH:MM:SS
     const total = parseInt(durationInMinutes, 10);
     const hh = String(Math.floor(total / 60)).padStart(2, "0");
     const mm = String(total % 60).padStart(2, "0");
-    const ss = "00"; // fixed seconds
+    const ss = "00";
     const finalDuration = `${hh}:${mm}:${ss}`;
 
-    // Build new activity object including actAttempts, finalScorePolicy, and new check code settings
     const newActivity = {
       classID,
       actTitle: activityTitle,
@@ -301,14 +275,11 @@ export const TeacherCreateActivityComponent = () => {
       maxPoints: computedPoints,
       items: finalItems,
       actAttempts: parseInt(activityAttempts, 10),
-      finalScorePolicy, // either "last_attempt" or "highest_score"
-      // NEW: Check Code Settings Integration
+      finalScorePolicy,
       checkCodeRestriction,
       maxCheckCodeRuns: checkCodeRestriction ? parseInt(maxCheckCodeRuns, 10) : null,
       checkCodeDeduction: checkCodeRestriction ? parseFloat(checkCodeDeduction) : null,
     };
-
-    console.log("📤 Sending Activity Data:", JSON.stringify(newActivity, null, 2));
 
     const response = await createActivity(newActivity);
     if (response.error) {
@@ -379,19 +350,24 @@ export const TeacherCreateActivityComponent = () => {
                   />
                   {item && (item.programming_languages || item.programmingLanguages) && (
                     <div style={{ marginLeft: "8px" }}>
-                      {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
+                      {(item.programming_languages || item.programmingLanguages || []).map((langObj, idx) => {
                         const langName = langObj.progLangName;
                         const known = programmingLanguageMap[langName] || { name: langName, image: null };
                         return (
-                          <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
+                          <span key={idx} style={{ marginRight: "8px" }}>
                             {known.image ? (
-                              <img
-                                src={known.image}
-                                alt={`${known.name} icon`}
-                                style={{ width: "20px", marginRight: "4px" }}
-                              />
-                            ) : null}
-                            {known.name}
+                              <>
+                                <img 
+                                  src={known.image}
+                                  alt={`${known.name} icon`}
+                                  style={{ width: "20px", marginRight: "4px" }}
+                                />
+                                {known.name}
+                              </>
+                            ) : (
+                              known.name
+                            )}
+                            {idx < (item.programming_languages || item.programmingLanguages).length - 1 ? "," : ""}
                           </span>
                         );
                       })}
@@ -399,6 +375,10 @@ export const TeacherCreateActivityComponent = () => {
                   )}
                 </div>
               ))}
+              {/* Button to create a new item directly */}
+              <Button variant="outline-primary" onClick={() => setShowItemCreationModal(true)}>
+                + Create New Item
+              </Button>
             </div>
 
             {/* Difficulty + Date/Time */}
@@ -442,12 +422,10 @@ export const TeacherCreateActivityComponent = () => {
                 placeholder="Enter total minutes"
                 required
               />
-              <Form.Text>
-                e.g., 90 → 1 hour 30 minutes
-              </Form.Text>
+              <Form.Text>e.g., 90 → 1 hour 30 minutes</Form.Text>
             </Form.Group>
 
-            {/* NEW: Activity Attempts Input */}
+            {/* Activity Attempts */}
             <Form.Group className="activity mt-3 me-3">
               <Form.Label>Activity Attempts (0 for unlimited)</Form.Label>
               <Form.Control
@@ -458,12 +436,10 @@ export const TeacherCreateActivityComponent = () => {
                 placeholder="Enter maximum attempts"
                 required
               />
-              <Form.Text>
-                Enter 0 for unlimited attempts; otherwise, enter a positive number.
-              </Form.Text>
+              <Form.Text>Enter 0 for unlimited attempts.</Form.Text>
             </Form.Group>
 
-            {/* NEW: Final Score Policy */}
+            {/* Final Score Policy */}
             <Form.Group className="activity mt-3 me-3">
               <Form.Label>Final Score Policy</Form.Label>
               <Form.Select
@@ -480,7 +456,7 @@ export const TeacherCreateActivityComponent = () => {
               </Form.Text>
             </Form.Group>
 
-            {/* NEW: Check Code Settings */}
+            {/* Check Code Settings */}
             <Form.Group className="activity mt-3 me-3">
               <Form.Label>Enable Check Code Deduction</Form.Label>
               <Form.Check 
@@ -513,14 +489,12 @@ export const TeacherCreateActivityComponent = () => {
                     placeholder="Enter deduction percentage"
                     required={checkCodeRestriction}
                   />
-                  <Form.Text>
-                    e.g., 10 means each extra run deducts 10% of the item points.
-                  </Form.Text>
+                  <Form.Text>e.g., 10 means each extra run deducts 10% of the item points.</Form.Text>
                 </Form.Group>
               </>
             )}
 
-            {/* Programming Languages (Checkboxes) */}
+            {/* Programming Languages */}
             <Form.Group className="activity mt-3 me-3">
               <Form.Label>Select all languages that can be used to solve this item.</Form.Label>
               <div style={{ marginBottom: "0.5rem" }}>
@@ -545,7 +519,7 @@ export const TeacherCreateActivityComponent = () => {
               ))}
             </Form.Group>
 
-            {/* Display computed Total Points */}
+            {/* Computed Total Points */}
             <Form.Group className="activity mt-3 me-3">
               <Form.Label>Total Points (automatically computed)</Form.Label>
               <Form.Control 
@@ -561,19 +535,17 @@ export const TeacherCreateActivityComponent = () => {
             </Form.Group>
 
             <div className='d-flex justify-content-center align-items-center'>
-              {/* Submit Button */}
               <Button className='create-activity-btn mt-3' type="submit">
                 <i className="bi bi-pencil-square"></i> Create Activity
               </Button>
             </div>
-            
           </Form>
         </div>
 
-        {/* Modal for selecting an item */}
+        {/* Modal for selecting an existing item from the preset list */}
         <Modal
-          show={showModal}
-          onHide={() => setShowModal(false)}
+          show={showItemModal}
+          onHide={handleCloseItemModal}
           dialogClassName="custom-modal"
           backdropClassName="custom-modal-backdrop"
         >
@@ -596,7 +568,6 @@ export const TeacherCreateActivityComponent = () => {
                 </select>
               </div>
               
-              {/* NEW: Item Creator Selector */}
               <div className="item-creator d-flex flex-column">
                 <label>Item Creator:</label>
                 <select
@@ -611,7 +582,6 @@ export const TeacherCreateActivityComponent = () => {
                 </select>
               </div>
 
-              {/* Sorting Controls for preset items */}
               <div className='sort-section'>
                 <span style={{ marginRight: "8px" }}>Sort by:</span>
                 <Button variant="link" onClick={() => toggleItemSortOrder("itemName")}>
@@ -627,8 +597,7 @@ export const TeacherCreateActivityComponent = () => {
 
               {sortedPresetItems.length === 0 ? (
                 <p>
-                  There are no items yet. Please go to the{' '}
-                  <a href="/teacher/item">Item Bank</a> to create items.
+                  There are no items yet. Please go to the <a href="/teacher/item">Item Bank</a> to create items.
                 </p>
               ) : (
                 sortedPresetItems.map((item, idx) => (
@@ -643,18 +612,18 @@ export const TeacherCreateActivityComponent = () => {
                     </div>
                     <div style={{ marginTop: "5px", display: "flex", alignItems: "center"}}>
                       {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
-                        const plName = langObj.progLangName;
-                        const mapping = programmingLanguageMap[plName] || { name: plName, image: null };
-                        return mapping.image ? (
+                        const langName = langObj.progLangName;
+                        const known = programmingLanguageMap[langName] || { name: langName, image: null };
+                        return known.image ? (
                           <img
                             key={i}
-                            src={mapping.image}
-                            alt={mapping.name}
+                            src={known.image}
+                            alt={known.name}
                             style={{ width: "20px", marginRight: "5px" }}
                           />
                         ) : (
                           <span key={i} style={{ marginRight: "5px", fontSize: "12px" }}>
-                            {mapping.name}
+                            {known.name}
                           </span>
                         );
                       })}
@@ -664,17 +633,37 @@ export const TeacherCreateActivityComponent = () => {
               )}
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setShowItemModal(false)}>Cancel</Button>
               <Button className='save-item' onClick={handleSaveItem}>Save Item</Button>
             </Modal.Footer>
           </div>
         </Modal>
+
+        {/* New Item Creation Modal */}
+        <ItemCreationModal
+          show={showItemCreationModal}
+          onClose={() => setShowItemCreationModal(false)}
+          onItemCreated={(newItem) => {
+            // When a new item is created, add it to the selected items
+            // For example, add it in the first empty slot or append to the list
+            const emptyIndex = selectedItems.findIndex(item => item === null);
+            if (emptyIndex !== -1) {
+              const updated = [...selectedItems];
+              updated[emptyIndex] = newItem;
+              setSelectedItems(updated);
+            } else {
+              // Optionally, append if all slots are filled
+              setSelectedItems(prev => [...prev, newItem]);
+            }
+            // Optionally, refresh the preset items list
+            fetchPresetItems();
+          }}
+        />
       </div>
     </div>
   );
 };
 
-// A small helper component for date/time inputs
 const DateTimeItem = ({ icon, label, date, setDate, className }) => (
   <div className={`date-time-item ${className}`}>
     <div className="label-with-icon">
