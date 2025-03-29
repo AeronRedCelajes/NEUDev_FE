@@ -695,6 +695,10 @@ const handleActivityClick = async (activity) => {
                               <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                              <br/>
+                                <strong>Check Code Restriction: </strong>
+                                {activity.checkCodeRestriction
+                                  ? `Yes`: "No"}
                             </div>
                           </div>
                         </Col>
@@ -786,6 +790,10 @@ const handleActivityClick = async (activity) => {
                               <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                              <br/>
+                                <strong>Check Code Restriction: </strong>
+                                {activity.checkCodeRestriction
+                                  ? `Yes`: "No"}
                             </div>
                           </div>
                         </Col>
@@ -858,6 +866,10 @@ const handleActivityClick = async (activity) => {
                               <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                              <br/>
+                                <strong>Check Code Restriction: </strong>
+                                {activity.checkCodeRestriction
+                                  ? `Yes`: "No"}
                             </div>
                           </div>
                         </Col>
