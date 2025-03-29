@@ -417,16 +417,16 @@ const TableComponent = ({ items, loading, onRowClick }) => {
           ) : items.length > 0 ? (
             items.map((item, index) => (
               <tr key={index} onClick={() => onRowClick(item)}>
-                <td>{item.itemName}</td>
-                <td>{item.itemDifficulty}</td>
-                <td>{item.itemType}</td>
-                <td>{item.actItemPoints}</td>
-                <td>
+                <td data-label="Item Name:">{item.itemName}</td>
+                <td data-label="Item Difficulty:">{item.itemDifficulty}</td>
+                <td data-label="Item Type:">{item.itemType}</td>
+                <td data-label="Item Points:">{item.actItemPoints}</td>
+                <td data-label="Avg. Score:">
                   {item.avgStudentScore !== "-"
                     ? `${item.avgStudentScore} / ${item.actItemPoints}`
                     : `- / ${item.actItemPoints}`}
                 </td>
-                <td>
+                <td data-label="Time Spent:">
                   {item.avgStudentTimeSpent !== "-" ? item.avgStudentTimeSpent : "-"}
                 </td>
               </tr>

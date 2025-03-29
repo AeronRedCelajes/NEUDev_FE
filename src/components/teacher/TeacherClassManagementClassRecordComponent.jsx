@@ -230,14 +230,14 @@ const TeacherClassManagementClassRecordComponent = () => {
                       return (
                         <tr key={student.studentID}>
                           <td data-label="#"> {index + 1} </td>
-                          <td data-label="Student Name:">
+                          <td className="item-student-name" data-label="Student Name:">
                             <div className="avatar">
                               <img src={student.profileImage || "/src/assets/profile_default.png"} alt="Avatar" className="avatar-image" />
                               <span className="student-name">{student.lastname}, {student.firstname}</span>
                             </div>
                           </td>
                           {/* Merge all activities inside a single column */}
-                          <td className="item-border" data-label="Item Name:">
+                          <td className="item-border-name" data-label="Item Name:">
                             {activities.map((act) => {
                               return (
                                 <div className="item-block" key={act.actID}>
@@ -247,7 +247,7 @@ const TeacherClassManagementClassRecordComponent = () => {
                             })}
                           </td>
                           {/* Merge all scores inside a single column */}
-                          <td className="item-border" data-label="Item Score:">
+                          <td className="item-border-score" data-label="Item Score:">
                             {activities.map((act, actIndex) => {
                               const record = student.activities
                                 ? student.activities.find((a) => a.actID === act.actID)
@@ -267,8 +267,8 @@ const TeacherClassManagementClassRecordComponent = () => {
                               );
                             })}
                           </td>
-                          <td data-label="Total Score:">{totalScoreStr}</td>
-                          <td data-label="Avg. Score Percentage:">{avgPerc}</td>
+                          <td className="item-total-score" data-label="Total Score:">{totalScoreStr}</td>
+                          <td className="item-avg-score" data-label="Avg. Score Percentage:">{avgPerc}</td>
                         </tr>
                       );
                     })

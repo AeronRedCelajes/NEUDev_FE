@@ -105,7 +105,7 @@ const SubmissionItem = ({ submission, actID, classID }) => {
   return (
     <>
       <tr className="submission-summary" onClick={toggleExpanded}>
-        <td>
+        <td data-label="Student Name:">
           <div className="avatar">
             <img src={submission.profileImage &&
                   submission.profileImage.trim() !== ""
@@ -114,9 +114,9 @@ const SubmissionItem = ({ submission, actID, classID }) => {
             <span className="student-name">{submission.studentName}</span>
           </div>
         </td>
-        <td>{submission.program}</td>
-        <td>{submission.overallScore}</td>
-        <td>{convertSecondsToHMS(submission.overallTimeSpent)}</td>
+        <td data-label="Program:">{submission.program}</td>
+        <td data-label="Overall Score:">{submission.overallScore}</td>
+        <td data-label="Overall Time Spent:">{convertSecondsToHMS(submission.overallTimeSpent)}</td>
         <td>
           <Button
             variant="secondary"

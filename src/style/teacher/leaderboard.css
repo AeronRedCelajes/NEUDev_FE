@@ -228,7 +228,7 @@
   .table-content tbody{
     display: flex;
     flex-direction: column;
-    padding-inline: 10px;
+    padding-inline: 20px;
   }
 
   .table-content tr {
@@ -240,7 +240,7 @@
     padding: 10px;
     background-color: #f8f9fa;
     margin-bottom: 20px;
-    box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.20);
+    box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.30);
   }
 
   .table-content tr:not(:last-child) {
@@ -253,6 +253,7 @@
     justify-content: space-between;
     text-align: left;
     padding: 8px;
+    padding-block: 0px;
     font-weight: bold;
     margin: 0 !important; 
   }
@@ -276,16 +277,59 @@
     display: none;
   }
 
-  .table-content .item-border{
-    border: 1px solid #413732;
-    border-radius: 10px;
-    padding: 5px;
+  .table-content .item-student-name{
+    padding-top: 0;
+    padding-bottom: 20px;
+  }
+
+  .table-content .item-border-name {
+    border-top: 1px solid #413732;
+    border-right: 1px solid #413732;
+    border-left: 1px solid #413732;
+    border-radius: 10px 10px 0 0;
+    padding-block: 0;
+    padding-inline: 20px;
     width: 100%;
+  }
+
+  .table-content .item-border-score {
+    border-bottom: 1px solid #413732;
+    border-right: 1px solid #413732;
+    border-left: 1px solid #413732;
+    border-radius: 0 0 10px 10px;
+    padding-block: 0;
+    padding-inline: 20px;
+    width: 100%;
+  }
+
+  .table-content .item-block{
+    color: red;
+  }
+
+  .table-content .item-avg-score{
+    padding-top: 0;
+  }
+
+  .table-content .item-total-score{
+    padding-block: 0;
+    padding-top: 20px;
   }
 
   .table-content th:first-child, .table-content td:first-child {
     padding-left: 10px;
-}
+  }
+
+  .score-circle {
+    background-color: transparent;
+    border: 5px solid transparent;
+    justify-content: flex-start;
+    align-items: center;
+    color: #B84C20;
+  }
+
+  .unenroll-cell button{
+    margin-top: 5px;
+  }
 }
 
 @media (max-width: 425px) {
@@ -304,7 +348,7 @@
 }
 
 @media (max-width: 375px) {
-  .table-content td {
+  .table-content .item-student-name {
     display: block;
   }
 }

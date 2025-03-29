@@ -96,18 +96,18 @@ const LeaderboardItem = ({ name, program, score, timeSpent, rank, profileImage }
 
   return (
     <tr>
-      <td>
+      <td className="item-student-name" data-label="Student Name:">
         <div className="avatar">
           <img src={imageToShow} alt="Avatar" className="avatar-image" />
           <span className="student-name">{name}</span>
         </div>
       </td>
-      <td>{program}</td>
-      <td>
+      <td data-label="Program:">{program}</td>
+      <td data-label="Score:">
         <div className="score-circle">{score}</div>
       </td>
-      <td>{timeSpent}</td>
-      <td>
+      <td data-label="Time Spent:">{timeSpent}</td>
+      <td className="item-rank" data-label="Rank:">
         <div className="score-circle">{rank}</div>
       </td>
     </tr>
