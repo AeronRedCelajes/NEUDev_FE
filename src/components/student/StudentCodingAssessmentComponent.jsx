@@ -1053,16 +1053,17 @@ export const StudentCodingAssessmentComponent = () => {
 
                 {selectedItem && checkCodeStatus[selectedItem] && (
                   <div className="check-code-status">
-                    <span>Check Code Runs: {checkCodeStatus[selectedItem].runCount}</span>
                     <span>
-                      Deducted Score: {
+                      Check Code Attempts: {checkCodeStatus[selectedItem].runCount} / {maxCheckCodeRuns ? maxCheckCodeRuns : 'Unlimited'}
+                    </span>
+                    <span>
+                      Deducted Score: { 
                         (items.find(it => it.itemID === selectedItem)?.actItemPoints || 0) -
                         checkCodeStatus[selectedItem].itemScore
                       }
                     </span>
                   </div>
                 )}
-
               </div>
             </div>
           </Col>
