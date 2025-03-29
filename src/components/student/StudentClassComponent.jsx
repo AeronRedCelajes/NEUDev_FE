@@ -696,6 +696,12 @@ const handleActivityClick = async (activity) => {
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                               <br/>
+                              <strong>Exam Mode: </strong>
+                              {activity.examMode ? "Yes" : "No"}
+                              <br/>
+                              <strong>Randomized Items: </strong>
+                              {activity.randomizedItems ? "Yes" : "No"}
+                              <br/>
                               <strong>Check Code Restriction: </strong>
                               {activity.checkCodeRestriction ? "Yes" : "No"}
                             </div>
@@ -790,6 +796,12 @@ const handleActivityClick = async (activity) => {
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                               <br/>
+                              <strong>Exam Mode: </strong>
+                              {activity.examMode ? "Yes" : "No"}
+                              <br/>
+                              <strong>Randomized Items: </strong>
+                              {activity.randomizedItems ? "Yes" : "No"}
+                              <br/>
                               <strong>Check Code Restriction: </strong>
                               {activity.checkCodeRestriction ? "Yes" : "No"}
                             </div>
@@ -864,6 +876,12 @@ const handleActivityClick = async (activity) => {
                               <br/>
                               <strong>Final Score Policy: </strong>
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                              <br/>
+                              <strong>Exam Mode: </strong>
+                              {activity.examMode ? "Yes" : "No"}
+                              <br/>
+                              <strong>Randomized Items: </strong>
+                              {activity.randomizedItems ? "Yes" : "No"}
                               <br/>
                               <strong>Check Code Restriction: </strong>
                               {activity.checkCodeRestriction ? "Yes" : "No"}

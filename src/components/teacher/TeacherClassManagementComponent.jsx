@@ -505,7 +505,14 @@ export const TeacherClassManagementComponent = () => {
           itemID:         it.itemID,
           itemTypeID:     it.itemTypeID,
           actItemPoints:  it.itemPoints
-        }))
+        })),
+      // NEW: Include the new fields
+      examMode: editFormData.examMode,
+      randomizedItems: editFormData.randomizedItems,
+      // Check Code fields remain here...
+      checkCodeRestriction: editFormData.checkCodeRestriction,
+      maxCheckCodeRuns: editFormData.checkCodeRestriction ? parseInt(editFormData.maxCheckCodeRuns, 10) : null,
+      checkCodeDeduction: editFormData.checkCodeRestriction ? parseFloat(editFormData.checkCodeDeduction) : null,
     };
 
     try {
@@ -845,6 +852,11 @@ export const TeacherClassManagementComponent = () => {
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                                 <br/>
+                                <strong>Exam Mode: </strong>
+                                {activity.examMode ? "Yes" : "No"}
+                                <br/>
+                                <strong>Randomized Items: </strong>
+                                {activity.randomizedItems ? "Yes" : "No"}
                                 <br/>
                                 <strong>Check Code Restriction: </strong>
                                 {activity.checkCodeRestriction
@@ -976,6 +988,12 @@ export const TeacherClassManagementComponent = () => {
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                                 <br/>
+                                <strong>Exam Mode: </strong>
+                                {activity.examMode ? "Yes" : "No"}
+                                <br/>
+                                <strong>Randomized Items: </strong>
+                                {activity.randomizedItems ? "Yes" : "No"}
+                                <br/>
                                 <strong>Check Code Restriction: </strong>
                                 {activity.checkCodeRestriction
                                   ? `Yes – Max Runs: ${activity.maxCheckCodeRuns}, Deduction: ${activity.checkCodeDeduction}%`
@@ -1105,6 +1123,12 @@ export const TeacherClassManagementComponent = () => {
                                 <br/>
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
+                                <br/>
+                                <strong>Exam Mode: </strong>
+                                {activity.examMode ? "Yes" : "No"}
+                                <br/>
+                                <strong>Randomized Items: </strong>
+                                {activity.randomizedItems ? "Yes" : "No"}
                                 <br/>
                                 <strong>Check Code Restriction: </strong>
                                 {activity.checkCodeRestriction
