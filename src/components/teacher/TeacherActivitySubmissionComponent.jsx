@@ -102,6 +102,12 @@ const SubmissionItem = ({ submission, actID, classID }) => {
     setExpanded(!expanded);
   };
 
+  // Helper function (you can import or define it here)
+  const formatPoints = (value) => {
+    const rounded = Math.round(value * 100) / 100;
+    return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2);
+  };
+
   return (
     <>
       <tr className="submission-summary" onClick={toggleExpanded}>
@@ -115,7 +121,7 @@ const SubmissionItem = ({ submission, actID, classID }) => {
           </div>
         </td>
         <td>{submission.program}</td>
-        <td>{submission.overallScore}</td>
+        <td>{formatPoints(submission.overallScore)}</td>
         <td>{convertSecondsToHMS(submission.overallTimeSpent)}</td>
         <td>
           <Button
@@ -145,7 +151,7 @@ const SubmissionItem = ({ submission, actID, classID }) => {
                 {submission.attempts.map((attempt, idx) => (
                   <tr key={idx}>
                     <td>{attempt.attemptNo}</td>
-                    <td>{attempt.totalScore}</td>
+                    <td>{formatPoints(attempt.totalScore)}</td>
                     <td>{convertSecondsToHMS(attempt.totalTimeSpent)}</td>
                     <td>
                       <Button
