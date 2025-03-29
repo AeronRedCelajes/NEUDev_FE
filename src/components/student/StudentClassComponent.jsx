@@ -696,13 +696,13 @@ const handleActivityClick = async (activity) => {
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                               <br/>
                               <strong>Exam Mode: </strong>
-                              {activity.examMode ? "Yes" : "No"}
+                              {activity.examMode}
                               <br/>
                               <strong>Randomized Items: </strong>
-                              {activity.randomizedItems ? "Yes" : "No"}
+                              {activity.randomizedItems}
                               <br/>
                               <strong>Check Code Restriction: </strong>
-                              {activity.checkCodeRestriction ? "Yes" : "No"}
+                              {activity.checkCodeRestriction}
                             </div>
                           </div>
                         </Col>
@@ -796,13 +796,13 @@ const handleActivityClick = async (activity) => {
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                               <br/>
                               <strong>Exam Mode: </strong>
-                              {activity.examMode ? "Yes" : "No"}
+                              {activity.examMode}
                               <br/>
                               <strong>Randomized Items: </strong>
-                              {activity.randomizedItems ? "Yes" : "No"}
+                              {activity.randomizedItems}
                               <br/>
                               <strong>Check Code Restriction: </strong>
-                              {activity.checkCodeRestriction ? "Yes" : "No"}
+                              {activity.checkCodeRestriction}
                             </div>
                           </div>
                         </Col>
@@ -877,13 +877,13 @@ const handleActivityClick = async (activity) => {
                               {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                               <br/>
                               <strong>Exam Mode: </strong>
-                              {activity.examMode ? "Yes" : "No"}
+                              {activity.examMode}
                               <br/>
                               <strong>Randomized Items: </strong>
-                              {activity.randomizedItems ? "Yes" : "No"}
+                              {activity.randomizedItems}
                               <br/>
                               <strong>Check Code Restriction: </strong>
-                              {activity.checkCodeRestriction ? "Yes" : "No"}
+                              {activity.checkCodeRestriction}
                             </div>
                           </div>
                         </Col>
