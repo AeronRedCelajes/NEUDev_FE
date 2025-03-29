@@ -52,7 +52,7 @@ export const TeacherCreateActivityComponent = () => {
   const [checkCodeDeduction, setCheckCodeDeduction] = useState("");
 
   // -------------------- Item Bank State --------------------
-  const [selectedItems, setSelectedItems] = useState([null, null, null]);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [presetItems, setPresetItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
@@ -327,6 +327,16 @@ export const TeacherCreateActivityComponent = () => {
     }
   };
 
+  const handleAddItem = () => {
+    setSelectedItems([...selectedItems, null]);
+  };
+
+  const handleRemoveItem = (index) => {
+    const updated = [...selectedItems];
+    updated.splice(index, 1);
+    setSelectedItems(updated);
+  };
+
   return (
     <div className="whole-container">
       <TeacherCMNavigationBarComponent />
@@ -356,9 +366,9 @@ export const TeacherCreateActivityComponent = () => {
               />
             </div>
 
-            {/* 3 Item Slots */}
+            {/* Unlimited Item Slots */}
             <div className='question-section'>
-              <h5>Set Items (Maximum of 3)</h5>
+              <h5>Set Items</h5>
               {selectedItems.map((item, index) => (
                 <div 
                   key={index} 
@@ -377,6 +387,16 @@ export const TeacherCreateActivityComponent = () => {
                     required={index === 0}
                     style={{ flex: 1 }}
                   />
+                  <Button 
+                    variant="outline-danger" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveItem(index);
+                    }}
+                    style={{ marginLeft: "8px" }}
+                  >
+                    Remove
+                  </Button>
                   {item && (item.programming_languages || item.programmingLanguages) && (
                     <div style={{ marginLeft: "8px" }}>
                       {(item.programming_languages || item.programmingLanguages || []).map((langObj, i) => {
@@ -399,6 +419,7 @@ export const TeacherCreateActivityComponent = () => {
                   )}
                 </div>
               ))}
+              <Button onClick={handleAddItem}>+ Add Item</Button>
             </div>
 
             {/* Difficulty + Date/Time */}
