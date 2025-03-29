@@ -1233,7 +1233,7 @@ function getProgressEndpoint(actID) {
   return `${API_LINK}/student/activities/${actID}/progress`;
 }
 
-// Helper function for check code endpoint
+// Helper function for check code endpoint that takes the user role into account.
 function getCheckCodeEndpoint(actID, itemID) {
   const sessionData = getSessionData();
   const role = sessionData.user_type;
@@ -1287,7 +1287,7 @@ async function clearActivityProgress(actID) {
 
 /**
  * Run check code for a specific item in an activity.
- * Uses the new getCheckCodeEndpoint helper so that it returns the teacher or student endpoint appropriately.
+ * This uses the new getCheckCodeEndpoint helper to return the correct URL for teacher or student.
  */
 async function runCheckCode(actID, itemID, payload = {}) {
   const sessionData = getSessionData();
