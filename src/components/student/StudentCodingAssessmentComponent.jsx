@@ -1054,14 +1054,12 @@ export const StudentCodingAssessmentComponent = () => {
                 {selectedItem && checkCodeStatus[selectedItem] && (
                   <div className="check-code-status">
                     <span>
-                      Check Code Attempts: {checkCodeStatus[selectedItem].runCount} / {maxCheckCodeRuns ? maxCheckCodeRuns : 'Unlimited'}
+                      Check Code Runs: {checkCodeStatus[selectedItem].runCount} 
+                      {maxCheckCodeRuns ? ` / ${maxCheckCodeRuns}` : ""}
                     </span>
-                    <span>
-                      Deducted Score: { 
-                        (items.find(it => it.itemID === selectedItem)?.actItemPoints || 0) -
-                        checkCodeStatus[selectedItem].itemScore
-                      }
-                    </span>
+                    {/* <span>
+                      Deducted Score: {(items.find(it => it.itemID === selectedItem)?.actItemPoints || 0) - checkCodeStatus[selectedItem].itemScore}
+                    </span> */}
                   </div>
                 )}
               </div>
