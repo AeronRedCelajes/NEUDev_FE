@@ -102,8 +102,10 @@ export const TeacherClassManagementComponent = () => {
     actDuration: '', // in minutes (string)
     actAttempts: '', // NEW: store attempts as string
     finalScorePolicy: 'last_attempt', // NEW: default policy
-    // renamed "questions" -> "items"
-    items: ['', '', ''],
+    checkCodeRestriction: false,      // NEW: default off
+    maxCheckCodeRuns: '',             // NEW: empty initially
+    checkCodeDeduction: '',           // NEW: empty initially
+    items: [],
   });
   const [allProgrammingLanguages, setAllProgrammingLanguages] = useState([]);
   const [editSelectedProgLangs, setEditSelectedProgLangs] = useState([]);
@@ -450,16 +452,19 @@ export const TeacherClassManagementComponent = () => {
 
     // NEW: Include actAttempts and finalScorePolicy (converted to string for form control)
     setEditFormData({
-      actTitle:       activity.actTitle || '',
-      actDesc:        activity.actDesc || '',
-      actDifficulty:  activity.actDifficulty || '',
-      openDate:       activity.openDate ? activity.openDate.slice(0, 16) : '',
-      closeDate:      activity.closeDate ? activity.closeDate.slice(0, 16) : '',
-      maxPoints:      activity.maxPoints ? activity.maxPoints.toString() : '',
-      actDuration:    totalMinutes,
-      actAttempts:    activity.actAttempts !== undefined ? activity.actAttempts.toString() : "0",
+      actTitle: activity.actTitle || '',
+      actDesc: activity.actDesc || '',
+      actDifficulty: activity.actDifficulty || '',
+      openDate: activity.openDate ? activity.openDate.slice(0, 16) : '',
+      closeDate: activity.closeDate ? activity.closeDate.slice(0, 16) : '',
+      maxPoints: activity.maxPoints ? activity.maxPoints.toString() : '',
+      actDuration: totalMinutes,
+      actAttempts: activity.actAttempts !== undefined ? activity.actAttempts.toString() : "0",
       finalScorePolicy: activity.finalScorePolicy || "last_attempt",
-      items:          existingItems
+      checkCodeRestriction: activity.checkCodeRestriction || false,
+      maxCheckCodeRuns: activity.maxCheckCodeRuns ? activity.maxCheckCodeRuns.toString() : '',
+      checkCodeDeduction: activity.checkCodeDeduction ? activity.checkCodeDeduction.toString() : '',
+      items: existingItems,
     });
 
     const existingLangIDs = (activity.programming_languages || []).map(lang => lang.progLangID);
@@ -631,6 +636,29 @@ export const TeacherClassManagementComponent = () => {
       // Reset copied state after 2 seconds
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleAddItemEdit = () => {
+    setEditFormData({
+      ...editFormData,
+      items: [
+        ...editFormData.items,
+        {
+          itemID: null,
+          itemName: "",
+          itemDifficulty: "-",
+          itemTypeID: null,
+          itemPoints: 0,
+          programming_languages: []
+        }
+      ]
+    });
+  };
+
+  const handleDeleteItemAtIndex = (index) => {
+    const updatedItems = [...editFormData.items];
+    updatedItems.splice(index, 1);
+    setEditFormData({ ...editFormData, items: updatedItems });
   };
 
   // -------------------- Rendering --------------------
@@ -815,6 +843,11 @@ export const TeacherClassManagementComponent = () => {
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                                 <br/>
+                                <br/>
+                                <strong>Check Code Restriction: </strong>
+                                {activity.checkCodeRestriction
+                                  ? `Yes – Max Runs: ${activity.maxCheckCodeRuns}, Deduction: ${activity.checkCodeDeduction}%`
+                                  : "No"}
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
@@ -941,6 +974,10 @@ export const TeacherClassManagementComponent = () => {
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                                 <br/>
+                                <strong>Check Code Restriction: </strong>
+                                {activity.checkCodeRestriction
+                                  ? `Yes – Max Runs: ${activity.maxCheckCodeRuns}, Deduction: ${activity.checkCodeDeduction}%`
+                                  : "No"}
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
@@ -1067,6 +1104,10 @@ export const TeacherClassManagementComponent = () => {
                                 <strong>Final Score Policy: </strong>
                                 {activity.finalScorePolicy === "highest_score" ? "Highest Score" : "Last Attempt"}
                                 <br/>
+                                <strong>Check Code Restriction: </strong>
+                                {activity.checkCodeRestriction
+                                  ? `Yes – Max Runs: ${activity.maxCheckCodeRuns}, Deduction: ${activity.checkCodeDeduction}%`
+                                  : "No"}
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
@@ -1199,6 +1240,68 @@ export const TeacherClassManagementComponent = () => {
                   Choose whether the final score is determined by the student's last submission or their highest score.
                 </Form.Text>
               </Form.Group>
+
+              {/* NEW: Check Code Restriction Group */}
+              <Form.Group controlId="formCheckCodeRestriction" className="mt-3">
+                <Form.Label>Check Code Restriction</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={editFormData.checkCodeRestriction ? "yes" : "no"}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      checkCodeRestriction: e.target.value === "yes",
+                    })
+                  }
+                  required
+                >
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </Form.Control>
+                <Form.Text className="text-muted">
+                  Choose "Yes" to enable check code deduction for this activity.
+                </Form.Text>
+              </Form.Group>
+
+              {/* If Check Code Restriction is enabled, show additional fields */}
+              {editFormData.checkCodeRestriction && (
+                <>
+                  <Form.Group controlId="formMaxCheckCodeRuns" className="mt-3">
+                    <Form.Label>Max Check Code Runs (per item)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      min="1"
+                      value={editFormData.maxCheckCodeRuns || ""}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          maxCheckCodeRuns: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="formCheckCodeDeduction" className="mt-3">
+                    <Form.Label>Deduction Percentage per Extra Run</Form.Label>
+                    <Form.Control
+                      type="number"
+                      min="0"
+                      value={editFormData.checkCodeDeduction || ""}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          checkCodeDeduction: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                    <Form.Text className="text-muted">
+                      e.g., 10 means each extra run deducts 10% of the item points.
+                    </Form.Text>
+                  </Form.Group>
+                </>
+              )}
+
               <Form.Group controlId="formSelectProgLang" className="mt-3">
                 <Form.Label>Select Programming Languages</Form.Label>
                 <div style={{ marginBottom: "0.5rem" }}>
@@ -1232,7 +1335,7 @@ export const TeacherClassManagementComponent = () => {
                 />
               </Form.Group>
               <Form.Group className="mt-3">
-                <Form.Label>Items (up to 3)</Form.Label>
+                <Form.Label>Items</Form.Label>
                 {editFormData.items.map((it, index) => (
                   <div
                     key={index}
@@ -1273,8 +1376,21 @@ export const TeacherClassManagementComponent = () => {
                         })}
                       </div>
                     )}
+                    <Button
+                      variant="outline-danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteItemAtIndex(index);
+                      }}
+                      style={{ marginLeft: "8px" }}
+                    >
+                      Remove
+                    </Button>
                   </div>
                 ))}
+                <Button onClick={handleAddItemEdit} className="mt-2">
+                  + Add Item
+                </Button>
               </Form.Group>
             </Modal.Body>
             <Modal.Footer>
