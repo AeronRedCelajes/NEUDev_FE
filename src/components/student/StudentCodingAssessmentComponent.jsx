@@ -29,7 +29,8 @@ import {
   saveActivityProgress, 
   clearActivityProgress,
   getCurrentUserKey,
-  runCheckCode 
+  runCheckCode,
+  getActivityProgress
 } from '../api/API';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -681,7 +682,7 @@ export const StudentCodingAssessmentComponent = () => {
       const response = await runCheckCode(actID, selectedItem);
       if (!response.error) {
         // Now fetch the updated progress from the backend
-        const progressResp = await getProgress(actID);
+        const progressResp = await getActivityProgress(actID);
         if (!progressResp.error && progressResp.progress && progressResp.progress.length) {
           const backendData = progressResp.progress[0];
           const runsData = backendData.checkCodeRuns;      // e.g. { "123": 2, "456": 1 }
@@ -706,7 +707,7 @@ export const StudentCodingAssessmentComponent = () => {
       setLoading(false);
     }
   };
-  
+
   // Modified handler that integrates both check code deduction and test case runs
   const handleCheckCode = async () => {
     if (!selectedItem || isSubmitted || timeExpired) return;
