@@ -365,7 +365,7 @@ export const StudentCodingAssessmentComponent = () => {
       draftSelectedLanguage: selectedLanguage.name, // renamed key
       draftScore: computeTotalScore(),
       draftItemTimes: JSON.stringify(itemTimes), // renamed key
-      draftCheckCodeRuns: JSON.stringify(checkCodeStatus)
+      // draftCheckCodeRuns: JSON.stringify(checkCodeStatus)
       // Removed draftTimeSpent since it's no longer needed.
     };
     saveActivityProgress(actID, progressData)
@@ -676,17 +676,27 @@ export const StudentCodingAssessmentComponent = () => {
   const handleCheckCodeRun = async () => {
     if (!selectedItem || isSubmitted || timeExpired) return;
     setLoading(true);
+  
     try {
       const response = await runCheckCode(actID, selectedItem);
       if (!response.error) {
-        // Assume response includes runCount and itemScore (the deducted score after extra runs)
-        setCheckCodeStatus(prev => ({
-          ...prev,
-          [selectedItem]: {
-            runCount: response.runCount,
-            itemScore: response.itemScore
+        // Now fetch the updated progress from the backend
+        const progressResp = await getProgress(actID);
+        if (!progressResp.error && progressResp.progress && progressResp.progress.length) {
+          const backendData = progressResp.progress[0];
+          const runsData = backendData.checkCodeRuns;      // e.g. { "123": 2, "456": 1 }
+          const scoresData = backendData.deductedScore;    // e.g. { "123": 90, "456": 100 }
+  
+          if (runsData && runsData[selectedItem] !== undefined) {
+            setCheckCodeStatus(prev => ({
+              ...prev,
+              [selectedItem]: {
+                runCount: runsData[selectedItem],
+                itemScore: scoresData?.[selectedItem] ?? 0
+              }
+            }));
           }
-        }));
+        }
       } else {
         console.error("Check code run error:", response.error);
       }
@@ -696,7 +706,7 @@ export const StudentCodingAssessmentComponent = () => {
       setLoading(false);
     }
   };
-
+  
   // Modified handler that integrates both check code deduction and test case runs
   const handleCheckCode = async () => {
     if (!selectedItem || isSubmitted || timeExpired) return;
