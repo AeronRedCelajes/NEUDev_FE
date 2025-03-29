@@ -13,8 +13,8 @@ import {
   getSessionData
 } from '../api/API';
 
-// Import the new ItemCreationModal component
-import ItemCreationModal from './ItemCreationModal';
+// Import the new TeacherItemCreationModal component
+import TeacherItemCreationModal from './TeacherItemCreationModal';
 
 const programmingLanguageMap = {
   "C#":     { name: "C#",     image: "/src/assets/c.png" },
@@ -640,7 +640,7 @@ export const TeacherCreateActivityComponent = () => {
         </Modal>
 
         {/* New Item Creation Modal */}
-        <ItemCreationModal
+        <TeacherItemCreationModal
           show={showItemCreationModal}
           onClose={() => setShowItemCreationModal(false)}
           onItemCreated={(newItem) => {
