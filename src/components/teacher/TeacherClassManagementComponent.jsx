@@ -431,16 +431,16 @@ export const TeacherClassManagementComponent = () => {
           []
       }));
     }
-    while (existingItems.length < 3) {
-      existingItems.push({
-        itemID: null,
-        itemName: "",
-        itemDifficulty: "-",
-        itemTypeID: null,
-        itemPoints: 0,
-        programming_languages: []
-      });
-    }
+    // while (existingItems.length < 3) {
+    //   existingItems.push({
+    //     itemID: null,
+    //     itemName: "",
+    //     itemDifficulty: "-",
+    //     itemTypeID: null,
+    //     itemPoints: 0,
+    //     programming_languages: []
+    //   });
+    // }
 
     let totalMinutes = "";
     if (activity.actDuration) {
