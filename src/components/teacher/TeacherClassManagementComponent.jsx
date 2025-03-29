@@ -862,6 +862,7 @@ export const TeacherClassManagementComponent = () => {
                                 {activity.checkCodeRestriction
                                   ? `Yes – Max Runs: ${activity.maxCheckCodeRuns}, Deduction: ${activity.checkCodeDeduction}%`
                                   : "No"}
+                                <br/>
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
@@ -999,6 +1000,7 @@ export const TeacherClassManagementComponent = () => {
                                   ? `Yes – Max Runs: ${activity.maxCheckCodeRuns}, Deduction: ${activity.checkCodeDeduction}%`
                                   : "No"}
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
+                                <br/>
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
                             </div>
@@ -1135,6 +1137,7 @@ export const TeacherClassManagementComponent = () => {
                                   ? `Yes – Max Runs: ${activity.maxCheckCodeRuns}, Deduction: ${activity.checkCodeDeduction}%`
                                   : "No"}
                                 <FontAwesomeIcon icon={faClock} style={{ marginRight: "5px" }} />
+                                <br/>
                                 Duration: {activity.actDuration ? activity.actDuration : "-"}
                               </div>
                             </div>
