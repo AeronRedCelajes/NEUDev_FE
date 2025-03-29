@@ -3,8 +3,8 @@ import React, { useEffect, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { useAlert } from "../AlertContext";
-import { getProgrammingLanguages } from "../api/API";
+import { useAlert } from "../AlertContext.jsx";
+import { getProgrammingLanguages } from "../api/API.js";
 
 // Optional language icon mapping – adjust as needed.
 const programmingLanguageMap = {
