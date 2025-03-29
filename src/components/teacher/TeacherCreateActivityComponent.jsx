@@ -51,6 +51,10 @@ export const TeacherCreateActivityComponent = () => {
   const [maxCheckCodeRuns, setMaxCheckCodeRuns] = useState("");
   const [checkCodeDeduction, setCheckCodeDeduction] = useState("");
 
+  // -------------------- Activity Settings --------------------
+  const [examMode, setExamMode] = useState(false);
+  const [randomizedItems, setRandomizedItems] = useState(false);
+
   // -------------------- Item Bank State --------------------
   const [selectedItems, setSelectedItems] = useState([]);
   const [presetItems, setPresetItems] = useState([]);
@@ -302,6 +306,8 @@ export const TeacherCreateActivityComponent = () => {
       items: finalItems,
       actAttempts: parseInt(activityAttempts, 10),
       finalScorePolicy, // either "last_attempt" or "highest_score"
+      examMode,         // examMode is a boolean
+      randomizedItems,  // randomizedItems is a boolean
       // NEW: Check Code Settings Integration
       checkCodeRestriction,
       maxCheckCodeRuns: checkCodeRestriction ? parseInt(maxCheckCodeRuns, 10) : null,
@@ -498,6 +504,34 @@ export const TeacherCreateActivityComponent = () => {
               </Form.Select>
               <Form.Text>
                 Choose whether the final score is determined by the student's last submission or their highest score.
+              </Form.Text>
+            </Form.Group>
+
+            {/* Exam Mode */}
+            <Form.Group className="activity mt-3 me-3">
+              <Form.Label>Exam Mode</Form.Label>
+              <Form.Check 
+                type="checkbox"
+                label="Enable Exam Mode"
+                checked={examMode}
+                onChange={(e) => setExamMode(e.target.checked)}
+              />
+              <Form.Text>
+                When enabled, the activity will function as an exam.
+              </Form.Text>
+            </Form.Group>
+
+            {/* Randomized Items */}
+            <Form.Group className="activity mt-3 me-3">
+              <Form.Label>Randomize Items</Form.Label>
+              <Form.Check 
+                type="checkbox"
+                label="Randomize the order of items"
+                checked={randomizedItems}
+                onChange={(e) => setRandomizedItems(e.target.checked)}
+              />
+              <Form.Text>
+                When enabled, the order of items will be randomized for each student.
               </Form.Text>
             </Form.Group>
 

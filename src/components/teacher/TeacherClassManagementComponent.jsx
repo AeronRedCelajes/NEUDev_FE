@@ -461,6 +461,8 @@ export const TeacherClassManagementComponent = () => {
       actDuration: totalMinutes,
       actAttempts: activity.actAttempts !== undefined ? activity.actAttempts.toString() : "0",
       finalScorePolicy: activity.finalScorePolicy || "last_attempt",
+      examMode: activity.examMode || false,
+      randomizedItems: activity.randomizedItems || false,
       checkCodeRestriction: activity.checkCodeRestriction || false,
       maxCheckCodeRuns: activity.maxCheckCodeRuns ? activity.maxCheckCodeRuns.toString() : '',
       checkCodeDeduction: activity.checkCodeDeduction ? activity.checkCodeDeduction.toString() : '',
@@ -1238,6 +1240,44 @@ export const TeacherClassManagementComponent = () => {
                 </Form.Control>
                 <Form.Text className="text-muted">
                   Choose whether the final score is determined by the student's last submission or their highest score.
+                </Form.Text>
+              </Form.Group>
+
+              {/* NEW: Exam Mode */}
+              <Form.Group controlId="formExamMode" className="mt-3">
+                <Form.Label>Exam Mode</Form.Label>
+                <Form.Check 
+                  type="checkbox"
+                  label="Enable Exam Mode"
+                  checked={editFormData.examMode}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      examMode: e.target.checked,
+                    })
+                  }
+                />
+                <Form.Text className="text-muted">
+                  When enabled, the activity will function as an exam.
+                </Form.Text>
+              </Form.Group>
+
+              {/* NEW: Randomized Items */}
+              <Form.Group controlId="formRandomizedItems" className="mt-3">
+                <Form.Label>Randomize Items</Form.Label>
+                <Form.Check 
+                  type="checkbox"
+                  label="Randomize the order of items"
+                  checked={editFormData.randomizedItems}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      randomizedItems: e.target.checked,
+                    })
+                  }
+                />
+                <Form.Text className="text-muted">
+                  When enabled, the items will be shown in random order for each student.
                 </Form.Text>
               </Form.Group>
 
