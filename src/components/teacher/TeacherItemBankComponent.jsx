@@ -950,13 +950,13 @@ export default function TeacherItemBankComponent() {
 
                       <Form.Label>Points (auto-distributed)</Form.Label>
                       <Form.Control
-                        type="number"
+                        type="text"
+                        readOnly
                         value={
                           itemData.itemPoints && itemData.testCases.length > 0
-                            ? (Number(itemData.itemPoints) / itemData.testCases.length).toFixed(2)
+                            ? formatPoints(itemData.itemPoints, itemData.testCases.length)
                             : ""
                         }
-                        readOnly
                       />
                       <Form.Check
                         type="checkbox"
