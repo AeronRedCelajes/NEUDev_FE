@@ -28,7 +28,8 @@ import {
   finalizeSubmission, 
   saveActivityProgress, 
   clearActivityProgress,
-  getCurrentUserKey 
+  getCurrentUserKey,
+  runCheckCode 
 } from '../api/API';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -122,9 +123,14 @@ export const StudentCodingAssessmentComponent = () => {
   const [expandedTestCases, setExpandedTestCases] = useState({});
   const [expandedSummaryItems, setExpandedSummaryItems] = useState([]);
 
-  // --- New: Track per-item times --- 
+  // --- Track per-item times --- 
   // itemTimes: { [itemID]: { start: timestamp, accumulated: seconds } }
   const [itemTimes, setItemTimes] = useState({});
+
+  // Running Check Code
+  const [checkCodeStatus, setCheckCodeStatus] = useState({}); // structure: { [itemID]: { runCount, itemScore } }
+  const [maxCheckCodeRuns, setMaxCheckCodeRuns] = useState(null);
+
 
   // --- Helper: Format seconds into HH:MM:SS ---
   const formatTimeLeft = (seconds) => {
@@ -150,6 +156,15 @@ export const StudentCodingAssessmentComponent = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [actID, userID]);
 
+  function shuffleArray(array) {
+    const newArr = array.slice();
+    for (let i = newArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+  }
+
   // --- Fetch activity data ---
   useEffect(() => {
     async function fetchActivityData() {
@@ -163,9 +178,14 @@ export const StudentCodingAssessmentComponent = () => {
           if (resp.finalScorePolicy) {
             setFinalScorePolicy(resp.finalScorePolicy);
           }
-          setItems(resp.items || []);
-          if (resp.items && resp.items.length > 0) {
-            toggleItem(resp.items[0].itemID);
+          let fetchedItems = resp.items || [];
+          // If randomizedItems flag is true, shuffle the items:
+          if (resp.randomizedItems) {
+            fetchedItems = shuffleArray(fetchedItems);
+          }
+          setItems(fetchedItems);
+          if (fetchedItems.length > 0) {
+            toggleItem(fetchedItems[0].itemID);
           }
           if (resp.allowedLanguages && resp.allowedLanguages.length > 0) {
             setProgrammingLanguages(resp.allowedLanguages);
@@ -174,6 +194,9 @@ export const StudentCodingAssessmentComponent = () => {
               name: first.progLangName,
               imgSrc: languageIconMap[first.progLangName] || '/src/assets/py.png'
             });
+          }
+          if (resp.maxCheckCodeRuns) {
+            setMaxCheckCodeRuns(resp.maxCheckCodeRuns);
           }
         }
       } catch (err) {
@@ -327,6 +350,8 @@ export const StudentCodingAssessmentComponent = () => {
     parsed.draftTimeRemaining = timeLeft; // renamed key
     parsed.draftScore = computeTotalScore();
     parsed.selectedItem = selectedItem;
+    parsed.draftCheckCodeRuns = checkCodeStatus;
+
     if (originalEndTime) {
       parsed.endTime = originalEndTime;
     }
@@ -339,13 +364,14 @@ export const StudentCodingAssessmentComponent = () => {
       draftTimeRemaining: timeLeft, // renamed key
       draftSelectedLanguage: selectedLanguage.name, // renamed key
       draftScore: computeTotalScore(),
-      draftItemTimes: JSON.stringify(itemTimes) // renamed key
+      draftItemTimes: JSON.stringify(itemTimes), // renamed key
+      draftCheckCodeRuns: JSON.stringify(checkCodeStatus)
       // Removed draftTimeSpent since it's no longer needed.
     };
     saveActivityProgress(actID, progressData)
       .then(res => console.log("Progress saved to server:", res))
       .catch(err => console.error("Error saving progress:", err));
-  }, [files, activeFileId, testCaseResults, itemTimes, stateKey, hasLoadedSavedState, timeLeft, selectedLanguage, isSubmitted]);
+  }, [files, activeFileId, testCaseResults, itemTimes, checkCodeStatus, stateKey, hasLoadedSavedState, timeLeft, selectedLanguage, isSubmitted]);
 
   // --- Periodic progress sync every 5 seconds ---
   useEffect(() => {
@@ -646,13 +672,45 @@ export const StudentCodingAssessmentComponent = () => {
     });
   };
 
+  // New handler to update check code run count and score deduction
+  const handleCheckCodeRun = async () => {
+    if (!selectedItem || isSubmitted || timeExpired) return;
+    setLoading(true);
+    try {
+      const response = await runCheckCode(actID, selectedItem);
+      if (!response.error) {
+        // Assume response includes runCount and itemScore (the deducted score after extra runs)
+        setCheckCodeStatus(prev => ({
+          ...prev,
+          [selectedItem]: {
+            runCount: response.runCount,
+            itemScore: response.itemScore
+          }
+        }));
+      } else {
+        console.error("Check code run error:", response.error);
+      }
+    } catch (err) {
+      console.error("Error during check code run:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Modified handler that integrates both check code deduction and test case runs
   const handleCheckCode = async () => {
     if (!selectedItem || isSubmitted || timeExpired) return;
+    
+    // First, update check code run count and deduction
+    await handleCheckCodeRun();
+    
+    // Then, run test cases as before for output verification
     setTestCaseResults(prev => {
       const copy = { ...prev };
       delete copy[selectedItem];
       return copy;
     });
+    
     const itemData = items.find(it => it.itemID === selectedItem);
     if (!itemData || !itemData.testCases) return;
     for (let i = 0; i < itemData.testCases.length; i++) {
@@ -970,7 +1028,19 @@ export const StudentCodingAssessmentComponent = () => {
                     </>
                   )}
                 </Button>
-                <Button className='check' onClick={handleCheckCode} disabled={loading || isSubmitted || timeExpired}>
+                <Button
+                  className='check'
+                  onClick={handleCheckCode}
+                  disabled={
+                    loading ||
+                    isSubmitted ||
+                    timeExpired ||
+                    (selectedItem &&
+                      checkCodeStatus[selectedItem] &&
+                      maxCheckCodeRuns &&
+                      checkCodeStatus[selectedItem].runCount >= maxCheckCodeRuns)
+                  }
+                >
                   {loading ? (
                     <Spinner animation='border' size='sm' />
                   ) : (
@@ -980,6 +1050,19 @@ export const StudentCodingAssessmentComponent = () => {
                     </>
                   )}
                 </Button>
+
+                {selectedItem && checkCodeStatus[selectedItem] && (
+                  <div className="check-code-status">
+                    <span>Check Code Runs: {checkCodeStatus[selectedItem].runCount}</span>
+                    <span>
+                      Deducted Score: {
+                        (items.find(it => it.itemID === selectedItem)?.actItemPoints || 0) -
+                        checkCodeStatus[selectedItem].itemScore
+                      }
+                    </span>
+                  </div>
+                )}
+
               </div>
             </div>
           </Col>

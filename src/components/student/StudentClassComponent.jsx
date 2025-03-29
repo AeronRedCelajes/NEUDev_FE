@@ -143,23 +143,32 @@ export const StudentClassComponent = () => {
         const serverProgress = progressResponse.progress[0];
         const local = localStorage.getItem(key);
         let mergedProgress = {};
-
+  
         if (local) {
           const parsedLocal = JSON.parse(local);
-          // Merge server progress, preserving the local computed endTime if set.
+          // Merge server progress while preserving local values like the timer and itemTimes.
           mergedProgress = {
             ...parsedLocal,
             ...serverProgress,
             endTime: parsedLocal.endTime, // retain local timer if already set
-            itemTimes: parsedLocal.itemTimes || serverProgress.itemTimes // merge itemTimes
+            itemTimes: parsedLocal.itemTimes || serverProgress.itemTimes
           };
         } else {
           mergedProgress = serverProgress;
         }
+  
+        // Save the merged progress in localStorage.
         localStorage.setItem(key, JSON.stringify(mergedProgress));
+        
+        // *** NEW: Decode the draftCheckCodeRuns property and update checkCodeStatus state ***
+        if (mergedProgress.draftCheckCodeRuns) {
+          const decodedCheckCodeRuns = JSON.parse(mergedProgress.draftCheckCodeRuns);
+          setCheckCodeStatus(decodedCheckCodeRuns);
+        }
+  
         console.log("[syncProgressFromServer] Merged progress:", mergedProgress);
       } else {
-        // If there is no progress from the server, clear any existing local storage.
+        // No progress found on the server; clear the local storage.
         localStorage.removeItem(key);
         console.log("[syncProgressFromServer] No progress found on server. Cleared local storage for key:", key);
       }
