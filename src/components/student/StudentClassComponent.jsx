@@ -245,7 +245,6 @@ const handleActivityClick = async (activity) => {
 
   // Check attempt limit
   if (activity.actAttempts > 0 && (activity.attemptsTaken || 0) >= activity.actAttempts) {
-    console.log("[handleActivityClick] Maximum attempts reached.");
     setModalTitle("Maximum Attempts Reached");
     setModalMessage("You have already taken the maximum number of attempts for this activity.");
     setShowModal(true);
